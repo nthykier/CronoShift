@@ -1,0 +1,20 @@
+2D SuperFun!
++++++
++S b+
+++-++
++  b+
+++-++
++  G+
++++++
+
+button (3, 1) -> gate (2, 2)
+button (3, 3) -> gate (2, 4)
+
+Description: Show that a button can affect more than one gate
+ and it is not always enough to just "keep it pressed!".
+Solution:
+ EE HH HH HH HH HH WW
+ .
+ EH SS EH HH HH WN NW
+ .
+ EH SS HS SE WN NN NW

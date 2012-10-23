@@ -1,0 +1,12 @@
+2D SuperFun!
++++++
++S  +
++   +
++  G+
++++++
+
+nothing
+
+Description: Straight forward.
+Solution: 
+ EE SS WW NN

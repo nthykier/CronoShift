@@ -1,0 +1,30 @@
+Legend:
+
+ " " is "field"
+ "+" is "Wall" (impassible)
+ "S" is "Start location"
+ "G" is "Goal" (pick up and return to start)
+ "-" is "Gate" (closed)
+ "_" is "Gate" (open)
+ "c" is "Crate" (pushable wall)
+ "b" is "Button" (toggles gates; can be triggered by players + crates)
+ "B" is "Button" (toggles gates; can be triggered crates only)
+
+
+Solution/Movement:
+
+ "N" is "North"
+ "E" is "East"
+ "W" is "West"
+ "S" is "South"
+ "H" is "Hold (Position)" (i.e. "Do nothing")
+
+One-way one-time locks (can be rotated):
+
+   +++         +++
+   _ -         +B+
+   +c+    OR   -c-
+   +b+         + +
+   +++         +_+
+
+
