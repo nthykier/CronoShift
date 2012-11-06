@@ -7,9 +7,9 @@
 +++G+++++
 +++++++++
 
-button (1, 4) -> (2, 3)
-button (7, 3) -> (3, 4)
-button (7, 3) -> (3, 4)
+button (1, 4) -> gate (2, 3)
+button (7, 3) -> gate (3, 4)
+button (7, 3) -> gate (3, 4)
 
 Description: Simple case with a crate that is in the way.
 Solution:
