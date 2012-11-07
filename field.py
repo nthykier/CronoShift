@@ -1,4 +1,13 @@
+import collections
 from operator import attrgetter
+
+_P = collections.namedtuple('Position', ['x', 'y'])
+
+class Position(_P):
+
+    def __str__(self):
+        # This looks better...
+        return "(%d, %d)" % (self.x, self.y)
 
 class Field(object):
     def __init__(self, symbol):

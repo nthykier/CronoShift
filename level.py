@@ -3,7 +3,7 @@ from itertools import imap
 import re
 
 from moveable import PlayerClone
-from field import parse_field
+from field import parse_field, Position
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -55,7 +55,7 @@ class Level(object):
         transposed_lvl = [map(parse_field, x) for x in lines]
         for (j, line) in enumerate(transposed_lvl):
             for (i, obj) in enumerate(line):
-                pos = (i, j)
+                pos = Position(i, j)
                 if obj.symbol == "S":
                     if self._start_location is not None:
                         raise IOError("Two start locations %s and %s (%s:%d)" \
@@ -227,9 +227,8 @@ class Level(object):
                 if not got_goal:
                     print "E: lvl %s: Solution does not obtain goal" % self.name
                     
-    def get_field(self, position):
-        x, y = position
-        return self._lvl[x][y]
+    def get_field(self, p):
+        return self._lvl[p.x][p.y]
 
     def print_lvl(self, fname, fd=None):
         if fd is None:

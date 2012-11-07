@@ -1,3 +1,5 @@
+from field import Position
+
 class Moveable(object):
 
     def __init__(self, position, is_player, is_crate):
@@ -40,9 +42,10 @@ class PlayerClone(Moveable):
             x += 1
         if act == "W":
             x -= 1
-        field = lvl.get_field((x, y))
+        p = Position(x, y)
+        field = lvl.get_field(p)
         if field.can_enter:
-            self._position = (x, y)
+            self._position = p
 
 class Crate(Moveable):
 
