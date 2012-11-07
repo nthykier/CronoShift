@@ -9,6 +9,9 @@ ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
 )
 
+class TimeParadoxError(Exception):
+    pass
+
 class Level(object):
 
     def __init__(self):
@@ -166,67 +169,83 @@ class Level(object):
             limit = max(imap(len, clones))
             activated = {}
             got_goal = False
-            stop = False
-            for turn in xrange(limit):
-                left = set()
-                entered = set()
-                for (cno, clone) in enumerate(clones):
-                    spos = clone.position
-                    clone.do_action(self, turn)
-                    epos = clone.position
-                    if spos != epos:
-                        left.add(spos)
-                        entered.add(epos)
-                        if verbose:
-                            print "I: clone %d moves from %s to %s" \
-                                % (cno, str(spos), str(epos))
+            timeparadox = False
 
-                deactivated = left - entered
-                activated = entered - left
+            for jumpno in xrange(len(clones)):
+                if got_goal:
+                    print "W: lvl %s: Solution found in jump %d and not %d" \
+                        % (self.name, jumpno, len(clones))
+                    break
+                try:
+                    got_goal = self._check_timejump(clones, limit, jumpno,
+                                                    verbose=verbose)
+                except:
+                    timeparadox = True
+                    break
 
-                for dpos in deactivated:
-                    f = self.get_field(dpos)
-                    if not f.is_activation_source:
-                        continue
-                    f.deactivate()
+            if not timeparadox and not got_goal:
+                print "E: lvl %s: Solution does not obtain goal" % self.name
+
+    def _check_timejump(self, clones, turnlimit, jumpno, verbose=False):
+        got_goal = False
+        for turn in xrange(turnlimit):
+            left = set()
+            entered = set()
+
+            # The jumpno determines the number of active clones
+            for cno in xrange(jumpno+1):
+                clone = clones[cno]
+                spos = clone.position
+                clone.do_action(self, turn)
+                epos = clone.position
+                if spos != epos:
+                    left.add(spos)
+                    entered.add(epos)
                     if verbose:
-                        print "I: %s at %s was deactivated" \
-                            % (f.symbol, str(f.position))
+                        print "I: clone %d moves from %s to %s" \
+                            % (cno, str(spos), str(epos))
+            deactivated = left - entered
+            activated = entered - left
 
-                for apos in activated:
-                    f = self.get_field(apos)
-                    if not f.is_activation_source:
-                        continue
-                    f.activate()
+            for dpos in deactivated:
+                f = self.get_field(dpos)
+                if not f.is_activation_source:
+                    continue
+                f.deactivate()
+                if verbose:
+                    print "I: %s at %s was deactivated" \
+                        % (f.symbol, str(f.position))
+
+            for apos in activated:
+                f = self.get_field(apos)
+                if not f.is_activation_source:
+                    continue
+                f.activate()
+                if verbose:
+                    print "I: %s at %s was activated" \
+                        % (f.symbol, str(f.position))
+
+            for (cno, clone) in enumerate(clones):
+                f = self.get_field(clone.position)
+                if clone.position == self._goal_location.position:
+                    got_goal = True
+                if not f.can_enter:
                     if verbose:
-                        print "I: %s at %s was activated" \
-                            % (f.symbol, str(f.position))
+                        self.show_field(clone.position)
+                    print "E: lvl %s: clone %d is at %s which is not enterable (at end of turn %d)" \
+                        % (self.name, cno, str(clone.position), turn + 1)
+                    raise TimeParadoxError
 
-                for (cno, clone) in enumerate(clones):
-                    f = self.get_field(clone.position)
-                    if clone.position == self._goal_location.position:
-                        got_goal = True
-                    if not f.can_enter:
-                        if verbose:
-                            self.show_field(clone.position)
-                        print "E: lvl %s: clone %d is at %s which is not enterable (at end of turn %d)" \
-                            % (self.name, cno, str(clone.position), turn + 1)
-                        stop = True
-                        break
-                if stop:
-                    break;
+        for (cno, clone) in enumerate(clones):
+            if clone.position != self._start_location.position:
+                if verbose:
+                    self.show_field(clone.position)
+                print "E: lvl %s: clone %d ends at %s and not at start" \
+                    % (self.name, cno, str(clone.position))
+                raise TimeParadoxError
 
-            if not stop:
-                for (cno, clone) in enumerate(clones):
-                    if clone.position != self._start_location.position:
-                        if verbose:
-                            self.show_field(clone.position)
-                        print "E: lvl %s: clone %d ends at %s and not at start" \
-                            % (self.name, cno, str(clone.position))
+        return got_goal
 
-                if not got_goal:
-                    print "E: lvl %s: Solution does not obtain goal" % self.name
-                    
     def get_field(self, p):
         return self._lvl[p.x][p.y]
 
