@@ -163,7 +163,7 @@ class Level(object):
                 clones.append(PlayerClone(self._start_location.position,
                                           filter(space, clone))
                               )
-            limit = max(len(x) for x in clones)
+            limit = max(imap(len, clones))
             activated = {}
             got_goal = False
             stop = False
