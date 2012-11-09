@@ -16,6 +16,8 @@ class Level(object):
 
     def __init__(self):
         self._name = None
+        self._width = 0
+        self._height = 0
         self._lvl = []
         self._extra = {}
         self._start_location = None
@@ -24,6 +26,25 @@ class Level(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def start_location(self):
+        return self._start_location
+
+    @property
+    def goal_location(self):
+        return self._goal_location
+
+    def get_field(self, p):
+        return self._lvl[p.x][p.y]
 
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
@@ -74,6 +95,8 @@ class Level(object):
                 obj._set_position(pos)
 
         self._lvl = zip(*transposed_lvl)
+        self._width = len(self._lvl)
+        self._height = len(self._lvl[0])
 
         for line in fd:
             line = line.rstrip("\r\n")
@@ -163,7 +186,7 @@ class Level(object):
             clones = []
             space = lambda x: not x[0].isspace()
             for clone in solution.split("\n .\n"):
-                clones.append(PlayerClone(self._start_location.position,
+                clones.append(PlayerClone(self.start_location.position,
                                           filter(space, clone))
                               )
             limit = max(imap(len, clones))
@@ -227,7 +250,7 @@ class Level(object):
 
             for (cno, clone) in enumerate(clones):
                 f = self.get_field(clone.position)
-                if clone.position == self._goal_location.position:
+                if clone.position == self.goal_location.position:
                     got_goal = True
                 if not f.can_enter:
                     if verbose:
@@ -237,7 +260,7 @@ class Level(object):
                     raise TimeParadoxError
 
         for (cno, clone) in enumerate(clones):
-            if clone.position != self._start_location.position:
+            if clone.position != self.start_location.position:
                 if verbose:
                     self.show_field(clone.position)
                 print "E: lvl %s: clone %d ends at %s and not at start" \
@@ -245,9 +268,6 @@ class Level(object):
                 raise TimeParadoxError
 
         return got_goal
-
-    def get_field(self, p):
-        return self._lvl[p.x][p.y]
 
     def print_lvl(self, fname, fd=None):
         if fd is None:
@@ -278,6 +298,10 @@ class Level(object):
             fd.write("\n")
             for key in sorted(self._extra.iterkeys()):
                 fd.write("%s: %s\n" % (key, self._extra[key]))
+
+
+    def can_enter(self, frompos, destpos):
+        return self.get_field(destpos).can_enter
 
     def iter_fields(self):
         for row in self._lvl:

@@ -1,13 +1,12 @@
-import collections
-from operator import attrgetter
+import operator
 
-_P = collections.namedtuple('Position', ['x', 'y'])
+from position import Pos
+from direction import Direction
 
-class Position(_P):
+class Position(Pos):
 
-    def __str__(self):
-        # This looks better...
-        return "(%d, %d)" % (self.x, self.y)
+    def dir_pos(self, direction):
+        return self + Direction.dir_update(direction)
 
 class Field(object):
     def __init__(self, symbol):
@@ -44,6 +43,14 @@ class Field(object):
     def is_activation_target(self):
         return self._is_target
 
+    @property
+    def x(self):
+        return self._pos.x
+
+    @property
+    def y(self):
+        return self._pos.y
+
     def add_activation_target(self, target):
         if not self.is_activation_source:
             raise NotImplementedError("%s is not an activation source" % self.symbol)
@@ -63,13 +70,17 @@ class Field(object):
         # Technically we could just do return sorted(...), but this
         # way we force it to be an iterator and require the "iter()"
         # call.
-        return (x for x in sorted(self._targets, key=attrgetter("position")))
+        return (x for x in sorted(self._targets, key=operator.attrgetter("position")))
 
     def iter_activation_sources(self):
         # Technically we could just do return sorted(...), but this
         # way we force it to be an iterator and require the "iter()"
         # call.
-        return (x for x in sorted(self._sources, key=attrgetter("position")))
+        return (x for x in sorted(self._sources, key=operator.attrgetter("position")))
+
+    @property
+    def is_wall(self):
+        return False
 
     def toogle_activation(self, newstate):
         pass
@@ -93,6 +104,10 @@ class Wall(Field):
         super(Wall, self).__init__(symbol)
 
     @property
+    def is_wall(self):
+        return True
+
+    @property
     def can_enter(self):
         return False
 
@@ -108,6 +123,10 @@ class Gate(Field):
     def toogle_activation(self, _):
         # invert our state
         self.closed = not self.closed
+        if self.closed:
+            self._sym = '-'
+        else:
+            self._sym = '_'
 
     @property
     def can_enter(self):

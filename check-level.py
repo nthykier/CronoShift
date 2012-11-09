@@ -1,7 +1,5 @@
 #!/usr/bin/python
 import argparse
-import sys
-
 
 from level import Level
 

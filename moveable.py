@@ -1,3 +1,4 @@
+from direction import Direction
 from field import Position
 
 class Moveable(object):
@@ -34,15 +35,7 @@ class PlayerClone(Moveable):
         x, y = self.position
         if turn < len(self._path):
             act = self._path[turn]
-        if act == "N":
-            y -= 1
-        if act == "S":
-            y += 1
-        if act == "E":
-            x += 1
-        if act == "W":
-            x -= 1
-        p = Position(x, y)
+        p = self.position - Direction.act_update(act)
         field = lvl.get_field(p)
         if field.can_enter:
             self._position = p
