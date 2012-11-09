@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import functools
+import itertools
 import pygame
 import pygame.locals as pg
 
@@ -58,6 +59,7 @@ DEFAULT_CONTROLS = {
     pg.K_a: 'move-left',
 
     pg.K_SPACE: 'skip-turn',
+    pg.K_RETURN: 'enter-time-machine',
 
     pg.K_ESCAPE: 'quit-game',
 }
@@ -75,7 +77,22 @@ class Game(object):
         self._tileset = "tileset"
         self._tile_cache = TileCache(32, 32)
         self.use_level(log_level)
-        self.set_controls(DEFAULT_CONTROLS)
+        self._action2handler = {
+            'move-up': self._game_action,
+            'move-down': self._game_action,
+            'move-left': self._game_action,
+            'move-right': self._game_action,
+            'skip-turn': self._game_action,
+            'enter-time-machine': self._game_action,
+            'quit-game': self._quit
+        }
+        self._event_handler = {
+            'move-up': functools.partial(self._move, Direction.NORTH),
+            'move-down': functools.partial(self._move, Direction.SOUTH),
+            'move-left': functools.partial(self._move, Direction.WEST),
+            'move-right': functools.partial(self._move, Direction.EAST)
+        }
+        self._controls = DEFAULT_CONTROLS
 
 
     @property
@@ -83,20 +100,6 @@ class Game(object):
         return self._controls.copy()
 
     def set_controls(self, cmap):
-        keymapping = {}
-        act2f = {
-            'move-up': functools.partial(self._move, Direction.NORTH),
-            'move-down': functools.partial(self._move, Direction.SOUTH),
-            'move-left': functools.partial(self._move, Direction.WEST),
-            'move-right': functools.partial(self._move, Direction.EAST),
-            'skip-turn': functools.partial(self._move, Direction.NO_ACT),
-            'enter-spaceship': self._enter_spaceship,
-            'quit-game': self._quit
-        }
-        for k in cmap:
-            f = act2f[cmap[k]]
-            keymapping[k] = f
-        self._keymapping = keymapping
         self._controls = cmap
 
     def use_level(self, log_level):
@@ -108,6 +111,11 @@ class Game(object):
         self.log_level = log_level
         self.level = VisualLevel(log_level, tile_cache=self._tile_cache,
                                  tileset=self._tileset)
+
+        def event_handler(event):
+            pygame.event.post(pygame.event.Event(pg.USEREVENT, code=lambda:event))
+
+        log_level.add_event_listener(event_handler)
 
         # Populate the game with the level's objects
         for field in log_level.iter_fields():
@@ -157,24 +165,24 @@ class Game(object):
             return self.pressed_key == key or keys[key]
 
         if self.pressed_key is not None:
-            handler = self._keymapping.get(self.pressed_key, None)
-            if handler:
-                handler()
+            action = self._controls.get(self.pressed_key, None)
+            if action:
+                self._action2handler[action](action)
         else:
-            for k in self._keymapping:
-                if pressed(k):
-                    self._keymapping[k]()
-                    break
+            for k in itertools.ifilter(pressed, self._controls):
+                action = self._controls[k]
+                self._action2handler[action](action)
+                break
 
         self.pressed_key = None
 
-    def _enter_spaceship(self):
-        pass
+    def _game_action(self, action):
+        self.log_level.perform_move(action)
 
-    def _move(self, d):
+    def _move(self, d, event):
         """Start walking in specified direction."""
 
-        if d == Direction.NO_ACT:
+        if d == Direction.NO_ACT or not event.success:
             self.player.animation = self.player.do_nothing_animation()
             return
         pos = self.player.pos
@@ -183,11 +191,10 @@ class Game(object):
             self.player.direction = d
             self.player.animation = self.player.walk_animation()
             if target == self.log_level.goal_location.position:
-                print "GOAL"
                 self.goal.kill()
 
 
-    def _quit(self):
+    def _quit(self, _):
         self.game_over = True
 
     def main(self):
@@ -226,3 +233,10 @@ class Game(object):
                     self.game_over = True
                 elif event.type == pg.KEYDOWN:
                     self.pressed_key = event.key
+                elif event.type == pg.USEREVENT:
+                    e = event.code()
+                    print "Event: %s" % e.event_type
+                    if e.event_type not in self._event_handler:
+                        continue
+                    self._event_handler[e.event_type](e)
+

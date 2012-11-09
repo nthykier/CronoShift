@@ -1,16 +1,39 @@
+from direction import Direction
+import functools
+from itertools import imap, ifilter
 from operator import attrgetter
-from itertools import imap
 import re
 
-from moveable import PlayerClone
+from moveable import PlayerClone, Player
 from field import parse_field, Position
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
 )
 
-class TimeParadoxError(Exception):
+class GameError(Exception):
     pass
+
+class TimeParadoxError(GameError):
+    pass
+
+class GameEvent(object):
+    def __init__(self, event_type, source=None, success=True):
+        self._event_type = event_type
+        self._source = source
+        self._success = success
+
+    @property
+    def event_type(self):
+        return self._event_type
+
+    @property
+    def source(self):
+        return self._source
+
+    @property
+    def success(self):
+        return self._success
 
 class Level(object):
 
@@ -22,6 +45,16 @@ class Level(object):
         self._extra = {}
         self._start_location = None
         self._goal_location = None
+        self._handlers = set()
+
+        self._score = 0 # The score (lower is better)
+        self._turn_no = 0 # The current turn
+        self._turn_max = 0 # The max number of turns
+        self._got_goal = False # Whether the goal was reached
+        self._player_active = False # Is the current player controllable ?
+        self._player = None # current player
+        self._clones = [] # clones (in order of appearance)
+        self._actions = [] # actions done by current player (i.e. clone)
 
     @property
     def name(self):
@@ -42,6 +75,14 @@ class Level(object):
     @property
     def goal_location(self):
         return self._goal_location
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def turn(self):
+        return self._turn_no
 
     def get_field(self, p):
         return self._lvl[p.x][p.y]
@@ -124,6 +165,9 @@ class Level(object):
                 raise IOError("(%d, %d) is not a activable field (%s:%d)" % (tx, ty, fname, lineno))
             button.add_activation_target(target)
 
+        self._player = Player(self.start_location.position)
+        self._player_active = True
+
         field = None
         value = None
 
@@ -155,6 +199,95 @@ class Level(object):
             value = value.strip()
         if field is not None:
             self._extra[field] = value
+
+    def perform_move(self, action):
+        if self._do_action(action):
+            self._do_end_of_turn()
+
+    def _do_action(self, action):
+        act2f = {
+            'move-up': functools.partial(self._move, Direction.NORTH),
+            'move-down': functools.partial(self._move, Direction.SOUTH),
+            'move-left': functools.partial(self._move, Direction.WEST),
+            'move-right': functools.partial(self._move, Direction.EAST),
+            'skip-turn': functools.partial(self._move, Direction.NO_ACT),
+            'enter-time-machine': self._enter_time_machine,
+        }
+        return act2f[action](action)
+
+    def _move(self, direction, action):
+        player = self._player
+        succ = True
+        if direction == Direction.NO_ACT:
+            pass # do nothing - allowed even if player is not active
+        else:
+            if not self._player_active:
+                return # ignore movement if the player is not active
+
+            position = player.position
+            target = position.dir_pos(direction)
+            succ = False
+            # FIXME: handle crates
+            if self.get_field(target).can_enter:
+                # Do the action if possible
+                player.position = target
+                succ = True
+
+        if self._player_active:
+            self._actions.append(action)
+            # Unconditionally record the action even if it was unsuccessful
+            # - it may be valid in a later jump
+            self._emit_event(GameEvent(action, source=player, success=succ))
+            if succ and not self._got_goal:
+                if player.position == self.goal_location.position:
+                    self._got_goal = True
+                    self._emit_event(GameEvent("goal-obtained", source=player))
+
+        return True
+
+    def _enter_time_machine(self, action):
+        if self._player.position != self._start_location.position:
+            # Ignore unless the player is on the start position
+            return
+
+        if self._player_active:
+            self._actions.append(action)
+            self._emit_event(GameEvent(action, source=self._player))
+            self._player_active = False
+        return True
+
+    def _do_end_of_turn(self):
+        for cl_act in ifilter(lambda x: len(x) < self._turn_max, self._clones):
+            self._do_action(cl_act[self.turn])
+            if self.turn -1  == len(cl_act):
+                if cl_act.position != self.start_location.position:
+                    self._emit_event(GameEvent("time-paradox"))
+                    return
+
+        if self._player_active:
+            self._score += 1
+
+        if self._player_active or self.turn < self._turn_max:
+            self._turn_no += 1
+        else:
+            if self._turn_max < self.turn:
+                self._turn_max = self.turn
+            self._turn_no = 0
+
+            if self._got_goal:
+                self._emit_event(GameEvent("game-complete"))
+            else:
+                self._emit_event(GameEvent("time-jump"))
+
+    def _emit_event(self, event):
+        for handler in self._handlers:
+            handler(event)
+
+    def add_event_listener(self, handler):
+        self._handlers.add(handler)
+
+    def remove_event_listener(self, handler):
+        self._handlers.remove(handler)
 
     def show_field(self, position):
         x, y = position
