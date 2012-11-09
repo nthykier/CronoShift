@@ -76,21 +76,24 @@ class Game(object):
         self.overlays = pygame.sprite.RenderUpdates()
         self._tileset = "tileset"
         self._tile_cache = TileCache(32, 32)
+        self._clones = {}
         self.use_level(log_level)
         self._action2handler = {
-            'move-up': self._game_action,
-            'move-down': self._game_action,
-            'move-left': self._game_action,
-            'move-right': self._game_action,
-            'skip-turn': self._game_action,
-            'enter-time-machine': self._game_action,
+            'move-up': self.log_level.perform_move,
+            'move-down': self.log_level.perform_move,
+            'move-left': self.log_level.perform_move,
+            'move-right': self.log_level.perform_move,
+            'skip-turn': self.log_level.perform_move,
+            'enter-time-machine': self.log_level.perform_move,
             'quit-game': self._quit
         }
         self._event_handler = {
             'move-up': functools.partial(self._move, Direction.NORTH),
             'move-down': functools.partial(self._move, Direction.SOUTH),
             'move-left': functools.partial(self._move, Direction.WEST),
-            'move-right': functools.partial(self._move, Direction.EAST)
+            'move-right': functools.partial(self._move, Direction.EAST),
+            'player-clone': self._player_clone,
+            'game-complete': self._game_complete
         }
         self._controls = DEFAULT_CONTROLS
 
@@ -109,32 +112,20 @@ class Game(object):
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
         self.log_level = log_level
+        self._clones = {}
         self.level = VisualLevel(log_level, tile_cache=self._tile_cache,
                                  tileset=self._tileset)
 
-        def event_handler(event):
+        def level_event_handler(event):
             pygame.event.post(pygame.event.Event(pg.USEREVENT, code=lambda:event))
 
-        log_level.add_event_listener(event_handler)
+        log_level.add_event_listener(level_event_handler)
 
         # Populate the game with the level's objects
-        for field in log_level.iter_fields():
-            sprite = None
-            shadow = True
-            if field.symbol == 'S':
-                sprite = PlayerSprite(field, self._tile_cache['player'])
-                self.player = sprite
-                spos_shadow = Sprite(field.position, self._tile_cache["shadow"],
-                                     correction=(0, MAP_TILE_HEIGHT/4))
-                self.shadows.add(spos_shadow)
-            if field.symbol == 'G':
-                sprite = Sprite(field.position, self._tile_cache['house'])
-                self.goal = sprite
-                shadow = False
-            if sprite:
-                self.sprites.add(sprite)
-                if shadow:
-                    self.shadows.add(Shadow(sprite, self._tile_cache["shadow"][0][0]))
+        if 1:
+            sprite = Sprite(log_level.goal_location.position, self._tile_cache['house'])
+            self.goal = sprite
+            self.sprites.add(sprite)
 
         # Render the level map
         self.background, overlays = self.level.render()
@@ -154,6 +145,8 @@ class Game(object):
             overlay.image = image
             overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
 
+        log_level.start()
+
     def control(self):
         """Handle the controls of the game."""
 
@@ -168,34 +161,41 @@ class Game(object):
             action = self._controls.get(self.pressed_key, None)
             if action:
                 self._action2handler[action](action)
-        else:
-            for k in itertools.ifilter(pressed, self._controls):
-                action = self._controls[k]
-                self._action2handler[action](action)
-                break
+        #else:
+        #    for k in itertools.ifilter(pressed, self._controls):
+        #        action = self._controls[k]
+        #        self._action2handler[action](action)
+        #        break
 
         self.pressed_key = None
-
-    def _game_action(self, action):
-        self.log_level.perform_move(action)
 
     def _move(self, d, event):
         """Start walking in specified direction."""
 
-        if d == Direction.NO_ACT or not event.success:
-            self.player.animation = self.player.do_nothing_animation()
-            return
-        pos = self.player.pos
-        target = pos.dir_pos(d)
-        if self.log_level.can_enter(pos, target):
-            self.player.direction = d
-            self.player.animation = self.player.walk_animation()
-            if target == self.log_level.goal_location.position:
-                self.goal.kill()
+        player = self._clones[event.source]
 
+        if d == Direction.NO_ACT or not event.success:
+            player.animation = player.do_nothing_animation()
+            return
+        pos = player.pos
+        target = pos.dir_pos(d)
+        player.direction = d
+        player.animation = player.walk_animation()
+        if target == self.log_level.goal_location.position:
+            self.goal.kill()
+
+
+    def _player_clone(self, event):
+        sprite = PlayerSprite(event.source, self._tile_cache['player'])
+        self._clones[event.source] = sprite
+        self.sprites.add(sprite)
+        self.shadows.add(Shadow(sprite, self._tile_cache["shadow"][0][0]))
 
     def _quit(self, _):
         self.game_over = True
+
+    def _game_complete(self, _):
+        print "Your score is: %d" % self.log_level.score
 
     def main(self):
         """Run the main loop."""
@@ -205,6 +205,7 @@ class Game(object):
         self.screen.blit(self.background, (0, 0))
         self.overlays.draw(self.screen)
         pygame.display.flip()
+        has_animation = lambda x: self._clones[x].animation is not None
 
         # The main game loop
         while not self.game_over:
@@ -212,9 +213,10 @@ class Game(object):
             self.sprites.clear(self.screen, self.background)
             self.sprites.update()
             # If the player's animation is finished, check for keypresses
-            if self.player.animation is None:
+            if not any(itertools.ifilter(has_animation, self._clones)):
                 self.control()
-                self.player.update()
+                for k in self._clones:
+                    self._clones[k].update()
             self.shadows.update()
             # Don't add shadows to dirty rectangles, as they already fit inside
             # sprite rectangles.

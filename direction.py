@@ -29,6 +29,10 @@ class Direction(object):
         'S': SOUTH,
         'W': WEST,
         'H': NO_ACT,
+        'move-up': NORTH,
+        'move-right': EAST,
+        'move-down': SOUTH,
+        'move-left': WEST,
     }
     @staticmethod
     def new_pos(pos, direction):
@@ -40,7 +44,7 @@ class Direction(object):
 
     @staticmethod
     def act2dir(act):
-        return _ACT2DIR[act]
+        return Direction._ACT2DIR[act]
 
     @staticmethod
     def act_update(act):

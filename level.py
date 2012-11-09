@@ -47,6 +47,7 @@ class Level(object):
         self._goal_location = None
         self._handlers = set()
 
+        self._time_paradox = False
         self._score = 0 # The score (lower is better)
         self._turn_no = 0 # The current turn
         self._turn_max = 0 # The max number of turns
@@ -55,6 +56,7 @@ class Level(object):
         self._player = None # current player
         self._clones = [] # clones (in order of appearance)
         self._actions = [] # actions done by current player (i.e. clone)
+        self._active_sources = {}
 
     @property
     def name(self):
@@ -165,9 +167,6 @@ class Level(object):
                 raise IOError("(%d, %d) is not a activable field (%s:%d)" % (tx, ty, fname, lineno))
             button.add_activation_target(target)
 
-        self._player = Player(self.start_location.position)
-        self._player_active = True
-
         field = None
         value = None
 
@@ -200,9 +199,27 @@ class Level(object):
         if field is not None:
             self._extra[field] = value
 
+    def start(self):
+        self._score = 0
+        self._turn_no = 0
+        self._turn_max = 0
+        self._time_paradox = False
+        self._actions = []
+        self._player = PlayerClone(self.start_location.position, self._actions)
+        self._player_active = True
+        self._clones = [self._player]
+        self._emit_event(GameEvent('player-clone', source=self._player))
+
+
     def perform_move(self, action):
+        if self._time_paradox:
+            return
         if self._do_action(action):
             self._do_end_of_turn()
+
+    def _time_paradox_event(self):
+        self._time_paradox = True
+        self._emit_event(GameEvent("time-paradox"))
 
     def _do_action(self, action):
         act2f = {
@@ -216,33 +233,9 @@ class Level(object):
         return act2f[action](action)
 
     def _move(self, direction, action):
-        player = self._player
-        succ = True
-        if direction == Direction.NO_ACT:
-            pass # do nothing - allowed even if player is not active
-        else:
-            if not self._player_active:
-                return # ignore movement if the player is not active
-
-            position = player.position
-            target = position.dir_pos(direction)
-            succ = False
-            # FIXME: handle crates
-            if self.get_field(target).can_enter:
-                # Do the action if possible
-                player.position = target
-                succ = True
-
-        if self._player_active:
-            self._actions.append(action)
-            # Unconditionally record the action even if it was unsuccessful
-            # - it may be valid in a later jump
-            self._emit_event(GameEvent(action, source=player, success=succ))
-            if succ and not self._got_goal:
-                if player.position == self.goal_location.position:
-                    self._got_goal = True
-                    self._emit_event(GameEvent("goal-obtained", source=player))
-
+        if direction != Direction.NO_ACT and not self._player_active:
+            return # ignore movement if the player is not active
+        self._actions.append(action)
         return True
 
     def _enter_time_machine(self, action):
@@ -252,32 +245,82 @@ class Level(object):
 
         if self._player_active:
             self._actions.append(action)
-            self._emit_event(GameEvent(action, source=self._player))
             self._player_active = False
         return True
 
     def _do_end_of_turn(self):
-        for cl_act in ifilter(lambda x: len(x) < self._turn_max, self._clones):
-            self._do_action(cl_act[self.turn])
-            if self.turn -1  == len(cl_act):
-                if cl_act.position != self.start_location.position:
-                    self._emit_event(GameEvent("time-paradox"))
+        entered = set()
+        left = set()
+        for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
+            action = clone[self.turn]
+            if action == 'enter-time-machine':
+                self._emit_event(GameEvent(action))
+                continue
+            if action.startswith("move-"):
+                d = Direction.act2dir(action)
+                pos = clone.position
+                target = pos.dir_pos(d)
+                succ = False
+                # FIXME: handle crates
+                if self.get_field(target).can_enter:
+                    # Do the action if possible
+                    clone.position = target
+                    succ = True
+                    entered.add(target)
+                    left.add(pos)
+                self._emit_event(GameEvent(action, source=clone, success=succ))
+            else:
+                self._emit_event(GameEvent(action, source=clone))
+
+            if self.turn -1  == len(clone):
+                if clone.position != self.start_location.position:
+                    self._time_paradox_event()
                     return
+
+        if not self._got_goal and self.goal_location.position in entered:
+            self._got_goal = True
+            self._emit_event(GameEvent("goal-obtained"))
+
+        if entered or left:
+            deactivated = left - entered
+            activated = entered - left
+            is_source = attrgetter("is_activation_source")
+
+            for f in ifilter(is_source, imap(self.get_field, deactivated)):
+                f.deactivate()
+                self._emit_event(GameEvent("field-deactivated", source=f))
+
+            for f in ifilter(is_source, imap(self.get_field, activated)):
+                f.activate()
+                self._emit_event(GameEvent("field-activated", source=f))
+
+        for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
+            if not self.get_field(clone.position).can_enter:
+                self._time_paradox_event()
+                return
 
         if self._player_active:
             self._score += 1
 
         if self._player_active or self.turn < self._turn_max:
             self._turn_no += 1
+            self._emit_event(GameEvent("end-of-turn"))
         else:
             if self._turn_max < self.turn:
                 self._turn_max = self.turn
             self._turn_no = 0
 
+            self._emit_event(GameEvent("end-of-turn"))
+
             if self._got_goal:
                 self._emit_event(GameEvent("game-complete"))
             else:
+                self._player_active = True
+                self._actions = []
+                self._player = PlayerClone(self.start_location.position, self._actions)
+                self._clones.append(self._player)
                 self._emit_event(GameEvent("time-jump"))
+                self._emit_event(GameEvent('player-clone', source=self._player))
 
     def _emit_event(self, event):
         for handler in self._handlers:
