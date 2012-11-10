@@ -488,7 +488,8 @@ class Level(object):
                 self.perform_move(action)
                 if events and events[0].event_type == "time-paradox":
                     print "E: lvl %s: Time-paradox in time-jump %d (%s)" \
-                        % (self.name, self.number_of_clones, events[0].msg)
+                        % (self.name, self.number_of_clones, events[0].reason)
+                    break
 
             self.remove_event_listener(event_handler)
 
