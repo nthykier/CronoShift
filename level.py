@@ -71,7 +71,7 @@ class Level(object):
         self._width = 0
         self._height = 0
         self._lvl = []
-        self._extra = {}
+        self._metadata = {}
         self._start_location = None
         self._goal_location = None
         self._handlers = set()
@@ -121,6 +121,9 @@ class Level(object):
     @property
     def number_of_clones(self):
         return len(self._clones)
+
+    def get_metadata_raw(self, fname, default=None):
+        return self._metadata.get(fname, default)
 
     def get_field(self, p):
         return self._lvl[p.x][p.y]
@@ -234,14 +237,14 @@ class Level(object):
                 raise IOError("Expected field, not no colon (%s:%d)" %
                               (fname, lineno))
             if field is not None:
-                self._extra[field] = value
+                self._metadata[field] = value
             field, value = line.split(":", 1)
             field = field.lower()
             if " " in field:
                 raise IOError("Bad field name (%s:%d)" % (fname, lineno))
             value = value.strip()
         if field is not None:
-            self._extra[field] = value
+            self._metadata[field] = value
 
     def start(self):
         self._score = 0
@@ -446,7 +449,7 @@ class Level(object):
         if verbose:
             print "Checking %s ..." % self.name
         first = lambda x: next(iter(x), None)
-        solution = self._extra.get("solution", None)
+        solution = self._metadata.get("solution", None)
         for field in self.iter_fields():
             if field.is_activation_source and \
                     first(field.iter_activation_targets()) is None:
@@ -520,11 +523,11 @@ class Level(object):
                     fd.write("%s %s -> %s %s\n" % ftuple)
                     rules += 1
 
-            if not rules and self._extra:
+            if not rules and self._metadata:
                 fd.write("nothing\n")
             fd.write("\n")
-            for key in sorted(self._extra.iterkeys()):
-                fd.write("%s: %s\n" % (key, self._extra[key]))
+            for key in sorted(self._metadata.iterkeys()):
+                fd.write("%s: %s\n" % (key, self._metadata[key]))
 
 
     def can_enter(self, frompos, destpos):
