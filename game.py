@@ -3,6 +3,7 @@ Taken (with modification) from:
   https://bitbucket.org/thesheep/qq/src/1090d7e5537f/qq.py?at=default
 
 @copyright: 2008, 2009 Radomir Dopieralski <qq@sheep.art.pl>
+            2012, Niels Thykier <niels@thykier.net>
 @license: BSD
                            BSD LICENSE
 
