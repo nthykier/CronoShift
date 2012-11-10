@@ -302,7 +302,6 @@ class Level(object):
         entered = set()
         left = set()
         unchanged = set()
-        changed_targets = set()
         # Enqueue events (except paradoxes, which we just trigger as soon as we discover them)
         equeue = []
         def make_event(*a, **kw):
@@ -358,26 +357,7 @@ class Level(object):
         if entered or left:
             deactivated = left - entered - unchanged
             activated = entered - left - unchanged
-            is_source = attrgetter("is_activation_source")
-            it = chain(deactivated, activated)
-
-            for f in ifilter(is_source, imap(self.get_field, it)):
-                for t in f.iter_activation_targets():
-                    if t in changed_targets:
-                        changed_targets.discard(t)
-                    else:
-                        changed_targets.add(t)
-                if f in deactivated:
-                    make_event("field-deactivated", source=f)
-                else:
-                    make_event("field-activated", source=f)
-
-            for target in changed_targets:
-                target.toogle_activation()
-                et = "field-deacitvated"
-                if target.activated:
-                    et = "field-activated"
-                make_event(et, source=target)
+            self._changed_targets(activated, deactivated)
 
         try:
             for act in equeue:
@@ -420,6 +400,8 @@ class Level(object):
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)
                 self._clones.append(self._player)
+                # De-activate fields with crates on them
+                self._changed_targets([], self._crates)
                 self._crates = self._crates_orig.copy()
                 for p in self._crates:
                     self._crates[p].position = p
@@ -537,6 +519,29 @@ class Level(object):
         for row in self._lvl:
             for field in row:
                 yield field
+
+    def _changed_targets(self, activated, deactivated):
+        changed_targets = set()
+        is_source = attrgetter("is_activation_source")
+        it = chain(deactivated, activated)
+
+        for f in ifilter(is_source, imap(self.get_field, it)):
+            for t in f.iter_activation_targets():
+                if t in changed_targets:
+                    changed_targets.discard(t)
+                else:
+                    changed_targets.add(t)
+            if f in deactivated:
+                self._emit_event(GameEvent("field-deactivated", source=f))
+            else:
+                self._emit_event(GameEvent("field-activated", source=f))
+
+        for target in changed_targets:
+            target.toogle_activation()
+            et = "field-deacitvated"
+            if target.activated:
+                et = "field-activated"
+            self._emit_event(GameEvent(et, source=target))
 
     def _move_clone(self, clone, dest_pos, action):
         clone.position = dest_pos
