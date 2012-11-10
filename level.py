@@ -251,6 +251,7 @@ class Level(object):
     def _do_end_of_turn(self):
         entered = set()
         left = set()
+        unchanged = set()
         changed_targets = set()
         for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
             action = clone[self.turn]
@@ -269,8 +270,11 @@ class Level(object):
                     succ = True
                     entered.add(target)
                     left.add(pos)
+                else:
+                    unchanged.add(pos)
                 self._emit_event(GameEvent(action, source=clone, success=succ))
             else:
+                unchanged.add(clone.position)
                 self._emit_event(GameEvent(action, source=clone))
 
             if self.turn -1  == len(clone):
@@ -283,8 +287,8 @@ class Level(object):
             self._emit_event(GameEvent("goal-obtained"))
 
         if entered or left:
-            deactivated = left - entered
-            activated = entered - left
+            deactivated = left - entered - unchanged
+            activated = entered - left - unchanged
             is_source = attrgetter("is_activation_source")
             it = chain(deactivated, activated)
 
