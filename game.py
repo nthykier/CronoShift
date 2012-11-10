@@ -66,6 +66,55 @@ DEFAULT_CONTROLS = {
     pg.K_ESCAPE: 'quit-game',
 }
 
+class ScoreTracker(pygame.sprite.Sprite):
+
+    def __init__(self):
+        super(ScoreTracker, self).__init__()
+        self.font = pygame.font.Font(None, 20)
+        self._score = None
+        self.depth = 0
+        self.reset_score()
+        self.rect = self.image.get_rect()
+        self.gpos_tf = (10, 300)
+
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, nscore):
+        if self._score != nscore:
+            self._score = nscore
+            msg = "Score: %d, Turn %d, Clone: %d" % nscore
+            self.image = self.font.render(msg, 0, (0x00, 0x00, 0x00), (0xff, 0xff, 0xff))
+
+    @property
+    def gpos_tf(self):
+        """Check the current position of the sprite on the map."""
+
+        return self.rect.topleft
+
+    @gpos_tf.setter
+    def gpos_tf(self, pos):
+        """Set the position and depth of the sprite on the map."""
+
+        self.rect.topleft = pos
+        self.depth = self.rect.midbottom[1]
+
+
+    def reset_score(self):
+        self.score = (0, 1, 1)
+
+    def update_score(self, lvl):
+        # turn is 0-index'ed, but it is better presented as 1-index'ed.
+        self.score = (lvl.score, lvl.turn + 1, lvl.number_of_clones)
+
+    def update(self, *args):
+        for frame in range(4):
+            yield None
+            yield None
+
 class Game(object):
     """The main game object."""
 
@@ -81,6 +130,7 @@ class Game(object):
         self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
         self._clones = {}
         self._gates = {}
+        self._score = ScoreTracker()
         self.use_level(log_level)
         self._action2handler = {
             'move-up': self.log_level.perform_move,
@@ -89,7 +139,7 @@ class Game(object):
             'move-right': self.log_level.perform_move,
             'skip-turn': self.log_level.perform_move,
             'enter-time-machine': self.log_level.perform_move,
-            'quit-game': self._quit
+            'quit-game': self._quit,
         }
         self._event_handler = {
             'move-up': functools.partial(self._move, Direction.NORTH),
@@ -99,7 +149,8 @@ class Game(object):
             'player-clone': self._player_clone,
             'field-acitvated': self._field_state_change,
             'field-deacitvated': self._field_state_change,
-            'game-complete': self._game_complete
+            'game-complete': self._game_complete,
+            'end-of-turn': self._end_of_turn,
         }
         self._controls = DEFAULT_CONTROLS
 
@@ -165,6 +216,9 @@ class Game(object):
             overlay.image = image
             overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
 
+
+        self._score.reset_score()
+        self.sprites.add(self._score)
         log_level.start()
 
     def control(self):
@@ -213,6 +267,7 @@ class Game(object):
             self._gates[src_pos].state = nstate
 
     def _player_clone(self, event):
+        self._score.update_score(self.log_level)
         sprite = PlayerSprite(event.source, self._sprite_cache['player'])
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
@@ -221,7 +276,11 @@ class Game(object):
     def _quit(self, _):
         self.game_over = True
 
+    def _end_of_turn(self, _):
+        self._score.update_score(self.log_level)
+
     def _game_complete(self, _):
+        self._score.update_score(self.log_level)
         print "Your score is: %d" % self.log_level.score
 
     def main(self):

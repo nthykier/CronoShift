@@ -114,6 +114,10 @@ class Level(object):
     def turn(self):
         return self._turn_no
 
+    @property
+    def number_of_clones(self):
+        return len(self._clones)
+
     def get_field(self, p):
         return self._lvl[p.x][p.y]
 
@@ -344,6 +348,7 @@ class Level(object):
                 return
 
         if self._player_active:
+            # active moves cost one
             self._score += 1
 
         if self._player_active or self.turn < self._turn_max:
@@ -359,6 +364,9 @@ class Level(object):
             if self._got_goal:
                 self._emit_event(GameEvent("game-complete"))
             else:
+                # cloning cost one (unless we already paid for this move)
+                if not self._player_active:
+                    self._score += 1
                 self._player_active = True
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)
