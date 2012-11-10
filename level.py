@@ -84,7 +84,6 @@ class Level(object):
         self._player = None # current player
         self._clones = [] # clones (in order of appearance)
         self._actions = [] # actions done by current player (i.e. clone)
-        self._active_sources = {}
 
     @property
     def name(self):
