@@ -302,6 +302,7 @@ class Level(object):
         entered = set()
         left = set()
         unchanged = set()
+        clone_positions = frozenset(c.position for c in self._clones)
         # Enqueue events (except paradoxes, which we just trigger as soon as we discover them)
         equeue = []
         def make_event(*a, **kw):
@@ -325,7 +326,8 @@ class Level(object):
                 succ = True
                 if crate:
                     ct = target.dir_pos(d)
-                    if not self.get_field(ct).can_enter or self.get_crate_at(ct):
+                    if (not self.get_field(ct).can_enter or self.get_crate_at(ct)
+                            or ct in clone_positions):
                         # Crate cannot be moved, push fails.
                         succ = False
 
