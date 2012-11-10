@@ -112,7 +112,7 @@ class Level(object):
 
     @property
     def turn(self):
-        return self._turn_no
+        return (self._turn_no, self._turn_max)
 
     @property
     def number_of_clones(self):
@@ -286,7 +286,7 @@ class Level(object):
         unchanged = set()
         changed_targets = set()
         for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
-            action = clone[self.turn]
+            action = clone[self._turn_no]
             if action == 'enter-time-machine':
                 self._emit_event(GameEvent(action))
                 continue
@@ -309,7 +309,7 @@ class Level(object):
                 unchanged.add(clone.position)
                 self._emit_event(GameEvent(action, source=clone))
 
-            if self.turn -1  == len(clone):
+            if self._turn_no -1  == len(clone):
                 if clone.position != self.start_location.position:
                     self._time_paradox_event()
                     return
@@ -351,12 +351,12 @@ class Level(object):
             # active moves cost one
             self._score += 1
 
-        if self._player_active or self.turn < self._turn_max:
+        if self._player_active or self._turn_no < self._turn_max:
             self._turn_no += 1
+            if self._turn_max < self._turn_no:
+                self._turn_max = self._turn_no
             self._emit_event(GameEvent("end-of-turn"))
         else:
-            if self._turn_max < self.turn:
-                self._turn_max = self.turn
             self._turn_no = 0
 
             self._emit_event(GameEvent("end-of-turn"))

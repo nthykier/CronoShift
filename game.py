@@ -86,7 +86,7 @@ class ScoreTracker(pygame.sprite.Sprite):
     def score(self, nscore):
         if self._score != nscore:
             self._score = nscore
-            msg = "Score: %d, Turn %d, Clone: %d" % nscore
+            msg = "Score: %d, Turn %d/%d, Clone: %d" % nscore
             self.image = self.font.render(msg, 0, (0x00, 0x00, 0x00), (0xff, 0xff, 0xff))
 
     @property
@@ -104,11 +104,12 @@ class ScoreTracker(pygame.sprite.Sprite):
 
 
     def reset_score(self):
-        self.score = (0, 1, 1)
+        self.score = (0, 1, 1, 1)
 
     def update_score(self, lvl):
         # turn is 0-index'ed, but it is better presented as 1-index'ed.
-        self.score = (lvl.score, lvl.turn + 1, lvl.number_of_clones)
+        t = lvl.turn
+        self.score = (lvl.score, t[0] + 1, t[1] + 1, lvl.number_of_clones)
 
     def update(self, *args):
         for frame in range(4):
