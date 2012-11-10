@@ -82,7 +82,7 @@ class Field(object):
     def is_wall(self):
         return False
 
-    def toogle_activation(self, newstate):
+    def toogle_activation(self, newstate=None):
         pass
 
     def on_enter(self, obj):
@@ -120,7 +120,7 @@ class Gate(Field):
         if symbol == "_":
             self.closed = False
 
-    def toogle_activation(self, _):
+    def toogle_activation(self, _=True):
         # invert our state
         self.closed = not self.closed
         if self.closed:
@@ -142,7 +142,9 @@ class Button(Field):
         super(Button, self).__init__(symbol)
         self._is_source = True
 
-    def toogle_activation(self, newstate):
+    def toogle_activation(self, newstate=None):
+        if newstate is None:
+            newstate = not self.activated
         for target in self._targets:
             if newstate:
                 target.activate()

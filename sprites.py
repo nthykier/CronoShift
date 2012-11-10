@@ -91,10 +91,11 @@ class Sprite(pygame.sprite.Sprite):
 
     is_player = False
 
-    def __init__(self, pos, frames, correction=None):
+    def __init__(self, pos, frames, c_pos=None, c_depth=None):
         super(Sprite, self).__init__()
         self.frames = frames
-        self._correction = correction if correction else Position(0, 0)
+        self._c_pos = c_pos if c_pos else Position(0, 0)
+        self._c_depth = c_depth if c_depth else 0
         self.image = self.frames[0][0]
         self.rect = self.image.get_rect()
         self.animation = self.stand_animation()
@@ -105,14 +106,14 @@ class Sprite(pygame.sprite.Sprite):
     def pos(self):
         """Check the current position of the sprite on the map."""
 
-        return gpos2lpos(self.rect.midbottom, self._correction)
+        return gpos2lpos(self.rect.midbottom, self._c_pos)
 
     @pos.setter
     def pos(self, pos):
         """Set the position and depth of the sprite on the map."""
 
-        self.rect.midbottom = lpos2gpos(pos, self._correction)
-        self.depth = self.rect.midbottom[1]
+        self.rect.midbottom = lpos2gpos(pos, self._c_pos)
+        self.depth = self.rect.midbottom[1] + self._c_depth
 
     @property
     def state(self):

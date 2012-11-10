@@ -79,6 +79,7 @@ class Game(object):
         self._sprite_cache = TileCache(32, 32)
         self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
         self._clones = {}
+        self._gates = {}
         self.use_level(log_level)
         self._action2handler = {
             'move-up': self.log_level.perform_move,
@@ -95,6 +96,8 @@ class Game(object):
             'move-left': functools.partial(self._move, Direction.WEST),
             'move-right': functools.partial(self._move, Direction.EAST),
             'player-clone': self._player_clone,
+            'field-acitvated': self._field_state_change,
+            'field-deacitvated': self._field_state_change,
             'game-complete': self._game_complete
         }
         self._controls = DEFAULT_CONTROLS
@@ -115,6 +118,7 @@ class Game(object):
         self.overlays = pygame.sprite.RenderUpdates()
         self.log_level = log_level
         self._clones = {}
+        self._gates = {}
         self.level = VisualLevel(log_level, map_cache=self._map_cache,
                                  tileset=self._tileset)
 
@@ -129,19 +133,21 @@ class Game(object):
             self.goal = sprite
             self.sprites.add(sprite)
 
-        for field in log_level.iter_fields():
-            sprite = None
-            if field.symbol == '-' or field.symbol == '_':
-                sprite = Sprite(field.position, self._map_cache['gate'])
-                if field.symbol == '-':
-                    sprite.state = GATE_CLOSED
-#            if field.symbol == 'b':
-#                sprite = Sprite(field.position, self._sprite_cache['button'])
-            if sprite:
-                self.sprites.add(sprite)
-
         # Render the level map
         self.background, overlays = self.level.render()
+
+        for field in log_level.iter_fields():
+            # Use map-cache here for gates and buttons
+            sprite = None
+            if field.symbol == '-' or field.symbol == '_':
+                sprite = Sprite(field.position, self._map_cache['gate'], c_depth=-1)
+                self._gates[field.position] = sprite
+                if field.symbol == '-':
+                    sprite.state = GATE_CLOSED
+            if field.symbol == 'b':
+                sprite = Sprite(field.position, self._map_cache['button'], c_depth=-1)
+            if sprite:
+                self.sprites.add(sprite)
 
         if 1:
             # Highlight the start location
@@ -196,6 +202,13 @@ class Game(object):
         if target == self.log_level.goal_location.position:
             self.goal.kill()
 
+    def _field_state_change(self, event):
+        src_pos = event.source.position
+        if src_pos in self._gates:
+            nstate = GATE_CLOSED
+            if event.source.can_enter:
+                nstate = GATE_OPEN
+            self._gates[src_pos].state = nstate
 
     def _player_clone(self, event):
         sprite = PlayerSprite(event.source, self._sprite_cache['player'])

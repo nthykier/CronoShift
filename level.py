@@ -1,6 +1,6 @@
 from direction import Direction
 import functools
-from itertools import imap, ifilter
+from itertools import imap, ifilter, chain
 from operator import attrgetter
 import re
 
@@ -251,6 +251,7 @@ class Level(object):
     def _do_end_of_turn(self):
         entered = set()
         left = set()
+        changed_targets = set()
         for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
             action = clone[self.turn]
             if action == 'enter-time-machine':
@@ -285,14 +286,25 @@ class Level(object):
             deactivated = left - entered
             activated = entered - left
             is_source = attrgetter("is_activation_source")
+            it = chain(deactivated, activated)
 
-            for f in ifilter(is_source, imap(self.get_field, deactivated)):
-                f.deactivate()
-                self._emit_event(GameEvent("field-deactivated", source=f))
+            for f in ifilter(is_source, imap(self.get_field, it)):
+                for t in f.iter_activation_targets():
+                    if t in changed_targets:
+                        changed_targets.discard(t)
+                    else:
+                        changed_targets.add(t)
+                if f in deactivated:
+                    self._emit_event(GameEvent("field-deactivated", source=f))
+                else:
+                    self._emit_event(GameEvent("field-activated", source=f))
 
-            for f in ifilter(is_source, imap(self.get_field, activated)):
-                f.activate()
-                self._emit_event(GameEvent("field-activated", source=f))
+            for target in changed_targets:
+                target.toogle_activation()
+                et = "field-deacitvated"
+                if target.activated:
+                    et = "field-activated"
+                self._emit_event(GameEvent(et, source=target))
 
         for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
             if not self.get_field(clone.position).can_enter:
