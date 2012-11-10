@@ -107,8 +107,9 @@ class Game(object):
     def controls(self):
         return self._controls.copy()
 
-    def set_controls(self, cmap):
-        self._controls = cmap
+    @controls.setter
+    def controls(self, cmap):
+        self._controls = cmap.copy()
 
     def use_level(self, log_level):
         """Set the level as the current one."""
