@@ -26,6 +26,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from collections import deque
 from direction import Direction
 import functools
 from itertools import imap, ifilter, chain
@@ -299,36 +300,57 @@ class Level(object):
         left = set()
         unchanged = set()
         changed_targets = set()
+        # Enqueue events (except paradoxes, which we just trigger as soon as we discover them)
+        equeue = []
+        def make_event(*a, **kw):
+            equeue.append(functools.partial(self._emit_event, GameEvent(*a, **kw)))
+
         for cno, clone in ifilter(lambda x: self._turn_no < len(x[1]), enumerate(self._clones)):
             action = clone[self._turn_no]
             if action == 'enter-time-machine':
                 if clone.position != self.start_location.position:
                     self._time_paradox_event("Clone does not make it back to start")
                     return
-                self._emit_event(GameEvent(action))
+                make_event(action)
                 continue
             if action.startswith("move-"):
                 d = Direction.act2dir(action)
                 pos = clone.position
                 target = pos.dir_pos(d)
-                succ = False
-                # FIXME: handle crates
-                if self.get_field(target).can_enter:
+                crate = self.get_crate_at(target)
+                ct = None
+                act = None
+                succ = True
+                if crate:
+                    ct = target.dir_pos(d)
+                    if not self.get_field(ct).can_enter or self.get_crate_at(ct):
+                        # Crate cannot be moved, push fails.
+                        succ = False
+
+                if succ and self.get_field(target).can_enter:
                     # Do the action if possible
-                    clone.position = target
-                    succ = True
-                    entered.add(target)
+                    if crate:
+                        entered.add(ct)
+                    else:
+                        entered.add(target)
                     left.add(pos)
                 else:
+                    succ = False
                     unchanged.add(pos)
-                self._emit_event(GameEvent(action, source=clone, success=succ))
+
+                if succ:
+                    if crate:
+                        act = functools.partial(self._move_clone_w_crate, clone, crate,
+                                                target, ct, action)
+                    else:
+                        act = functools.partial(self._move_clone, clone, target, action)
+                    equeue.append(act)
+                else:
+                    # Failed
+                    make_event(action, source=clone, success=False)
             else:
                 unchanged.add(clone.position)
-                self._emit_event(GameEvent(action, source=clone))
-
-        if not self._got_goal and self.goal_location.position in entered:
-            self._got_goal = True
-            self._emit_event(GameEvent("goal-obtained"))
+                make_event(action, source=clone)
 
         if entered or left:
             deactivated = left - entered - unchanged
@@ -343,21 +365,33 @@ class Level(object):
                     else:
                         changed_targets.add(t)
                 if f in deactivated:
-                    self._emit_event(GameEvent("field-deactivated", source=f))
+                    make_event("field-deactivated", source=f)
                 else:
-                    self._emit_event(GameEvent("field-activated", source=f))
+                    make_event("field-activated", source=f)
 
             for target in changed_targets:
                 target.toogle_activation()
                 et = "field-deacitvated"
                 if target.activated:
                     et = "field-activated"
-                self._emit_event(GameEvent(et, source=target))
+                make_event(et, source=target)
 
-        for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
-            if not self.get_field(clone.position).can_enter:
-                self._time_paradox_event("Clone is in an unreachable field at end of turn")
+        try:
+            for act in equeue:
+                act()
+        except TimeParadoxError:
+            return
+
+        for clone in self._clones:
+            if self.get_crate_at(clone.position):
+                self._time_paradox_event("Clone and crate on the same field %s [Non-Determinism]" \
+                                             % str(clone.position))
                 return
+
+
+        if not self._got_goal and self.goal_location.position in entered:
+            self._got_goal = True
+            self._emit_event(GameEvent("goal-obtained"))
 
         if self._player_active:
             # active moves cost one
@@ -383,6 +417,10 @@ class Level(object):
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)
                 self._clones.append(self._player)
+                self._crates = self._crates_orig.copy()
+                for p in self._crates:
+                    self._crates[p].position = p
+                    self._emit_event(GameEvent("reset-crate", source=self._crates[p]))
                 self._emit_event(GameEvent("time-jump"))
                 self._emit_event(GameEvent('player-clone', source=self._player))
 
@@ -495,3 +533,34 @@ class Level(object):
         for row in self._lvl:
             for field in row:
                 yield field
+
+    def _move_clone(self, clone, dest_pos, action):
+        clone.position = dest_pos
+        self._emit_event(GameEvent(action, source=clone))
+
+        if not self.get_field(dest_pos).can_enter:
+            self._time_paradox_event("Clone is on an unreachable field at end of turn: %s" \
+                                         % str(dest_pos))
+            raise TimeParadoxError
+        # we cannot check if a crate is on top of the clone here (reliably at least)
+        # because the clone may move before it is mow'ed down (rather than moving into
+        # a box).  So we wait till moves have been done.
+
+    def _move_clone_w_crate(self, clone, crate, clone_dest_pos, crate_dest_pos, action):
+        # Move the crate first...
+
+        taken = crate_dest_pos in self._crates
+        crate.position = clone_dest_pos
+        del self._crates[clone_dest_pos]
+        self._crates[crate_dest_pos] = crate
+
+        self._emit_event(GameEvent(action, source=crate))
+        self._move_clone(clone, clone_dest_pos, action)
+
+        if taken or not self.get_field(clone_dest_pos).can_enter:
+            reason = "Two crates colided at %s" % str(clone_dest_pos)
+            if not taken:
+                reason = "Crate is on an unreachable field at end of turn: %s" \
+                    % str(clone_dest_pos)
+            self._time_paradox_event(reason)
+            raise TimeParadoxError

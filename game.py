@@ -44,7 +44,7 @@ from direction import Direction
 from field import Position
 from sprites import (VisualLevel, SortedUpdates, Sprite, PlayerSprite,
                      Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
-                     GATE_CLOSED, GATE_OPEN)
+                     GATE_CLOSED, GATE_OPEN, MoveableSprite)
 from tile_cache import TileCache
 
 DEFAULT_CONTROLS = {
@@ -154,6 +154,8 @@ class Game(object):
             'time-paradox': self._time_paradox,
             'game-complete': self._game_complete,
             'end-of-turn': self._end_of_turn,
+            'goal-obtained': lambda *x: self.goal.kill(),
+            'reset-crate': self._reset_crate,
         }
         self._controls = DEFAULT_CONTROLS
 
@@ -200,7 +202,7 @@ class Game(object):
             sprite = None
             crate = log_level.get_crate_at(field.position)
             if crate:
-                c_sprite = Sprite(field.position, self._sprite_cache['crate'], c_depth=1)
+                c_sprite = MoveableSprite(field.position, self._sprite_cache['crate'], c_depth=1)
                 self._crates[crate] = c_sprite
                 self.sprites.add(c_sprite)
             if field.symbol == '-' or field.symbol == '_':
@@ -257,15 +259,21 @@ class Game(object):
     def _move(self, d, event):
         """Start walking in specified direction."""
 
-        player = self._clones[event.source]
+        actor = None
+        is_player = False
+        if event.source in self._crates:
+            actor = self._crates[event.source]
+        else:
+            is_player = True
+            actor = self._clones[event.source]
 
         if d == Direction.NO_ACT or not event.success:
-            player.animation = player.do_nothing_animation()
+            actor.animation = actor.do_nothing_animation()
             return
-        pos = player.pos
+        pos = actor.pos
         target = pos.dir_pos(d)
-        player.direction = d
-        player.animation = player.walk_animation()
+        actor.direction = d
+        actor.animation = actor.walk_animation()
         if target == self.log_level.goal_location.position:
             self.goal.kill()
 
@@ -289,6 +297,9 @@ class Game(object):
 
     def _time_paradox(self, e):
         print "TIME PARADOX: %s" % (e.reason)
+
+    def _reset_crate(self, event):
+        self._crates[event.source].pos = event.source.position
 
     def _end_of_turn(self, _):
         self._score.update_score(self.log_level)

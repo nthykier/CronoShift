@@ -145,16 +145,13 @@ class Sprite(pygame.sprite.Sprite):
 
         self.animation.next()
 
-class PlayerSprite(Sprite):
-    """ Display and animate the player character."""
-
-    is_player = True
-
-    def __init__(self, player, frames):
-        Sprite.__init__(self, player.position, frames)
-        self.direction = Direction.EAST
+class MoveableSprite(Sprite):
+    """ Display and animate the moveable objects."""
+    def __init__(self, pos, frames, c_pos=None, c_depth=None):
+        Sprite.__init__(self, pos, frames, c_pos=c_pos, c_depth=c_depth)
+        self.direction = 0
         self.animation = None
-        self.image = self.frames[self.direction][0]
+        self.image = self.frames[0][0]
 
     def do_nothing_animation(self):
         """Fake animation for timing purposes"""
@@ -171,7 +168,10 @@ class PlayerSprite(Sprite):
         d = self.direction
         dpos = Direction.dir_update(d)
         for frame in range(4):
-            self.image = self.frames[d][frame]
+            if d < len(self.frames) and frame < len(self.frames[d]):
+                self.image = self.frames[d][frame]
+            else:
+                self.image = self.frames[0][0]
             yield None
             self.move(Position(3*dpos.x, 2*dpos.y))
             yield None
@@ -181,12 +181,25 @@ class PlayerSprite(Sprite):
         """Run the current animation or just stand there if no animation set."""
 
         if self.animation is None:
-            self.image = self.frames[self.direction][0]
+            if self.direction < len(self.frames):
+                self.image = self.frames[self.direction][0]
+            else:
+                self.image = self.frames[0][0]
         else:
             try:
                 self.animation.next()
             except StopIteration:
                 self.animation = None
+
+class PlayerSprite(MoveableSprite):
+    """ Display and animate the player character."""
+
+    is_player = True
+
+    def __init__(self, player, frames):
+        MoveableSprite.__init__(self, player.position, frames)
+        self.direction = Direction.EAST
+        self.image = self.frames[self.direction][0]
 
 class VisualLevel(object):
     def __init__(self, level, tileset=None, map_cache = None):
