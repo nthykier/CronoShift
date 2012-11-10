@@ -457,8 +457,11 @@ class Level(object):
                 raise ValueError("Unknown command %s" % x)
 
             events = []
+            wait_for_timejump = False
 
             def event_handler(e):
+                if wait_for_timejump and e.event_type == "time-jump":
+                    events.append(e)
                 if e.event_type == "game-complete" or e.event_type == "time-paradox":
                     events.append(e)
 
@@ -475,6 +478,13 @@ class Level(object):
                     print "E: lvl %s: Time-paradox in time-jump %d (%s)" \
                         % (self.name, self.number_of_clones, events[0].reason)
                     break
+
+            if not self._player_active:
+                # The last clone may do less actions than earlier one
+                wait_for_timejump = True
+                while not events:
+                    # Wait for the current time-jump to finish...
+                    self.perform_move("skip-turn")
 
             self.remove_event_listener(event_handler)
 
