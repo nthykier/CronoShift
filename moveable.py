@@ -55,10 +55,6 @@ class Moveable(object):
     def is_clone(self):
         return self._is_player
 
-class Player(Moveable):
-    def __init__(self, position):
-        super(Player, self).__init__(position, True, False)
-
 class PlayerClone(Moveable):
 
     def __init__(self, position, actions):
@@ -70,16 +66,6 @@ class PlayerClone(Moveable):
 
     def __getitem__(self, i):
         return self._actions[i]
-
-    def do_action(self, lvl, turn):
-        act = "H"
-        x, y = self.position
-        if turn < len(self._path):
-            act = self._action[turn]
-        p = self.position - Direction.act_update(act)
-        field = lvl.get_field(p)
-        if field.can_enter:
-            self._position = p
 
 class Crate(Moveable):
 

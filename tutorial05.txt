@@ -13,8 +13,8 @@ button (7, 3) -> gate (3, 4)
 
 Description: Simple case with a crate that is in the way.
 Solution:
- WW SS SH HH HH HH HH HH NN NE E
+ WW SS SH HH HH HH HH HH NN NE ET
  .
- WW SS HE EE EE EN NW WW
+ WW SS HE EE EE EN NW WW T
  .
- WW SS HE EH HH HS SN NW WN NE E
+ WW SS HE EH HH HS SN NW WN NE ET

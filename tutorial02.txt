@@ -9,6 +9,6 @@ button (3, 1) -> gate (2, 2)
 
 Description: Demonstrate a simple gate.
 Solution: 
- EE HH HH HWW
+ EE HH HH HW WT
  .
- EH SS EW NNW
+ EH SS EW NN WT

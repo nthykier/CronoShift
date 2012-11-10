@@ -8,5 +8,5 @@
 nothing
 
 Description: Straight forward.
-Solution: 
- EE SS WW NN
+Solution:
+ EE SS WW NN T

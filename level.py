@@ -32,7 +32,7 @@ from itertools import imap, ifilter, chain
 from operator import attrgetter
 import re
 
-from moveable import PlayerClone, Player
+from moveable import PlayerClone
 from field import parse_field, Position
 
 ACTITVATION_REGEX = re.compile(
@@ -249,9 +249,11 @@ class Level(object):
         if self._do_action(action):
             self._do_end_of_turn()
 
-    def _time_paradox_event(self):
+    def _time_paradox_event(self, msg):
         self._time_paradox = True
-        self._emit_event(GameEvent("time-paradox"))
+        e = GameEvent("time-paradox")
+        e.reason = msg
+        self._emit_event(e)
 
     def _do_action(self, action):
         act2f = {
@@ -285,9 +287,12 @@ class Level(object):
         left = set()
         unchanged = set()
         changed_targets = set()
-        for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
+        for cno, clone in ifilter(lambda x: self._turn_no < len(x[1]), enumerate(self._clones)):
             action = clone[self._turn_no]
             if action == 'enter-time-machine':
+                if clone.position != self.start_location.position:
+                    self._time_paradox_event("Clone does not make it back to start")
+                    return
                 self._emit_event(GameEvent(action))
                 continue
             if action.startswith("move-"):
@@ -308,11 +313,6 @@ class Level(object):
             else:
                 unchanged.add(clone.position)
                 self._emit_event(GameEvent(action, source=clone))
-
-            if self._turn_no -1  == len(clone):
-                if clone.position != self.start_location.position:
-                    self._time_paradox_event()
-                    return
 
         if not self._got_goal and self.goal_location.position in entered:
             self._got_goal = True
@@ -344,7 +344,7 @@ class Level(object):
 
         for clone in ifilter(lambda x: self._turn_no < len(x), self._clones):
             if not self.get_field(clone.position).can_enter:
-                self._time_paradox_event()
+                self._time_paradox_event("Clone is in an unreachable field at end of turn")
                 return
 
         if self._player_active:
@@ -411,91 +411,39 @@ class Level(object):
                 print "W: lvl %s: activable (%s) at %s has no sources" \
                       % (self.name, field.symbol, str(field.position))
         if solution is not None:
-            clones = []
-            space = lambda x: not x[0].isspace()
-            for clone in solution.split("\n .\n"):
-                clones.append(PlayerClone(self.start_location.position,
-                                          filter(space, clone))
-                              )
-            limit = max(imap(len, clones))
-            activated = {}
-            got_goal = False
-            timeparadox = False
+            space = lambda x: not x[0].isspace() and x[0] != "."
+            def _s2actions(x):
+                if x == "N": return "move-up"
+                if x == "E": return "move-right"
+                if x == "S": return "move-down"
+                if x == "W": return "move-left"
+                if x == "H": return "skip-turn"
+                if x == "T": return "enter-time-machine"
+                raise ValueError("Unknown command %s" % x)
 
-            for jumpno in xrange(len(clones)):
-                if got_goal:
-                    print "W: lvl %s: Solution found in jump %d and not %d" \
-                        % (self.name, jumpno, len(clones))
-                    break
-                try:
-                    got_goal = self._check_timejump(clones, limit, jumpno,
-                                                    verbose=verbose)
-                except:
-                    timeparadox = True
-                    break
+            events = []
 
-            if not timeparadox and not got_goal:
+            def event_handler(e):
+                if e.event_type == "game-complete" or e.event_type == "time-paradox":
+                    events.append(e)
+
+            self.add_event_listener(event_handler)
+
+            self.start()
+            for action in imap(_s2actions, ifilter(space, solution)):
+                if events and  events[0].event_type == "game-complete":
+                    print "W: lvl %s: Solution found in jump %d" \
+                        % (self.name, self.number_of_clones)
+                    break
+                self.perform_move(action)
+                if events and events[0].event_type == "time-paradox":
+                    print "E: lvl %s: Time-paradox in time-jump %d (%s)" \
+                        % (self.name, self.number_of_clones, events[0].msg)
+
+            self.remove_event_listener(event_handler)
+
+            if not events:
                 print "E: lvl %s: Solution does not obtain goal" % self.name
-
-    def _check_timejump(self, clones, turnlimit, jumpno, verbose=False):
-        got_goal = False
-        for turn in xrange(turnlimit):
-            left = set()
-            entered = set()
-
-            # The jumpno determines the number of active clones
-            for cno in xrange(jumpno+1):
-                clone = clones[cno]
-                spos = clone.position
-                clone.do_action(self, turn)
-                epos = clone.position
-                if spos != epos:
-                    left.add(spos)
-                    entered.add(epos)
-                    if verbose:
-                        print "I: clone %d moves from %s to %s" \
-                            % (cno, str(spos), str(epos))
-            deactivated = left - entered
-            activated = entered - left
-
-            for dpos in deactivated:
-                f = self.get_field(dpos)
-                if not f.is_activation_source:
-                    continue
-                f.deactivate()
-                if verbose:
-                    print "I: %s at %s was deactivated" \
-                        % (f.symbol, str(f.position))
-
-            for apos in activated:
-                f = self.get_field(apos)
-                if not f.is_activation_source:
-                    continue
-                f.activate()
-                if verbose:
-                    print "I: %s at %s was activated" \
-                        % (f.symbol, str(f.position))
-
-            for (cno, clone) in enumerate(clones):
-                f = self.get_field(clone.position)
-                if clone.position == self.goal_location.position:
-                    got_goal = True
-                if not f.can_enter:
-                    if verbose:
-                        self.show_field(clone.position)
-                    print "E: lvl %s: clone %d is at %s which is not enterable (at end of turn %d)" \
-                        % (self.name, cno, str(clone.position), turn + 1)
-                    raise TimeParadoxError
-
-        for (cno, clone) in enumerate(clones):
-            if clone.position != self.start_location.position:
-                if verbose:
-                    self.show_field(clone.position)
-                print "E: lvl %s: clone %d ends at %s and not at start" \
-                    % (self.name, cno, str(clone.position))
-                raise TimeParadoxError
-
-        return got_goal
 
     def print_lvl(self, fname, fd=None):
         if fd is None:

@@ -150,6 +150,7 @@ class Game(object):
             'player-clone': self._player_clone,
             'field-acitvated': self._field_state_change,
             'field-deacitvated': self._field_state_change,
+            'time-paradox': self._time_paradox,
             'game-complete': self._game_complete,
             'end-of-turn': self._end_of_turn,
         }
@@ -276,6 +277,9 @@ class Game(object):
 
     def _quit(self, _):
         self.game_over = True
+
+    def _time_paradox(self, e):
+        print "TIME PARADOX: %s" % (e.reason)
 
     def _end_of_turn(self, _):
         self._score.update_score(self.log_level)
