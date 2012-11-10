@@ -131,6 +131,7 @@ class Game(object):
         self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
         self._clones = {}
         self._gates = {}
+        self._crates = {}
         self._score = ScoreTracker()
         self.use_level(log_level)
         self._action2handler = {
@@ -192,8 +193,16 @@ class Game(object):
         self.background, overlays = self.level.render()
 
         for field in log_level.iter_fields():
-            # Use map-cache here for gates and buttons
+            # Crates looks best in 32x32, gates and buttons in 24x16
+            #   - if its "on top of" a field 32x32 usually looks best.
+            #   - if it is (like) a field, 24x16 is usually better
+            # - use sprite_cache and map_cache accordingly.
             sprite = None
+            crate = log_level.get_crate_at(field.position)
+            if crate:
+                c_sprite = Sprite(field.position, self._sprite_cache['crate'], c_depth=1)
+                self._crates[crate] = c_sprite
+                self.sprites.add(c_sprite)
             if field.symbol == '-' or field.symbol == '_':
                 sprite = Sprite(field.position, self._map_cache['gate'], c_depth=-1)
                 self._gates[field.position] = sprite

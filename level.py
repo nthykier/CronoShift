@@ -32,7 +32,7 @@ from itertools import imap, ifilter, chain
 from operator import attrgetter
 import re
 
-from moveable import PlayerClone
+from moveable import PlayerClone, Crate
 from field import parse_field, Position
 
 ACTITVATION_REGEX = re.compile(
@@ -84,6 +84,10 @@ class Level(object):
         self._player = None # current player
         self._clones = [] # clones (in order of appearance)
         self._actions = [] # actions done by current player (i.e. clone)
+        self._crates = {} # location of crates
+
+        # memory variables
+        self._crates_orig = {} # Original location of crates
 
     @property
     def name(self):
@@ -119,6 +123,11 @@ class Level(object):
 
     def get_field(self, p):
         return self._lvl[p.x][p.y]
+
+    def get_crate_at(self, p):
+        if p in self._crates:
+            return self._crates[p]
+        return None
 
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
@@ -166,9 +175,12 @@ class Level(object):
                                           % (str(pos), str(self._goal_location.position),
                                              fname, lineno))
                     self._goal_location = obj
+                if lines[j][i] == "c":
+                    self._crates_orig[pos] = Crate(pos)
                 obj._set_position(pos)
 
         self._lvl = zip(*transposed_lvl)
+        self._crates = self._crates_orig.copy()
         self._width = len(self._lvl)
         self._height = len(self._lvl[0])
 
@@ -239,6 +251,7 @@ class Level(object):
         self._player = PlayerClone(self.start_location.position, self._actions)
         self._player_active = True
         self._clones = [self._player]
+        self._crates = self._crates_orig.copy()
         self._emit_event(GameEvent('player-clone', source=self._player))
 
 
