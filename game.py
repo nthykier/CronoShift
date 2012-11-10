@@ -42,7 +42,8 @@ import pygame.locals as pg
 from direction import Direction
 from field import Position
 from sprites import (VisualLevel, SortedUpdates, Sprite, PlayerSprite,
-                     Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
+                     Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
+                     GATE_CLOSED, GATE_OPEN)
 from tile_cache import TileCache
 
 DEFAULT_CONTROLS = {
@@ -75,7 +76,8 @@ class Game(object):
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
         self._tileset = "tileset"
-        self._tile_cache = TileCache(32, 32)
+        self._sprite_cache = TileCache(32, 32)
+        self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
         self._clones = {}
         self.use_level(log_level)
         self._action2handler = {
@@ -113,7 +115,7 @@ class Game(object):
         self.overlays = pygame.sprite.RenderUpdates()
         self.log_level = log_level
         self._clones = {}
-        self.level = VisualLevel(log_level, tile_cache=self._tile_cache,
+        self.level = VisualLevel(log_level, map_cache=self._map_cache,
                                  tileset=self._tileset)
 
         def level_event_handler(event):
@@ -123,20 +125,30 @@ class Game(object):
 
         # Populate the game with the level's objects
         if 1:
-            sprite = Sprite(log_level.goal_location.position, self._tile_cache['house'])
+            sprite = Sprite(log_level.goal_location.position, self._sprite_cache['house'])
             self.goal = sprite
             self.sprites.add(sprite)
+
+        for field in log_level.iter_fields():
+            sprite = None
+            if field.symbol == '-' or field.symbol == '_':
+                sprite = Sprite(field.position, self._map_cache['gate'])
+                if field.symbol == '-':
+                    sprite.state = GATE_CLOSED
+#            if field.symbol == 'b':
+#                sprite = Sprite(field.position, self._sprite_cache['button'])
+            if sprite:
+                self.sprites.add(sprite)
 
         # Render the level map
         self.background, overlays = self.level.render()
 
         if 1:
+            # Highlight the start location
             image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-            image.fill(pygame.Color("red"))
+            image.fill(pygame.Color("blue"))
             image.set_alpha(0x80)
-            c = image.copy()
-            c.set_alpha(0x00)
-            s = Sprite(Position(2,2), ((image, c),), correction=(0, MAP_TILE_HEIGHT/4))
+            s = Sprite(log_level.start_location.position, ((image,),))
             self.sprites.add(s)
 
         # Add the overlays for the level map
@@ -186,10 +198,10 @@ class Game(object):
 
 
     def _player_clone(self, event):
-        sprite = PlayerSprite(event.source, self._tile_cache['player'])
+        sprite = PlayerSprite(event.source, self._sprite_cache['player'])
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
-        self.shadows.add(Shadow(sprite, self._tile_cache["shadow"][0][0]))
+        self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
 
     def _quit(self, _):
         self.game_over = True

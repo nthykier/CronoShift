@@ -49,6 +49,9 @@ MAP_TILE_HEIGHT = 16
 TL_FACTOR = Position(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
 TL_OFFSET = Position(MAP_TILE_WIDTH/2, MAP_TILE_HEIGHT)
 
+GATE_OPEN = 0
+GATE_CLOSED = 1
+
 def lpos2gpos(lpos, c=(0,0)):
     return Position(lpos[0] * TL_FACTOR.x + TL_OFFSET.x + c[0],
                     lpos[1] * TL_FACTOR.y + TL_OFFSET.y + c[1])
@@ -96,19 +99,29 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.animation = self.stand_animation()
         self.pos = pos
+        self._state = 0
 
-    def _get_pos(self):
+    @property
+    def pos(self):
         """Check the current position of the sprite on the map."""
 
         return gpos2lpos(self.rect.midbottom, self._correction)
 
-    def _set_pos(self, pos):
+    @pos.setter
+    def pos(self, pos):
         """Set the position and depth of the sprite on the map."""
 
         self.rect.midbottom = lpos2gpos(pos, self._correction)
         self.depth = self.rect.midbottom[1]
 
-    pos = property(_get_pos, _set_pos)
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, new_state):
+        self.image = self.frames[new_state][0]
+        self._state = new_state
 
     def move(self, pos):
         """Change the position of the sprite on screen."""
@@ -121,7 +134,7 @@ class Sprite(pygame.sprite.Sprite):
 
         while True:
             # Change to next frame every two ticks
-            for frame in self.frames[0]:
+            for frame in self.frames[self.state]:
                 self.image = frame
                 yield None
                 yield None
@@ -175,18 +188,19 @@ class PlayerSprite(Sprite):
                 self.animation = None
 
 class VisualLevel(object):
-    def __init__(self, level, tileset=None, tile_cache = None):
+    def __init__(self, level, tileset=None, map_cache = None):
         self._tileset = "tileset" # default is literally "tileset"
-        self._tile_cache = tile_cache
+        self._map_cache = map_cache
         self._level = level
         self._marked = {}
         if tileset is not None:
             self._tileset = tileset
-        if tile_cache is None:
-            self._tile_cache = TileCache()
+        if map_cache is None:
+            self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
 
     def render(self):
-        tiles = self._tile_cache[self._tileset]
+        tiles = self._map_cache[self._tileset]
+        gates = {}
         image = pygame.Surface((self._level.width*MAP_TILE_WIDTH,
                                 self._level.height*MAP_TILE_HEIGHT))
         overlays = {}
@@ -229,10 +243,7 @@ class VisualLevel(object):
                     overlays[pos] = tiles[over[0]][over[1]]
             else:
                 tile = 0, 3
-            try:
-                tile_image = tiles[tile[0]][tile[1]]
-            except IndexError:
-                tile_image = tiles[0][0]
+            tile_image = tiles[tile[0]][tile[1]]
             image.blit(tile_image,
                        (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
         return image, overlays
