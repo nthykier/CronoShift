@@ -558,13 +558,28 @@ class Level(object):
     def _move_clone_w_crate(self, clone, crate, clone_dest_pos, crate_dest_pos, action):
         # Move the crate first...
 
-        taken = crate_dest_pos in self._crates
-        crate.position = clone_dest_pos
-        del self._crates[clone_dest_pos]
-        self._crates[crate_dest_pos] = crate
+        taken = False
+        if clone_dest_pos not in self._crates:
+            ocrate = self._crates.get(crate_dest_pos, None)
+            if not ocrate or ocrate != crate:
+                self._time_paradox_event("Crate on %s was moved in two different directions" \
+                                             % str(clone_dest_pos))
+                raise TimeParadoxError
+            crate = None
+        else:
+            taken = crate_dest_pos in self._crates
+            crate.position = clone_dest_pos
+            del self._crates[clone_dest_pos]
+            self._crates[crate_dest_pos] = crate
 
-        self._emit_event(GameEvent(action, source=crate))
+        if crate: # Move the crate if still present
+            self._emit_event(GameEvent(action, source=crate))
+
         self._move_clone(clone, clone_dest_pos, action)
+
+        if not crate:
+            # The check below is already done, if another clone moved the box for us
+            return
 
         if taken or not self.get_field(clone_dest_pos).can_enter:
             reason = "Two crates colided at %s" % str(clone_dest_pos)
