@@ -398,9 +398,8 @@ class Level(object):
             if self._got_goal:
                 self._emit_event(GameEvent("game-complete"))
             else:
-                # cloning cost one (unless we already paid for this move)
-                if not self._player_active:
-                    self._score += 1
+                # cloning cost one
+                self._score += 1
                 self._player_active = True
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)

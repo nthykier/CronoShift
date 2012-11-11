@@ -18,6 +18,7 @@ Solution/Movement:
  "W" is "West"
  "S" is "South"
  "H" is "Hold (Position)" (i.e. "Do nothing")
+ "T" is "(Enter) Time-machine" (i.e. "clone is done, move to next clone")
 
 One-way one-time locks (can be rotated):
 
@@ -26,5 +27,4 @@ One-way one-time locks (can be rotated):
    +c+    OR   -c-
    +b+         + +
    +++         +_+
-
 
