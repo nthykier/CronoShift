@@ -1,0 +1,15 @@
+2D SuperFun!
++++++
+++G++
+++-++
++Scb+
++++++
+
+button (3, 3) -> gate (2, 2)
+
+Description: Test that buttons with crates on them are properly
+ reset.
+Solution:
+ EW T
+ .
+ EH NN SS WT

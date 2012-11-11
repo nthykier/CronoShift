@@ -43,6 +43,9 @@ ACTITVATION_REGEX = re.compile(
 class GameError(Exception):
     pass
 
+class UnsolvableError(GameError):
+    pass
+
 class TimeParadoxError(GameError):
     pass
 
@@ -429,7 +432,7 @@ class Level(object):
         print line
         print fstr % "^"
 
-    def check_lvl(self, verbose=1):
+    def check_lvl(self, verbose=False, solvable=False):
         if verbose:
             print "Checking %s ..." % self.name
         first = lambda x: next(iter(x), None)
@@ -447,6 +450,8 @@ class Level(object):
                     self.show_field(field.position)
                 print "W: lvl %s: activable (%s) at %s has no sources" \
                       % (self.name, field.symbol, str(field.position))
+        if solvable and solution is None:
+            raise UnsolvableError("No solution for %s" % self.name)
         if solution is not None:
             space = lambda x: not x[0].isspace() and x[0] != "."
             def _s2actions(x):
@@ -479,6 +484,8 @@ class Level(object):
                 if events and events[0].event_type == "time-paradox":
                     print "E: lvl %s: Time-paradox in time-jump %d (%s)" \
                         % (self.name, self.number_of_clones, events[0].reason)
+                    if solvable:
+                        raise UnsolvableError("Time paradox in level %s" % self.name)
                     break
 
             if not self._player_active:
@@ -492,6 +499,8 @@ class Level(object):
 
             if not events:
                 print "E: lvl %s: Solution does not obtain goal" % self.name
+                if solvable:
+                    raise UnsolvableError("Solution for %s does not obtain goal" % self.name)
 
     def print_lvl(self, fname, fd=None):
         if fd is None:

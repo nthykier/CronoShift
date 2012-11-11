@@ -1,0 +1,17 @@
+2D SuperFun!
++++++
+++G++
+++-++
++Scb+
++++++
+
+button (3, 3) -> gate (2, 2)
+
+Description: Test that two clones can push the same crate
+ (in the same direction).
+Solution:
+ EW T
+ .
+ EW T
+ .
+ ES NN SS WT
