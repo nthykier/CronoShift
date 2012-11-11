@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 LVL_EXT := .txt
-PLAYABLE_MAPS := $(wildcard tutorial*$(LVL_EXT))
+PLAYABLE_MAPS := $(wildcard levels/*$(LVL_EXT))
 SOLVABLE_TESTS := $(wildcard tests/solvable/*$(LVL_EXT))
 TIMEPARADOX_TESTS := $(wildcard tests/time-paradox/*$(LVL_EXT))
 
