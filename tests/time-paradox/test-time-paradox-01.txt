@@ -1,0 +1,16 @@
+2D SuperFun!
++++++
++S  +
++ c +
++  G+
++++++
+
+nothing
+
+Description: Pushing crate on top of a clone is time paradox.
+Solution:
+ EE SH NW WT
+ .
+ SH EN WT
+ .
+ EE SS WW NN T
