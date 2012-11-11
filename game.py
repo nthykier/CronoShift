@@ -134,6 +134,8 @@ class Game(object):
         self._gates = {}
         self._crates = {}
         self.mhilight = None
+        self.ohilights = []
+        self.lmhpos = (0, 0)
         self._score = ScoreTracker()
         self.use_level(log_level)
         self._action2handler = {
@@ -230,6 +232,7 @@ class Game(object):
             s = Sprite(log_level.start_location.position, ((mhilight,),))
             self.sprites.add(s)
             self.mhilight = s
+            self.lmhpos = log_level.start_location.position
 
         # Add the overlays for the level map
         for (x, y), image in overlays.iteritems():
@@ -338,6 +341,31 @@ class Game(object):
         self._score.update_score(self.log_level)
         print "Your score is: %d" % self.log_level.score
 
+    def _handle_mouse(self, lpos):
+        if not self.mhilight or lpos == self.lmhpos:
+            return
+        if (lpos[0] < self.log_level.width and
+               lpos[1] < self.log_level.height):
+            self.mhilight.pos = lpos
+            field = self.log_level.get_field(lpos)
+            other = None
+            if field.is_activation_source:
+                other = field.iter_activation_targets()
+            if field.is_activation_target:
+                other = field.iter_activation_sources()
+            if self.ohilights:
+                for old in self.ohilights:
+                    old.kill()
+                self.ohilights = []
+            if other:
+                for o in other:
+                    hilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
+                    hilight.fill(pygame.Color("yellow"))
+                    hilight.set_alpha(0x80)
+                    s = Sprite(o.position, ((hilight,),))
+                    self.sprites.add(s)
+                    self.ohilights.append(s)
+
     def main(self):
         """Run the main loop."""
 
@@ -375,13 +403,10 @@ class Game(object):
                 if event.type == pg.QUIT:
                     self.game_over = True
                 elif event.type == pg.MOUSEMOTION:
-                    if self.mhilight:
-                        corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
-                        mpos = pygame.mouse.get_pos()
-                        lpos = gpos2lpos(mpos, c=corr)
-                        if (lpos[0] < self.log_level.width and
-                                lpos[1] < self.log_level.height):
-                            self.mhilight.pos = lpos
+                    corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
+                    mpos = pygame.mouse.get_pos()
+                    lpos = gpos2lpos(mpos, c=corr)
+                    self._handle_mouse(lpos)
                 elif event.type == pg.KEYDOWN:
                     self.pressed_key = event.key
                 elif event.type == pg.USEREVENT:
