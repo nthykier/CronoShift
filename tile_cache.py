@@ -51,8 +51,8 @@ class TileCache(object):
         try:
             return self.cache[key]
         except KeyError:
-            tile_table = self._load_tile_table(filename + ".png", self.width,
-                                               self.height)
+            tile_table = self._load_tile_table("images/%s.png" % filename,
+                                               self.width, self.height)
             self.cache[key] = tile_table
             return tile_table
 

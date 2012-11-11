@@ -7,7 +7,8 @@ Comment: This file describes the license/copyright information for the images
  .
  Images may have been modified (incl. but not limited to resizing, cropping etc.).
 
-Files: crate.png ground.png shadow.png tileset.png house.png player.png
+Files: images/crate.png images/ground.png images/shadow.png images/tileset.png
+ images/house.png images/player.png
 Downloaded-From: https://bitbucket.org/thesheep/qq/src
  (commit: 1090d7e5537f8e51517922fdb1aaf7d99b4f06e8)
 Copyright: 2008, 2009 Radomir Dopieralski <qq@sheep.art.pl>
@@ -36,10 +37,10 @@ License: BSD-2
  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Files: button.png gate.png orig-images/Ardentryst-*
+Files: images/button.png images/gate.png orig-images/Ardentryst-*
 Copyright: 2008 Jordan Trudgett (http://jordan.trudgett.com/)
-Comment: button.png and gate.png are derived from (some of) the images
- in orig-images/Ardentryst-*.
+Comment: images/button.png and images/gate.png are derived from (some of)
+ the images in orig-images/Ardentryst-*.
 License: CC-BY-3.0
  Creative Commons Legal Code
  .
