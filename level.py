@@ -288,7 +288,8 @@ class Level(object):
     def _move(self, direction, action):
         if direction != Direction.NO_ACT and not self._player_active:
             return # ignore movement if the player is not active
-        self._actions.append(action)
+        if self._player_active:
+            self._actions.append(action)
         return True
 
     def _enter_time_machine(self, action):
@@ -537,6 +538,9 @@ class Level(object):
         for row in self._lvl:
             for field in row:
                 yield field
+
+    def iter_clones(self):
+        return (c for c in self._clones)
 
     def _changed_targets(self, activated, deactivated):
         changed_targets = set()

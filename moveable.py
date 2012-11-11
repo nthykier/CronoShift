@@ -67,6 +67,9 @@ class PlayerClone(Moveable):
     def __getitem__(self, i):
         return self._actions[i]
 
+    def __iter__(self):
+        return iter(self._actions)
+
 class Crate(Moveable):
 
     def __init__(self,position):

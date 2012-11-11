@@ -64,6 +64,7 @@ DEFAULT_CONTROLS = {
     pg.K_RETURN: 'enter-time-machine',
 
     pg.K_ESCAPE: 'quit-game',
+    pg.K_F2: 'print-actions',
 }
 
 class ScoreTracker(pygame.sprite.Sprite):
@@ -142,6 +143,7 @@ class Game(object):
             'skip-turn': self.log_level.perform_move,
             'enter-time-machine': self.log_level.perform_move,
             'quit-game': self._quit,
+            'print-actions': self._print_actions,
         }
         self._event_handler = {
             'move-up': functools.partial(self._move, Direction.NORTH),
@@ -291,6 +293,28 @@ class Game(object):
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
         self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
+
+    def _print_actions(self, _):
+        def _action2sf(container):
+            actions = {
+                'move-up': 'N',
+                'move-right': 'E',
+                'move-down': 'S',
+                'move-left': 'W',
+                'skip-turn': 'H',
+                'enter-time-machine': 'T',
+            }
+            it = iter(container)
+            while 1:
+                a = next(it)
+                b = next(it, None)
+                if b is None:
+                    yield actions[a]
+                    break
+                yield actions[a] + actions[b] + ' '
+
+        for clone in self.log_level.iter_clones():
+            print " %s" % ("".join(_action2sf(clone)))
 
     def _quit(self, _):
         self.game_over = True
