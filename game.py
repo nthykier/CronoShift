@@ -44,7 +44,7 @@ from direction import Direction
 from field import Position
 from sprites import (VisualLevel, SortedUpdates, Sprite, PlayerSprite,
                      Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
-                     GATE_CLOSED, GATE_OPEN, MoveableSprite)
+                     GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos)
 from tile_cache import TileCache
 
 DEFAULT_CONTROLS = {
@@ -133,6 +133,7 @@ class Game(object):
         self._clones = {}
         self._gates = {}
         self._crates = {}
+        self.mhilight = None
         self._score = ScoreTracker()
         self.use_level(log_level)
         self._action2handler = {
@@ -222,8 +223,13 @@ class Game(object):
             image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             image.fill(pygame.Color("blue"))
             image.set_alpha(0x80)
-            s = Sprite(log_level.start_location.position, ((image,),))
+            self.sprites.add(Sprite(log_level.start_location.position, ((image,),)))
+            mhilight = image.copy()
+            mhilight.fill(pygame.Color("red"))
+            mhilight.set_alpha(0x80)
+            s = Sprite(log_level.start_location.position, ((mhilight,),))
             self.sprites.add(s)
+            self.mhilight = s
 
         # Add the overlays for the level map
         for (x, y), image in overlays.iteritems():
@@ -368,6 +374,14 @@ class Game(object):
             for event in pygame.event.get():
                 if event.type == pg.QUIT:
                     self.game_over = True
+                elif event.type == pg.MOUSEMOTION:
+                    if self.mhilight:
+                        corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
+                        mpos = pygame.mouse.get_pos()
+                        lpos = gpos2lpos(mpos, c=corr)
+                        if (lpos[0] < self.log_level.width and
+                                lpos[1] < self.log_level.height):
+                            self.mhilight.pos = lpos
                 elif event.type == pg.KEYDOWN:
                     self.pressed_key = event.key
                 elif event.type == pg.USEREVENT:
