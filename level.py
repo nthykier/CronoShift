@@ -294,11 +294,11 @@ class Level(object):
     def _enter_time_machine(self, action):
         if self._player.position != self._start_location.position:
             # Ignore unless the player is on the start position
-            return
+            return False
 
-        if self._player_active:
-            self._actions.append(action)
-            self._player_active = False
+        if not self._player_active:
+            return False
+        self._actions.append(action)
         return True
 
     def _do_end_of_turn(self):
@@ -384,6 +384,8 @@ class Level(object):
         if self._player_active:
             # active moves cost one
             self._score += 1
+            if self._player[-1] == 'enter-time-machine':
+                self._player_active = False
 
         if self._player_active or self._turn_no < self._turn_max:
             self._turn_no += 1
