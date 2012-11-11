@@ -226,7 +226,7 @@ class Game(object):
             image.fill(pygame.Color("blue"))
             image.set_alpha(0x80)
             self.sprites.add(Sprite(log_level.start_location.position, ((image,),)))
-            mhilight = image.copy()
+            mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             mhilight.fill(pygame.Color("red"))
             mhilight.set_alpha(0x80)
             s = Sprite(log_level.start_location.position, ((mhilight,),))
