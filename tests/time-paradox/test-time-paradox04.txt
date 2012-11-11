@@ -1,0 +1,16 @@
+2D SuperFun!
++++++
++S b+
+++-++
++  G+
++++++
+
+button (3, 1) -> gate (2, 2)
+
+Description: Not returning to start leads to a time paradox.
+Solution:
+ EH SS WH HH HH T
+ .
+ EE HH HH HW WT
+ .
+ EH SS EW NN WT

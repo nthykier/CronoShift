@@ -1,0 +1,17 @@
+2D SuperFun!
++++++
++S  +
++ c +
++  G+
++++++
+
+nothing
+
+Description: Pushing crate in different directions at the same time leads
+ to a time paradox.
+Solution:
+ SE NW T
+ .
+ ES WN T
+ .
+ EE SS WW NN T

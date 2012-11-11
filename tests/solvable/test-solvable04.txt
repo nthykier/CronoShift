@@ -1,0 +1,22 @@
+2D SuperFun!
++++++++
++++G+++
++  S  +
++ + + +
++  c  +
++ + + +
++++++++
+
+nothing
+
+Description: Test that two clones trying to push the crate in opposite
+ directions will not create a time paradox (they cancel each other).
+ A third clone can still push the crate without issues.
+Solution:
+ WW SS EE WW NN EE T
+ .
+ EE SS WW EE NN WW T
+ .
+ HH HH SS NN T
+ .
+ NS T
