@@ -23,8 +23,8 @@ Solution/Movement:
 One-way one-time locks (can be rotated):
 
    +++         +++
-   _ -         +B+
+   _ -         +b+
    +c+    OR   -c-
-   +b+         + +
-   +++         +_+
+   +b+         +_+
+   +++
 
