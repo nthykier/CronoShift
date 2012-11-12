@@ -40,9 +40,14 @@ ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
 )
 
-def solution2actions(sol):
+def solution2actions(sol, naive_replay=True):
     """Transform a solution in "solution format" to actions
 
+    @param sol The solution in the "solution format".  Spaces and periods
+    are ignored.
+    @param naive_replay Assume that the consumer of the solution is just
+    naively proccessing the reply and insert "skip-turn"s as needed for
+    jumps to finish.
     @return An iterable sequence of actions.
     """
 
@@ -56,7 +61,29 @@ def solution2actions(sol):
         if x == "T": return "enter-time-machine"
         raise ValueError("Unknown command %s" % x)
 
-    return imap(_s2actions, ifilter(space, sol))
+    turn_gen = imap(_s2actions, ifilter(space, sol))
+    if not naive_replay:
+        return turn_gen
+    def _gen_robust_solution(gen):
+        """Generates a more robust solution
+
+        It inserts "fake" skip-turn actions into the solution to ensure
+        even naive replayers will play the solution correctly.
+        """
+        cl = 0
+        ml = 0
+        for act in gen:
+            cl += 1
+            yield act
+            if act == "enter-time-machine":
+                while cl < ml:
+                    cl += 1
+                    yield "skip-turn"
+                if cl > ml:
+                    ml = cl
+                cl = 0
+
+    return _gen_robust_solution(turn_gen)
 
 class GameError(Exception):
     pass
@@ -487,7 +514,7 @@ class Level(object):
 
             self.start()
             for action in solution2actions(solution):
-                if events and  events[0].event_type == "game-complete":
+                if events and events[0].event_type == "game-complete":
                     print "W: lvl %s: Solution found in jump %d" \
                         % (self.name, self.number_of_clones)
                     break
