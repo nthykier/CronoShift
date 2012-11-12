@@ -123,7 +123,7 @@ class Game(object):
     def __init__(self, log_level):
         self.screen = pygame.display.get_surface()
         self.pressed_key = None
-        self.game_over = False
+        self.running = True
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
@@ -138,6 +138,8 @@ class Game(object):
         self.lmhpos = (0, 0)
         self._score = ScoreTracker()
         self.auto_play = None
+        self.auto_play_finish_jump = True
+        self.game_over = False
         self.use_level(log_level)
         self._action2handler = {
             'move-up': self.log_level.perform_move,
@@ -330,9 +332,11 @@ class Game(object):
             print " %s" % ("".join(_action2sf(clone)))
 
     def _quit(self, _):
-        self.game_over = True
+        self.running = False
 
     def _time_paradox(self, e):
+        self.game_over = True
+        self.auto_play = None
         print "TIME PARADOX: %s" % (e.reason)
 
     def _reset_crate(self, event):
@@ -342,6 +346,8 @@ class Game(object):
         self._score.update_score(self.log_level)
 
     def _game_complete(self, _):
+        self.game_over = True
+        self.auto_play = None
         self._score.update_score(self.log_level)
         print "Your score is: %d" % self.log_level.score
 
@@ -382,7 +388,7 @@ class Game(object):
         fcounter = 1
 
         # The main game loop
-        while not self.game_over:
+        while self.running:
             # Don't clear shadows and overlays, only sprites.
             self.sprites.clear(self.screen, self.background)
             self.sprites.update()
@@ -407,7 +413,11 @@ class Game(object):
             if not fcounter:
                 # "new second"
                 if self.auto_play:
-                    act = next(self.auto_play, None)
+                    default = None
+                    act = next(self.auto_play, default)
+                    if (not act and self.auto_play_finish_jump and
+                                not self.log_level._player_active):
+                        act = "skip-turn"
                     if act:
                         self._action2handler[act](act)
                     else:
@@ -415,7 +425,7 @@ class Game(object):
             # Process pygame events
             for event in pygame.event.get():
                 if event.type == pg.QUIT:
-                    self.game_over = True
+                    self.running = False
                 elif event.type == pg.MOUSEMOTION:
                     corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
                     mpos = pygame.mouse.get_pos()
