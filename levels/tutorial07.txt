@@ -1,0 +1,22 @@
+2D SuperFun!
++++++++++
++S__+++++
++++_+   +
+++b  bcb+
+++++++ ++
++G___  ++
++++++++++
+
+button (2, 3) -> gate (2, 1)
+button (2, 3) -> gate (2, 5)
+button (5, 3) -> gate (3, 1)
+button (5, 3) -> gate (3, 5)
+button (7, 3) -> gate (3, 2)
+button (7, 3) -> gate (4, 5)
+
+Description: You just cannot do this in Sokoban.
+Solution:
+ EE SS EH HH HH HH EW WN NW WT
+ .
+ EE SS EE NE ES WS SW WW WW EE EE EN NW WW NN WW T
+
