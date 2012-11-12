@@ -1,0 +1,26 @@
+2D SuperFun!
+++++++++
++S  cbb+
++++-++++
++++-++++
++++-+G++
++b  _cb+
+++++++++
+
+button (5, 1) -> gate (3, 2)
+button (5, 1) -> gate (3, 4)
+button (6, 1) -> gate (3, 2)
+button (6, 1) -> gate (3, 3)
+button (1, 5) -> gate (3, 2)
+button (1, 5) -> gate (3, 3)
+button (1, 5) -> gate (3, 4)
+button (1, 5) -> gate (4, 5)
+button (6, 5) -> gate (4, 5)
+
+Description: Surely, you can solve this level by now.
+Solution:
+ EE EE WH EH HH HH HH HH HW WW WT
+ .
+ EE HH HS SS SW WH HH EE NN NN WW T
+ .
+ EE HH HS SS SE EN SW WN NH NN WW T
