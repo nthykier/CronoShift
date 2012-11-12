@@ -412,15 +412,15 @@ class Level(object):
                 self._turn_max = self._turn_no
             self._emit_event(GameEvent("end-of-turn"))
         else:
-            self._turn_no = 0
-
-            self._emit_event(GameEvent("end-of-turn"))
 
             if self._got_goal:
                 self._emit_event(GameEvent("game-complete"))
             else:
                 # cloning cost one
+                self._turn_no = 0
                 self._score += 1
+                self._emit_event(GameEvent("end-of-turn"))
+
                 self._player_active = True
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)
