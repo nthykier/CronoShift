@@ -40,6 +40,24 @@ ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
 )
 
+def solution2actions(sol):
+    """Transform a solution in "solution format" to actions
+
+    @return An iterable sequence of actions.
+    """
+
+    space = lambda x: not x[0].isspace() and x[0] != "."
+    def _s2actions(x):
+        if x == "N": return "move-up"
+        if x == "E": return "move-right"
+        if x == "S": return "move-down"
+        if x == "W": return "move-left"
+        if x == "H": return "skip-turn"
+        if x == "T": return "enter-time-machine"
+        raise ValueError("Unknown command %s" % x)
+
+    return imap(_s2actions, ifilter(space, sol))
+
 class GameError(Exception):
     pass
 
@@ -455,15 +473,6 @@ class Level(object):
         if require_solution and solution is None:
             raise UnsolvableError("No solution for %s" % self.name)
         if solution is not None:
-            space = lambda x: not x[0].isspace() and x[0] != "."
-            def _s2actions(x):
-                if x == "N": return "move-up"
-                if x == "E": return "move-right"
-                if x == "S": return "move-down"
-                if x == "W": return "move-left"
-                if x == "H": return "skip-turn"
-                if x == "T": return "enter-time-machine"
-                raise ValueError("Unknown command %s" % x)
 
             events = []
             wait_for_timejump = False
@@ -477,7 +486,7 @@ class Level(object):
             self.add_event_listener(event_handler)
 
             self.start()
-            for action in imap(_s2actions, ifilter(space, solution)):
+            for action in solution2actions(solution):
                 if events and  events[0].event_type == "game-complete":
                     print "W: lvl %s: Solution found in jump %d" \
                         % (self.name, self.number_of_clones)

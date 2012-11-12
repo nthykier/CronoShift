@@ -4,13 +4,13 @@ import argparse
 import pygame
 import sys
 
-from level import Level
+from level import Level, solution2actions
 from game import Game
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Show ChronoShift levels")
-#    parser.add_argument('--verbose', '-v', action="store_const", dest="verbose",
-#                        const=False, help="Be verbose in the output")
+    parser.add_argument('--play-solution', action="store_const", dest="solution",
+                        const=True, default=False, help="Play the solution of the level")
     parser.add_argument('level', type=str, nargs='+',
                         help="The level files to check")
     args = parser.parse_args()
@@ -26,4 +26,11 @@ if __name__ == "__main__":
 
     pygame.display.set_mode((424, 320))
 
-    Game(level).main()
+    g = Game(level)
+    if args.solution:
+        sol = level.get_metadata_raw("solution")
+        if not sol:
+            print "%s has no solution" % level.name
+            sys.exit(1)
+        g.auto_play = solution2actions(sol)
+    g.main()

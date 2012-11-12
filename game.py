@@ -137,6 +137,7 @@ class Game(object):
         self.ohilights = []
         self.lmhpos = (0, 0)
         self._score = ScoreTracker()
+        self.auto_play = None
         self.use_level(log_level)
         self._action2handler = {
             'move-up': self.log_level.perform_move,
@@ -258,6 +259,9 @@ class Game(object):
         if self.pressed_key is not None:
             action = self._controls.get(self.pressed_key, None)
             if action:
+                if self.auto_play:
+                    print "Auto-playing stopped (user took over)"
+                    self.auto_play = None
                 self._action2handler[action](action)
         #else:
         #    for k in itertools.ifilter(pressed, self._controls):
@@ -375,6 +379,7 @@ class Game(object):
         self.overlays.draw(self.screen)
         pygame.display.flip()
         has_animation = lambda x: self._clones[x].animation is not None
+        fcounter = 1
 
         # The main game loop
         while not self.game_over:
@@ -398,6 +403,15 @@ class Game(object):
             pygame.display.update(dirty)
             # Wait for one tick of the game clock
             clock.tick(15)
+            fcounter = (fcounter + 1) % 15
+            if not fcounter:
+                # "new second"
+                if self.auto_play:
+                    act = next(self.auto_play, None)
+                    if act:
+                        self._action2handler[act](act)
+                    else:
+                        self.auto_play = None
             # Process pygame events
             for event in pygame.event.get():
                 if event.type == pg.QUIT:
