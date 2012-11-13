@@ -120,6 +120,19 @@ class GameEvent(object):
     def success(self):
         return self._success
 
+class EditorEvent(object):
+    def __init__(self, event_type, source=None):
+        self._event_type = event_type
+        self._source = source
+
+    @property
+    def event_type(self):
+        return self._event_type
+
+    @property
+    def source(self):
+        return self._source
+
 class BaseLevel(object):
 
     def __init__(self):
@@ -643,4 +656,32 @@ class Level(BaseLevel):
             raise TimeParadoxError
 
 class EditableLevel(BaseLevel):
-    pass
+
+    def perform_change(self, ctype, position, *args, **kwargs):
+        self._make_field(position, args)
+
+    def _make_field(self, position, field):
+        fields = {
+        'field': functools.partial(Field, ' '),
+        'crate': functools.partial(Field, ' '),
+        'gate-open': functools.partial(Gate, '_'),
+        'gate-closed': functools.partial(Gate, '-'),
+        'button': functools.partial(Button, 'b'),
+        'start-location': functools.partial(StartLocation, 'S'),
+        'goal-location': functools.partial(GoalLocation, 'G'),
+        }
+
+        oldcrate = self.get_crate_at(position)
+        if oldcrate:
+            del self._crates[position]
+            self._emit_event(EditorEvent("remove-crate"), source=oldcrate)
+
+        f = fields[field]()
+        f.set_position(position)
+        # FIXME handle source and targets
+        self._lvl[position.x][position.y] = f
+        self._emit_event(EditorEvent("replace-tile", source=f))
+        if field == 'crate':
+            c = Crate(position)
+            self._crates[position] = c
+            self._emit_event(EditorEvent("add-crate", source=c))
