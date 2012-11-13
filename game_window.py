@@ -117,7 +117,7 @@ class ScoreTracker(pygame.sprite.Sprite):
             yield None
             yield None
 
-class Game(object):
+class GameWindow(object):
     """The main game object."""
 
     def __init__(self, log_level):

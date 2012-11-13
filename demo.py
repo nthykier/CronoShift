@@ -5,7 +5,7 @@ import pygame
 import sys
 
 from level import Level, solution2actions
-from game import Game
+from game_window import GameWindow
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Show ChronoShift levels")
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     pygame.display.set_mode((424, 320))
 
-    g = Game(level)
+    g = GameWindow(level)
     if args.solution:
         sol = level.get_metadata_raw("solution")
         if not sol:
