@@ -135,7 +135,6 @@ class Game(object):
         self._crates = {}
         self.mhilight = None
         self.ohilights = []
-        self.lmhpos = (0, 0)
         self._score = ScoreTracker()
         self.auto_play = None
         self.auto_play_finish_jump = True
@@ -235,7 +234,6 @@ class Game(object):
             s = Sprite(log_level.start_location.position, ((mhilight,),))
             self.sprites.add(s)
             self.mhilight = s
-            self.lmhpos = log_level.start_location.position
 
         # Add the overlays for the level map
         for (x, y), image in overlays.iteritems():
@@ -348,7 +346,7 @@ class Game(object):
         print "Your score is: %d" % self.log_level.score
 
     def _handle_mouse(self, lpos):
-        if not self.mhilight or lpos == self.lmhpos:
+        if not self.mhilight or lpos == self.mhilight.pos:
             return
         if (lpos[0] < self.log_level.width and
                lpos[1] < self.log_level.height):
