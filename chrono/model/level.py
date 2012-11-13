@@ -112,7 +112,7 @@ class GameEvent(object):
     def success(self):
         return self._success
 
-class Level(object):
+class BaseLevel(object):
 
     def __init__(self):
         self._name = None
@@ -124,19 +124,7 @@ class Level(object):
         self._goal_location = None
         self._handlers = set()
 
-        self._time_paradox = False
-        self._score = 0 # The score (lower is better)
-        self._turn_no = 0 # The current turn
-        self._turn_max = 0 # The max number of turns
-        self._got_goal = False # Whether the goal was reached
-        self._player_active = False # Is the current player controllable ?
-        self._player = None # current player
-        self._clones = [] # clones (in order of appearance)
-        self._actions = [] # actions done by current player (i.e. clone)
-        self._crates = {} # location of crates
-
-        # memory variables
-        self._crates_orig = {} # Original location of crates
+        self._crates = {}
 
     @property
     def name(self):
@@ -158,6 +146,53 @@ class Level(object):
     def goal_location(self):
         return self._goal_location
 
+    def get_metadata_raw(self, fname, default=None):
+        return self._metadata.get(fname, default)
+
+    def get_field(self, p):
+        return self._lvl[p.x][p.y]
+
+    def get_crate_at(self, p):
+        if p in self._crates:
+            return self._crates[p]
+        return None
+
+    def can_enter(self, frompos, destpos):
+        return self.get_field(destpos).can_enter
+
+    def iter_fields(self):
+        for row in self._lvl:
+            for field in row:
+                yield field
+
+    def _emit_event(self, event):
+        for handler in self._handlers:
+            handler(event)
+
+    def add_event_listener(self, handler):
+        self._handlers.add(handler)
+
+    def remove_event_listener(self, handler):
+        self._handlers.remove(handler)
+
+
+class Level(BaseLevel):
+
+    def __init__(self):
+        super(Level, self).__init__()
+
+        self._time_paradox = False
+        self._score = 0 # The score (lower is better)
+        self._turn_no = 0 # The current turn
+        self._turn_max = 0 # The max number of turns
+        self._got_goal = False # Whether the goal was reached
+        self._player_active = False # Is the current player controllable ?
+        self._player = None # current player
+        self._clones = [] # clones (in order of appearance)
+        self._actions = [] # actions done by current player (i.e. clone)
+        self._crates_orig = {} # memory variables
+
+
     @property
     def score(self):
         return self._score
@@ -169,17 +204,6 @@ class Level(object):
     @property
     def number_of_clones(self):
         return len(self._clones)
-
-    def get_metadata_raw(self, fname, default=None):
-        return self._metadata.get(fname, default)
-
-    def get_field(self, p):
-        return self._lvl[p.x][p.y]
-
-    def get_crate_at(self, p):
-        if p in self._crates:
-            return self._crates[p]
-        return None
 
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
@@ -228,11 +252,11 @@ class Level(object):
                                              fname, lineno))
                     self._goal_location = obj
                 if lines[j][i] == "c":
-                    self._crates_orig[pos] = Crate(pos)
+                    self._crates[pos] = Crate(pos)
                 obj._set_position(pos)
 
         self._lvl = zip(*transposed_lvl)
-        self._crates = self._crates_orig.copy()
+        self._crates_orig = self._crates.copy()
         self._width = len(self._lvl)
         self._height = len(self._lvl[0])
 
@@ -462,16 +486,6 @@ class Level(object):
                 self._emit_event(GameEvent("time-jump"))
                 self._emit_event(GameEvent('player-clone', source=self._player))
 
-    def _emit_event(self, event):
-        for handler in self._handlers:
-            handler(event)
-
-    def add_event_listener(self, handler):
-        self._handlers.add(handler)
-
-    def remove_event_listener(self, handler):
-        self._handlers.remove(handler)
-
     def show_field(self, position):
         x, y = position
         fstr = "%" + str(x+1) + "s"
@@ -569,14 +583,6 @@ class Level(object):
                 fd.write("%s: %s\n" % (key, self._metadata[key]))
 
 
-    def can_enter(self, frompos, destpos):
-        return self.get_field(destpos).can_enter
-
-    def iter_fields(self):
-        for row in self._lvl:
-            for field in row:
-                yield field
-
     def iter_clones(self):
         return (c for c in self._clones)
 
@@ -648,3 +654,6 @@ class Level(object):
                     % str(clone_dest_pos)
             self._time_paradox_event(reason)
             raise TimeParadoxError
+
+class EditableLevel(BaseLevel):
+    pass
