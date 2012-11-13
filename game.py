@@ -42,7 +42,7 @@ import pygame.locals as pg
 
 from direction import Direction
 from field import Position
-from sprites import (VisualLevel, SortedUpdates, Sprite, PlayerSprite,
+from sprites import (make_background, SortedUpdates, Sprite, PlayerSprite,
                      Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
                      GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos)
 from tile_cache import TileCache
@@ -184,8 +184,6 @@ class Game(object):
         self.log_level = log_level
         self._clones = {}
         self._gates = {}
-        self.level = VisualLevel(log_level, map_cache=self._map_cache,
-                                 tileset=self._tileset)
 
         def level_event_handler(event):
             pygame.event.post(pygame.event.Event(pg.USEREVENT, code=lambda:event))
@@ -199,7 +197,9 @@ class Game(object):
             self.sprites.add(sprite)
 
         # Render the level map
-        self.background, overlays = self.level.render()
+        self.background, overlays = make_background(log_level,
+                                                    map_cache=self._map_cache,
+                                                    tileset=self._tileset)
 
         for field in log_level.iter_fields():
             # Crates looks best in 32x32, gates and buttons in 24x16

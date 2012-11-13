@@ -201,65 +201,58 @@ class PlayerSprite(MoveableSprite):
         self.direction = Direction.EAST
         self.image = self.frames[self.direction][0]
 
-class VisualLevel(object):
-    def __init__(self, level, tileset=None, map_cache = None):
-        self._tileset = "tileset" # default is literally "tileset"
-        self._map_cache = map_cache
-        self._level = level
-        self._marked = {}
-        if tileset is not None:
-            self._tileset = tileset
-        if map_cache is None:
-            self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
-
-    def render(self):
-        tiles = self._map_cache[self._tileset]
-        gates = {}
-        image = pygame.Surface((self._level.width*MAP_TILE_WIDTH,
-                                self._level.height*MAP_TILE_HEIGHT))
-        overlays = {}
-        wall = lambda p: self._level.get_field(pos).symbol == '+'
-        wall_dir2 = lambda pos, d: wall(pos.dir_pos(d))
-        for field in self._level.iter_fields():
-            pos = field.position
-            wall_dir = functools.partial(wall_dir2, pos)
-            if wall(pos):
-                # Draw different tiles depending on neighbourhood
-                if not wall_dir(Direction.SOUTH):
-                    if wall_dir(Direction.WEST) and wall_dir(Direction.EAST):
-                        tile = 1, 2
-                    elif wall_dir(Direction.EAST):
-                        tile = 0, 2
-                    elif wall_dir(Direction.WEST):
-                        tile = 2, 2
-                    else:
-                        tile = 3, 2
+def make_background(level, tileset=None, map_cache=None):
+    marked = {}
+    if tileset is None:
+        tileset = "tileset" # default is literally "tileset"
+    if map_cache is None:
+        self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
+    tiles = map_cache[tileset]
+    gates = {}
+    image = pygame.Surface((level.width*MAP_TILE_WIDTH,
+                            level.height*MAP_TILE_HEIGHT))
+    overlays = {}
+    wall = lambda p: level.get_field(pos).symbol == '+'
+    wall_dir2 = lambda pos, d: wall(pos.dir_pos(d))
+    for field in level.iter_fields():
+        pos = field.position
+        wall_dir = functools.partial(wall_dir2, pos)
+        if wall(pos):
+            # Draw different tiles depending on neighbourhood
+            if not wall_dir(Direction.SOUTH):
+                if wall_dir(Direction.WEST) and wall_dir(Direction.EAST):
+                    tile = 1, 2
+                elif wall_dir(Direction.EAST):
+                    tile = 0, 2
+                elif wall_dir(Direction.WEST):
+                    tile = 2, 2
                 else:
-                    if (wall(Position(pos.x + 1, pos.y + 1)) and
-                            wall(Position(pos.x - 1, pos.y + 1))):
-                        tile = 1, 1
-                    elif wall(Position(pos.x + 1, pos.y + 1)):
-                        tile = 0, 1
-                    elif wall(Position(pos.x - 1, pos.y + 1)):
-                        tile = 2, 1
-                    else:
-                        tile = 3, 1
-                    # Add overlays if the wall may be obscuring something
-                if not wall_dir(Direction.NORTH):
-                    if wall_dir(Direction.EAST) and wall_dir(Direction.WEST):
-                        over = 1, 0
-                    elif wall_dir(Direction.EAST):
-                        over = 0, 0
-                    elif wall_dir(Direcion.WEST):
-                        over = 2, 0
-                    else:
-                        over = 3, 0
-                    overlays[pos] = tiles[over[0]][over[1]]
+                    tile = 3, 2
             else:
-                tile = 0, 3
-            tile_image = tiles[tile[0]][tile[1]]
-            image.blit(tile_image,
-                       (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
-        return image, overlays
-
+                if (wall(Position(pos.x + 1, pos.y + 1)) and
+                        wall(Position(pos.x - 1, pos.y + 1))):
+                    tile = 1, 1
+                elif wall(Position(pos.x + 1, pos.y + 1)):
+                    tile = 0, 1
+                elif wall(Position(pos.x - 1, pos.y + 1)):
+                    tile = 2, 1
+                else:
+                    tile = 3, 1
+                # Add overlays if the wall may be obscuring something
+            if not wall_dir(Direction.NORTH):
+                if wall_dir(Direction.EAST) and wall_dir(Direction.WEST):
+                    over = 1, 0
+                elif wall_dir(Direction.EAST):
+                    over = 0, 0
+                elif wall_dir(Direcion.WEST):
+                    over = 2, 0
+                else:
+                    over = 3, 0
+                overlays[pos] = tiles[over[0]][over[1]]
+        else:
+            tile = 0, 3
+        tile_image = tiles[tile[0]][tile[1]]
+        image.blit(tile_image,
+                   (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
+    return image, overlays
     
