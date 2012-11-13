@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import deque
 import functools
-from itertools import imap, ifilter, chain, izip
+from itertools import imap, ifilter, chain, izip, takewhile
 from operator import attrgetter
 import re
 
@@ -222,12 +222,11 @@ class Level(BaseLevel):
         (_, header) = next(lineiter, (1, ""))
         lines = list()
         width = -1
+        non_empty_line = lambda x: x[1] != ""
         if header != "2D SuperFun!":
             print "header is %s" % header
             raise IOError("Bad header of %s" % fname)
-        for lineno, line in lineiter:
-            if line == "":
-                break;
+        for lineno, line in takewhile(non_empty_line, lineiter):
             if len(line) != width:
                 if width == -1:
                     width = len(line)
@@ -263,9 +262,7 @@ class Level(BaseLevel):
         self._width = len(self._lvl)
         self._height = len(self._lvl[0])
 
-        for lineno, line in lineiter:
-            if line == "":
-                break;
+        for lineno, line in takewhile(non_empty_line, lineiter):
             if line == "nothing": # ignore
                 continue
             if not line.startswith("button "):
@@ -288,9 +285,7 @@ class Level(BaseLevel):
         field = None
         value = None
 
-        for lineno, line in lineiter:
-            if line == "":
-                break;
+        for lineno, line in takewhile(non_empty_line, lineiter):
             if line[0] == " ":
                 if field is None:
                     raise IOError("Continuation line before field (%s:%d)" %
