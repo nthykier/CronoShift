@@ -141,12 +141,12 @@ class Game(object):
         self.game_over = False
         self.use_level(log_level)
         self._action2handler = {
-            'move-up': self.log_level.perform_move,
-            'move-down': self.log_level.perform_move,
-            'move-left': self.log_level.perform_move,
-            'move-right': self.log_level.perform_move,
-            'skip-turn': self.log_level.perform_move,
-            'enter-time-machine': self.log_level.perform_move,
+            'move-up': self.level.perform_move,
+            'move-down': self.level.perform_move,
+            'move-left': self.level.perform_move,
+            'move-right': self.level.perform_move,
+            'skip-turn': self.level.perform_move,
+            'enter-time-machine': self.level.perform_move,
             'quit-game': self._quit,
             'print-actions': self._print_actions,
         }
@@ -175,39 +175,39 @@ class Game(object):
     def controls(self, cmap):
         self._controls = cmap.copy()
 
-    def use_level(self, log_level):
+    def use_level(self, level):
         """Set the level as the current one."""
 
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
-        self.log_level = log_level
+        self.level = level
         self._clones = {}
         self._gates = {}
 
         def level_event_handler(event):
             pygame.event.post(pygame.event.Event(pg.USEREVENT, code=lambda:event))
 
-        log_level.add_event_listener(level_event_handler)
+        level.add_event_listener(level_event_handler)
 
         # Populate the game with the level's objects
         if 1:
-            sprite = Sprite(log_level.goal_location.position, self._sprite_cache['house'])
+            sprite = Sprite(level.goal_location.position, self._sprite_cache['house'])
             self.goal = sprite
             self.sprites.add(sprite)
 
         # Render the level map
-        self.background, overlays = make_background(log_level,
+        self.background, overlays = make_background(level,
                                                     map_cache=self._map_cache,
                                                     tileset=self._tileset)
 
-        for field in log_level.iter_fields():
+        for field in level.iter_fields():
             # Crates looks best in 32x32, gates and buttons in 24x16
             #   - if its "on top of" a field 32x32 usually looks best.
             #   - if it is (like) a field, 24x16 is usually better
             # - use sprite_cache and map_cache accordingly.
             sprite = None
-            crate = log_level.get_crate_at(field.position)
+            crate = level.get_crate_at(field.position)
             if crate:
                 c_sprite = MoveableSprite(field.position, self._sprite_cache['crate'], c_depth=1)
                 self._crates[crate] = c_sprite
@@ -227,11 +227,11 @@ class Game(object):
             image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             image.fill(pygame.Color("blue"))
             image.set_alpha(0x80)
-            self.sprites.add(Sprite(log_level.start_location.position, ((image,),), c_depth=-1))
+            self.sprites.add(Sprite(level.start_location.position, ((image,),), c_depth=-1))
             mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             mhilight.fill(pygame.Color("red"))
             mhilight.set_alpha(0x80)
-            s = Sprite(log_level.start_location.position, ((mhilight,),), c_depth=-1)
+            s = Sprite(level.start_location.position, ((mhilight,),), c_depth=-1)
             self.sprites.add(s)
             self.mhilight = s
 
@@ -244,7 +244,7 @@ class Game(object):
 
         self._score.reset_score()
         self.sprites.add(self._score)
-        log_level.start()
+        level.start()
 
     def control(self):
         """Handle the controls of the game."""
@@ -297,7 +297,7 @@ class Game(object):
             self._gates[src_pos].state = nstate
 
     def _player_clone(self, event):
-        self._score.update_score(self.log_level)
+        self._score.update_score(self.level)
         sprite = PlayerSprite(event.source, self._sprite_cache['player'])
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
@@ -322,7 +322,7 @@ class Game(object):
                     break
                 yield actions[a] + actions[b] + ' '
 
-        for clone in self.log_level.iter_clones():
+        for clone in self.level.iter_clones():
             print " %s" % ("".join(_action2sf(clone)))
 
     def _quit(self, _):
@@ -337,21 +337,21 @@ class Game(object):
         self._crates[event.source].pos = event.source.position
 
     def _end_of_turn(self, _):
-        self._score.update_score(self.log_level)
+        self._score.update_score(self.level)
 
     def _game_complete(self, _):
         self.game_over = True
         self.auto_play = None
-        self._score.update_score(self.log_level)
-        print "Your score is: %d" % self.log_level.score
+        self._score.update_score(self.level)
+        print "Your score is: %d" % self.level.score
 
     def _handle_mouse(self, lpos):
         if not self.mhilight or lpos == self.mhilight.pos:
             return
-        if (lpos[0] < self.log_level.width and
-               lpos[1] < self.log_level.height):
+        if (lpos[0] < self.level.width and
+               lpos[1] < self.level.height):
             self.mhilight.pos = lpos
-            field = self.log_level.get_field(lpos)
+            field = self.level.get_field(lpos)
             other = None
             if field.is_activation_source:
                 other = field.iter_activation_targets()
@@ -410,7 +410,7 @@ class Game(object):
                     default = None
                     act = next(self.auto_play, default)
                     if (not act and self.auto_play_finish_jump and
-                                not self.log_level._player_active):
+                                not self.level._player_active):
                         act = "skip-turn"
                     if act:
                         self._action2handler[act](act)
