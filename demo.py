@@ -4,8 +4,9 @@ import argparse
 import pygame
 import sys
 
-from level import Level, solution2actions
-from game_window import GameWindow
+from chrono.model.level import Level, solution2actions
+
+from chrono.view.game_window import GameWindow
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Show ChronoShift levels")

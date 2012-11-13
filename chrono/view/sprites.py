@@ -38,9 +38,10 @@ import pygame
 import operator
 import functools
 
-from field import Position
-from direction import Direction
-from tile_cache import TileCache
+from chrono.model.field import Position
+from chrono.model.direction import Direction
+
+from chrono.view.tile_cache import TileCache
 
 # Dimensions of the map tiles
 MAP_TILE_WIDTH = 24

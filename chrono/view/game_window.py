@@ -40,12 +40,15 @@ import itertools
 import pygame
 import pygame.locals as pg
 
-from direction import Direction
-from field import Position
-from sprites import (make_background, SortedUpdates, Sprite, PlayerSprite,
-                     Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
-                     GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos)
-from tile_cache import TileCache
+from chrono.model.direction import Direction
+from chrono.model.field import Position
+
+from chrono.view.sprites import (
+        make_background, SortedUpdates, Sprite, PlayerSprite,
+        Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
+        GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos
+    )
+from chrono.view.tile_cache import TileCache
 
 DEFAULT_CONTROLS = {
     pg.K_UP: 'move-up',

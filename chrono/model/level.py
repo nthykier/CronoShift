@@ -27,14 +27,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from collections import deque
-from direction import Direction
 import functools
 from itertools import imap, ifilter, chain
 from operator import attrgetter
 import re
 
-from moveable import PlayerClone, Crate
-from field import parse_field, Position
+from chrono.model.direction import Direction
+from chrono.model.moveable import PlayerClone, Crate
+from chrono.model.field import parse_field, Position
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'

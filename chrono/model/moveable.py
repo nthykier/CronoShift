@@ -26,8 +26,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from direction import Direction
-from field import Position
+from chrono.model.direction import Direction
+from chrono.model.field import Position
 
 class Moveable(object):
 

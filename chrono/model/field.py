@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import operator
 
-from position import Pos
-from direction import Direction
+from chrono.model.position import Pos
+from chrono.model.direction import Direction
 
 class Position(Pos):
 

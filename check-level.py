@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from level import Level, TimeParadoxError
+from chrono.model.level import Level, TimeParadoxError
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check ChronoShift levels")
