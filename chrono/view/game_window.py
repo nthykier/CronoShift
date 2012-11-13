@@ -140,7 +140,6 @@ class GameWindow(object):
         self.ohilights = []
         self._score = ScoreTracker()
         self.auto_play = None
-        self.auto_play_finish_jump = True
         self.game_over = False
         self.use_level(log_level)
         self._action2handler = {
@@ -410,11 +409,7 @@ class GameWindow(object):
             if not fcounter:
                 # "new second"
                 if self.auto_play:
-                    default = None
-                    act = next(self.auto_play, default)
-                    if (not act and self.auto_play_finish_jump and
-                                not self.level._player_active):
-                        act = "skip-turn"
+                    act = next(self.auto_play, None)
                     if act:
                         self._action2handler[act](act)
                     else:
