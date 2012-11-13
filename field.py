@@ -160,10 +160,6 @@ class Gate(Field):
     def can_enter(self):
         return not self.closed
 
-    @property
-    def is_activation_target(self):
-        return True
-
 class Button(Field):
 
     def __init__(self, symbol):

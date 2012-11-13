@@ -34,15 +34,7 @@ class Moveable(object):
     def __init__(self, position, is_player, is_crate):
         self._is_player = is_player
         self._is_box = is_crate
-        self._position = position
-
-    @property
-    def position(self):
-        return self._position
-
-    @position.setter
-    def position(self, pos):
-        self._position = pos
+        self.position = position
 
     def move_direction(self, direction):
         self._position = self._position.dir_pos(direction)

@@ -277,11 +277,9 @@ class Game(object):
         """Start walking in specified direction."""
 
         actor = None
-        is_player = False
         if event.source in self._crates:
             actor = self._crates[event.source]
         else:
-            is_player = True
             actor = self._clones[event.source]
 
         if d == Direction.NO_ACT or not event.success:
@@ -291,8 +289,6 @@ class Game(object):
         target = pos.dir_pos(d)
         actor.direction = d
         actor.animation = actor.walk_animation()
-        if target == self.log_level.goal_location.position:
-            self.goal.kill()
 
     def _field_state_change(self, event):
         src_pos = event.source.position

@@ -332,7 +332,7 @@ class Level(object):
 
     def _move(self, direction, action):
         if direction != Direction.NO_ACT and not self._player_active:
-            return # ignore movement if the player is not active
+            return False # ignore movement if the player is not active
         if self._player_active:
             self._actions.append(action)
         return True
@@ -384,6 +384,7 @@ class Level(object):
                     # Do the action if possible
                     if crate:
                         entered.add(ct)
+                        unchanged.add(target)
                     else:
                         entered.add(target)
                     left.add(pos)
