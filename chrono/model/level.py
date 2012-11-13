@@ -85,6 +85,14 @@ def solution2actions(sol, naive_replay=True):
 
     return _gen_robust_solution(turn_gen)
 
+def _line_reader(fd):
+    it = iter(fd)
+    for line in fd:
+        line = line.rstrip("\r\n")
+        if line != "" and line.strip() == "":
+            raise IOError("White-space only line (%s:%d)" % (fname, lineno))
+        yield line
+
 class GameError(Exception):
     pass
 
@@ -208,23 +216,18 @@ class Level(BaseLevel):
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
         if infd is not None:
-            fd = iter(infd)
+            lineiter = enumerate(_line_reader(infd), 1)
         else:
-            fd = iter(open(fname))
-        header = next(fd)
+            lineiter = enumerate(_line_reader(open(fname)), 1)
+        (_, header) = next(lineiter, (1, ""))
         lines = list()
         width = -1
-        lineno = 1;
-        if header.rstrip("\r\n") != "2D SuperFun!":
+        if header != "2D SuperFun!":
             print "header is %s" % header
             raise IOError("Bad header of %s" % fname)
-        for line in fd:
-            line = line.rstrip("\r\n")
-            lineno += 1
+        for lineno, line in lineiter:
             if line == "":
                 break;
-            if line.strip() == "":
-                raise IOError("White-space only line (%s:%d)" % (fname, lineno))
             if len(line) != width:
                 if width == -1:
                     width = len(line)
@@ -260,13 +263,9 @@ class Level(BaseLevel):
         self._width = len(self._lvl)
         self._height = len(self._lvl[0])
 
-        for line in fd:
-            line = line.rstrip("\r\n")
-            lineno += 1
+        for lineno, line in lineiter:
             if line == "":
                 break;
-            if line.strip() == "":
-                raise IOError("White-space only line (%s:%d)" % (fname, lineno))
             if line == "nothing": # ignore
                 continue
             if not line.startswith("button "):
@@ -289,13 +288,9 @@ class Level(BaseLevel):
         field = None
         value = None
 
-        for line in fd:
-            line = line.rstrip("\r\n")
-            lineno += 1
+        for lineno, line in lineiter:
             if line == "":
                 break;
-            if line.strip() == "":
-                raise IOError("White-space only line (%s:%d)" % (fname, lineno))
             if line[0] == " ":
                 if field is None:
                     raise IOError("Continuation line before field (%s:%d)" %
