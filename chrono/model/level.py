@@ -183,36 +183,6 @@ class BaseLevel(object):
     def remove_event_listener(self, handler):
         self._handlers.remove(handler)
 
-
-class Level(BaseLevel):
-
-    def __init__(self):
-        super(Level, self).__init__()
-
-        self._time_paradox = False
-        self._score = 0 # The score (lower is better)
-        self._turn_no = 0 # The current turn
-        self._turn_max = 0 # The max number of turns
-        self._got_goal = False # Whether the goal was reached
-        self._player_active = False # Is the current player controllable ?
-        self._player = None # current player
-        self._clones = [] # clones (in order of appearance)
-        self._actions = [] # actions done by current player (i.e. clone)
-        self._crates_orig = {} # memory variables
-
-
-    @property
-    def score(self):
-        return self._score
-
-    @property
-    def turn(self):
-        return (self._turn_no, self._turn_max)
-
-    @property
-    def number_of_clones(self):
-        return len(self._clones)
-
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
         if infd is not None:
@@ -258,7 +228,6 @@ class Level(BaseLevel):
                 obj._set_position(pos)
 
         self._lvl = zip(*transposed_lvl)
-        self._crates_orig = self._crates.copy()
         self._width = len(self._lvl)
         self._height = len(self._lvl[0])
 
@@ -308,6 +277,66 @@ class Level(BaseLevel):
         if field is not None:
             self._metadata[field] = value
 
+    def save_level(self, fname, fd=None):
+        if fd is None:
+            with open(fname, "w") as outfd:
+                return self.print_lvl(fname, outfd)
+        else:
+            rules = 0
+            fd.write("2D SuperFun!\n")
+            sym = lambda x: (self.get_crate_at(x.position) and "c") or x.symbol
+            for line in izip(*self._lvl):
+                fd.write("".join(imap(sym, line)))
+                fd.write("\n")
+
+            fd.write("\n")
+
+            for field in self.iter_fields():
+                if field.symbol != "b" and field.symbol != "B":
+                    continue
+                fieldname = "button"
+                tfieldname = "gate"
+                for target in field.iter_activation_targets():
+                    ftuple = (fieldname, str(field.position),
+                              tfieldname, str(target.position))
+                    fd.write("%s %s -> %s %s\n" % ftuple)
+                    rules += 1
+
+            if not rules and self._metadata:
+                fd.write("nothing\n")
+            fd.write("\n")
+            for key in sorted(self._metadata.iterkeys()):
+                fd.write("%s: %s\n" % (key, self._metadata[key]))
+
+class Level(BaseLevel):
+
+    def __init__(self):
+        super(Level, self).__init__()
+
+        self._time_paradox = False
+        self._score = 0 # The score (lower is better)
+        self._turn_no = 0 # The current turn
+        self._turn_max = 0 # The max number of turns
+        self._got_goal = False # Whether the goal was reached
+        self._player_active = False # Is the current player controllable ?
+        self._player = None # current player
+        self._clones = [] # clones (in order of appearance)
+        self._actions = [] # actions done by current player (i.e. clone)
+        self._crates_orig = {} # memory variables
+
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def turn(self):
+        return (self._turn_no, self._turn_max)
+
+    @property
+    def number_of_clones(self):
+        return len(self._clones)
+
     def start(self):
         self._score = 0
         self._turn_no = 0
@@ -317,7 +346,7 @@ class Level(BaseLevel):
         self._player = PlayerClone(self.start_location.position, self._actions)
         self._player_active = True
         self._clones = [self._player]
-        self._crates = self._crates_orig.copy()
+        self._crates_orig = self._crates.copy()
         self._emit_event(GameEvent('player-clone', source=self._player))
 
 
@@ -540,38 +569,6 @@ class Level(BaseLevel):
 
             if not events:
                 raise UnsolvableError("E: lvl %s: Solution does not obtain goal" % self.name)
-
-    def print_lvl(self, fname, fd=None):
-        if fd is None:
-            with open(fname, "w") as outfd:
-                return self.print_lvl(fname, outfd)
-        else:
-            rules = 0
-            fd.write("2D SuperFun!\n")
-            sym = lambda x: (self.get_crate_at(x.position) and "c") or x.symbol
-            for line in izip(*self._lvl):
-                fd.write("".join(imap(sym, line)))
-                fd.write("\n")
-
-            fd.write("\n")
-
-            for field in self.iter_fields():
-                if field.symbol != "b" and field.symbol != "B":
-                    continue
-                fieldname = "button"
-                tfieldname = "gate"
-                for target in field.iter_activation_targets():
-                    ftuple = (fieldname, str(field.position), 
-                              tfieldname, str(target.position))
-                    fd.write("%s %s -> %s %s\n" % ftuple)
-                    rules += 1
-
-            if not rules and self._metadata:
-                fd.write("nothing\n")
-            fd.write("\n")
-            for key in sorted(self._metadata.iterkeys()):
-                fd.write("%s: %s\n" % (key, self._metadata[key]))
-
 
     def iter_clones(self):
         return (c for c in self._clones)
