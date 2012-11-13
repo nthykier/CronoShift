@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import deque
 import functools
-from itertools import imap, ifilter, chain
+from itertools import imap, ifilter, chain, izip
 from operator import attrgetter
 import re
 
@@ -544,8 +544,9 @@ class Level(object):
         else:
             rules = 0
             fd.write("2D SuperFun!\n")
-            for line in self._lvl:
-                fd.write("".join(imap(attrgetter("symbol"), line)))
+            sym = lambda x: (self.get_crate_at(x.position) and "c") or x.symbol
+            for line in izip(*self._lvl):
+                fd.write("".join(imap(sym, line)))
                 fd.write("\n")
 
             fd.write("\n")
