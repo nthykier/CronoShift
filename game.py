@@ -213,12 +213,12 @@ class Game(object):
                 self._crates[crate] = c_sprite
                 self.sprites.add(c_sprite)
             if field.symbol == '-' or field.symbol == '_':
-                sprite = Sprite(field.position, self._map_cache['gate'], c_depth=-1)
+                sprite = Sprite(field.position, self._map_cache['gate'], c_depth=-2)
                 self._gates[field.position] = sprite
                 if field.symbol == '-':
                     sprite.state = GATE_CLOSED
             if field.symbol == 'b':
-                sprite = Sprite(field.position, self._map_cache['button'], c_depth=-1)
+                sprite = Sprite(field.position, self._map_cache['button'], c_depth=-2)
             if sprite:
                 self.sprites.add(sprite)
 
@@ -227,11 +227,11 @@ class Game(object):
             image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             image.fill(pygame.Color("blue"))
             image.set_alpha(0x80)
-            self.sprites.add(Sprite(log_level.start_location.position, ((image,),)))
+            self.sprites.add(Sprite(log_level.start_location.position, ((image,),), c_depth=-1))
             mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
             mhilight.fill(pygame.Color("red"))
             mhilight.set_alpha(0x80)
-            s = Sprite(log_level.start_location.position, ((mhilight,),))
+            s = Sprite(log_level.start_location.position, ((mhilight,),), c_depth=-1)
             self.sprites.add(s)
             self.mhilight = s
 
@@ -366,7 +366,7 @@ class Game(object):
                     hilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
                     hilight.fill(pygame.Color("yellow"))
                     hilight.set_alpha(0x80)
-                    s = Sprite(o.position, ((hilight,),))
+                    s = Sprite(o.position, ((hilight,),), c_depth=-1)
                     self.sprites.add(s)
                     self.ohilights.append(s)
 
