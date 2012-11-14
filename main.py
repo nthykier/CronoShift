@@ -124,10 +124,12 @@ class Application(gui.Desktop):
 
     def action_open_lvl(self,value):
         self.open_lvl_d.close()
-        fname = self.open_lvl_d.value['fname']
+        self.load_level(self.open_lvl_d.value['fname'].value)
+
+    def load_level(self, fname):
         self.level = Level()
         sc = functools.partial(self.score.update_score, self.level)
-        self.level.load_level(fname.value)
+        self.level.load_level(fname)
         self.level.add_event_listener(sc)
         self.game_window.use_level(self.level)
 
@@ -163,4 +165,7 @@ class Application(gui.Desktop):
         super(Application, self).loop()
 
 app = Application()
+if len(sys.argv) > 1:
+    # Load the level - we have to wait for the init event before
+    app.connect(gui.INIT, lambda *x: app.load_level(sys.argv[1]), None)
 app.run(delay=67) # 15 fps =~ 67 ms delay
