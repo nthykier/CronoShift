@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+import functools
 import os
 import pygame
 import sys
@@ -53,6 +54,33 @@ class OpenLevelDialog(gui.Dialog):
         if dlg.value:
             self.li.value = dlg.value
 
+class ScoreTracker(gui.Label):
+
+    def __init__(self):
+        super(ScoreTracker, self).__init__()
+        self._score = None
+        self.reset_score()
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, nscore):
+        if self._score != nscore:
+            self._score = nscore
+            self.set_text("Score: %d, Turn %d/%d, Clone: %d" % nscore)
+
+
+    def reset_score(self):
+        self.score = (0, 1, 1, 1)
+
+    def update_score(self, lvl, *args):
+        # turn is 0-index'ed, but it is better presented as 1-index'ed.
+        t = lvl.turn
+        self.score = (lvl.score, t[0] + 1, t[1] + 1, lvl.number_of_clones)
+
+
 class Application(gui.Desktop):
 
     def __init__(self, **params):
@@ -64,6 +92,7 @@ class Application(gui.Desktop):
         from_top = 0
 
         self.fcounter = 0
+        self.score = ScoreTracker()
         self.level = None
         self.auto_play = None
         self.open_lvl_d = OpenLevelDialog()
@@ -83,6 +112,10 @@ class Application(gui.Desktop):
 
         from_top += game_window.rect.h + spacer
 
+        c.add(self.score, spacer, from_top)
+        self.score.rect.w, self.score.rect.h = self.score.resize()
+        from_top += self.score.rect.h + spacer
+
         play_s = gui.Button("Play Solution")
         play_s.connect(gui.CLICK, self.play_solution, None)
         c.add(play_s, spacer, from_top)
@@ -93,7 +126,9 @@ class Application(gui.Desktop):
         self.open_lvl_d.close()
         fname = self.open_lvl_d.value['fname']
         self.level = Level()
+        sc = functools.partial(self.score.update_score, self.level)
         self.level.load_level(fname.value)
+        self.level.add_event_listener(sc)
         self.game_window.use_level(self.level)
 
     def play_solution(self, *args):
