@@ -147,6 +147,7 @@ class Application(gui.Desktop):
 
     def event(self, evt):
         if self.game_window.event(evt):
+            self.game_window.focus()
             return
         super(Application, self).event(evt)
 
