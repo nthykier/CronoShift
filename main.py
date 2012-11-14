@@ -67,6 +67,7 @@ class Application(gui.Desktop):
 
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
+                ('File/Quit', self.quit, None),
         ])
         c.add(menus, 0, 0)
         menus.rect.w, menus.rect.h = menus.resize()
