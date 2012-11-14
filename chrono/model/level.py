@@ -318,7 +318,7 @@ class Level(BaseLevel):
         self._player_active = True
         self._clones = [self._player]
         self._crates = self._crates_orig.copy()
-        self._emit_event(GameEvent('player-clone', source=self._player))
+        self._emit_event(GameEvent('add-player-clone', source=self._player))
 
 
     def perform_move(self, action):
@@ -340,6 +340,7 @@ class Level(BaseLevel):
             'move-left': functools.partial(self._move, Direction.WEST),
             'move-right': functools.partial(self._move, Direction.EAST),
             'skip-turn': functools.partial(self._move, Direction.NO_ACT),
+            'reset-time-jump': self._reset_action,
             'enter-time-machine': self._enter_time_machine,
         }
         return act2f[action](action)
@@ -467,14 +468,57 @@ class Level(BaseLevel):
                 self._actions = []
                 self._player = PlayerClone(self.start_location.position, self._actions)
                 self._clones.append(self._player)
-                # De-activate fields with crates on them
-                self._changed_targets([], self._crates)
-                self._crates = self._crates_orig.copy()
-                for p in self._crates:
-                    self._crates[p].position = p
-                    self._emit_event(GameEvent("reset-crate", source=self._crates[p]))
+                self._reset_movables(clones=False)
                 self._emit_event(GameEvent("time-jump"))
-                self._emit_event(GameEvent('player-clone', source=self._player))
+                self._emit_event(GameEvent('add-player-clone', source=self._player))
+
+    def _reset_action(self, action):
+        if action == "reset-time-jump":
+            self._reset_movables()
+            # Remove the latest clone
+            self._clones.pop()
+            self._emit_event(GameEvent('remove-player-clone', source=self._player))
+            self._turn_no = 0
+            if self._clones:
+                if len(self._actions) == self._turn_max:
+                    self._turn_max = max(self._clones)
+                self._score -= len(self._actions)
+            else:
+                # reseting the first clone
+                self._turn_max = 0
+                self._score = 0
+
+            if self._got_goal:
+                self._emit_event(GameEvent('goal-lost'))
+                self._got_goal = False
+            # ... and replace it with a new one.
+            self._active_player = True
+            self._actions = []
+
+            self._player = PlayerClone(self.start_location.position, self._actions)
+            self._clones.append(self._player)
+            self._emit_event(GameEvent('add-player-clone', source=self._player))
+
+    def _reset_movables(self, clones=True):
+        """Reset all movables to their start positions
+
+        NB: if the clones are known to be at their starting position (e.g.
+        because it is the end of a time-jump with no time-paradoxes), the
+        optional variable "clones" can be set to false.
+        """
+        # De-activate fields with crates on them
+        r = self._crates
+        if clones:
+            r = chain(self._crates, (c.position for c in self._clones))
+        self._changed_targets([], r)
+        self._crates = self._crates_orig.copy()
+        for p in self._crates:
+            self._crates[p].position = p
+            self._emit_event(GameEvent("jump-moveable", source=self._crates[p]))
+        if clones:
+            for c in self._clones:
+                c.position = self.start_location.position
+                self._emit_event(GameEvent("jump-moveable", source=c))
 
     def show_field(self, position):
         x, y = position

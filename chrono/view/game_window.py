@@ -70,6 +70,7 @@ DEFAULT_CONTROLS = {
     pg.K_RETURN: 'enter-time-machine',
 
     pg.K_F2: 'print-actions',
+    pg.K_j: 'reset-time-jump',
 }
 
 class GameWindow(gui.Widget):
@@ -104,6 +105,7 @@ class GameWindow(gui.Widget):
             'move-right': self._perform_move,
             'skip-turn': self._perform_move,
             'enter-time-machine': self._perform_move,
+            'reset-time-jump': self._perform_move,
             'print-actions': self._print_actions,
         }
         self._event_handler = {
@@ -111,14 +113,16 @@ class GameWindow(gui.Widget):
             'move-down': functools.partial(self._move, Direction.SOUTH),
             'move-left': functools.partial(self._move, Direction.WEST),
             'move-right': functools.partial(self._move, Direction.EAST),
-            'player-clone': self._player_clone,
+            'add-player-clone': self._player_clone,
+            'remove-player-clone': self._player_clone,
             'field-acitvated': self._field_state_change,
             'field-deacitvated': self._field_state_change,
             'time-paradox': self._time_paradox,
             'game-complete': self._game_complete,
             'end-of-turn': self._end_of_turn,
             'goal-obtained': lambda *x: self.goal.kill(),
-            'reset-crate': self._reset_crate,
+            'goal-lost': lambda *x: self.sprites.add(self.goal),
+            'jump-moveable': self._jump_moveable,
         }
         self._controls = DEFAULT_CONTROLS
 
@@ -244,10 +248,16 @@ class GameWindow(gui.Widget):
             self.repaint()
 
     def _player_clone(self, event):
-        sprite = PlayerSprite(event.source, self._sprite_cache['player'])
-        self._clones[event.source] = sprite
-        self.sprites.add(sprite)
-        self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
+        if event.event_type == "add-player-clone":
+            sprite = PlayerSprite(event.source, self._sprite_cache['player'])
+            self._clones[event.source] = sprite
+            self.sprites.add(sprite)
+            self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
+        elif event.source in self._clones:
+            s = self._clones[event.source]
+            del self._clones[event.source]
+            s.kill()
+
         self.repaint()
 
     def _print_actions(self, _):
@@ -295,8 +305,13 @@ class GameWindow(gui.Widget):
         print "TIME PARADOX: %s" % (e.reason)
         self.repaint()
 
-    def _reset_crate(self, event):
-        self._crates[event.source].pos = event.source.position
+    def _jump_moveable(self, event):
+        actor = None
+        if event.source in self._crates:
+            actor = self._crates[event.source]
+        elif event.source in self._clones:
+            actor = self._clones[event.source]
+        actor.pos = event.source.position
         self.repaint()
 
     def _end_of_turn(self, _):
