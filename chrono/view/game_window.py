@@ -143,7 +143,6 @@ class GameWindow(gui.Widget):
         self.mhilight = None
         self.ohilights = []
         self._score = ScoreTracker()
-        self.auto_play = None
         self.game_over = False
         self.active_animation = False
         self._gevent_queue = Queue.Queue()
@@ -260,16 +259,15 @@ class GameWindow(gui.Widget):
                 self.pressed_key = e.key
                 action = self._controls.get(e.key, None)
                 if action:
-                    if self.auto_play:
-                        print "Auto-playing stopped (user took over)"
-                        self.auto_play = None
                     self._action2handler[action](action)
                     return True
         elif e.type == pg.MOUSEMOTION:
-                corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
-                mpos = pygame.mouse.get_pos()
-                lpos = gpos2lpos(mpos, c=corr)
-                self._handle_mouse(lpos)
+            corr = (self.rect.x - MAP_TILE_WIDTH/2,
+                    self.rect.y - MAP_TILE_HEIGHT)
+            mpos = pygame.mouse.get_pos()
+            lpos = gpos2lpos(mpos, c=corr)
+            self._handle_mouse(lpos)
+            return True
         if self._gevent_queue.empty():
             # if the game event queue is empty just skip the code below.
             return
@@ -349,7 +347,6 @@ class GameWindow(gui.Widget):
 
     def _time_paradox(self, e):
         self.game_over = True
-        self.auto_play = None
         print "TIME PARADOX: %s" % (e.reason)
         self.last_update = 0
         self.reupdate()
@@ -366,7 +363,6 @@ class GameWindow(gui.Widget):
 
     def _game_complete(self, _):
         self.game_over = True
-        self.auto_play = None
         self._score.update_score(self.level)
         self.last_update = 0
         self.repaint()
@@ -409,21 +405,15 @@ class GameWindow(gui.Widget):
     def update(self, s):
         if not self.level:
             return
-        update_sprites = False
-        t = pygame.time.get_ticks()
-        if t - self.last_update > 0.667: # 1/15 or ~15 fps
-            last_update = t
-            self.update_sprites = True
 
         # Don't clear shadows and overlays, only sprites.
         self.sprites.clear(s, self.surface)
 
-        if update_sprites or 1:
-            self.sprites.update()
-            has_animation = lambda x: self._clones[x].animation is not None
-            self.active_animation = any(itertools.ifilter(has_animation,
-                                                          self._clones))
-            self.shadows.update()
+        self.sprites.update()
+        has_animation = lambda x: self._clones[x].animation is not None
+        self.active_animation = any(itertools.ifilter(has_animation,
+                                                      self._clones))
+        self.shadows.update()
 
         # Don't add shadows to dirty rectangles, as they already fit inside
         # sprite rectangles.
@@ -434,5 +424,6 @@ class GameWindow(gui.Widget):
         self.overlays.draw(s)
         # Update the dirty areas of the screen
         # pygame.display.update(dirty)
+
         return dirty
 
