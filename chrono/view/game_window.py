@@ -126,8 +126,9 @@ class GameWindow(gui.Widget):
     """The main game object."""
 
     def __init__(self, **params):
-        params.setdefault('width', 300)
-        params.setdefault('height', 300)
+        params['width'] = 300
+        params['height'] = 300
+        params['focusable'] = True
         super(GameWindow, self).__init__(**params)
         self.surface = pygame.Surface((300, 300))
         self.surface.fill((0, 0, 0))
@@ -147,7 +148,6 @@ class GameWindow(gui.Widget):
         self.active_animation = False
         self._gevent_queue = Queue.Queue()
         self.level = None
-        self.last_update = 0
         self._action2handler = {
             'move-up': self._perform_move,
             'move-down': self._perform_move,
@@ -268,18 +268,6 @@ class GameWindow(gui.Widget):
             lpos = gpos2lpos(mpos, c=corr)
             self._handle_mouse(lpos)
             return True
-        if self._gevent_queue.empty():
-            # if the game event queue is empty just skip the code below.
-            return
-        try:
-            while 1:
-                e = self._gevent_queue.get_nowait()
-                print "Event: %s" % e.event_type
-                if e.event_type not in self._event_handler:
-                    continue
-                self._event_handler[e.event_type](e)
-        except Queue.Empty:
-            pass # expected
 
     def _move(self, d, event):
         """Start walking in specified direction."""
@@ -297,8 +285,7 @@ class GameWindow(gui.Widget):
         target = pos.dir_pos(d)
         actor.direction = d
         actor.animation = actor.walk_animation()
-        self.last_update = 0
-        self.reupdate()
+        self.repaint()
 
     def _field_state_change(self, event):
         src_pos = event.source.position
@@ -307,8 +294,7 @@ class GameWindow(gui.Widget):
             if event.source.can_enter:
                 nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
-            self.last_update = 0
-            self.reupdate()
+            self.repaint()
 
     def _player_clone(self, event):
         self._score.update_score(self.level)
@@ -316,8 +302,7 @@ class GameWindow(gui.Widget):
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
         self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
-        self.last_update = 0
-        self.reupdate()
+        self.repaint()
 
     def _print_actions(self, _):
         def _action2sf(container):
@@ -341,6 +326,20 @@ class GameWindow(gui.Widget):
         for clone in self.level.iter_clones():
             print " %s" % ("".join(_action2sf(clone)))
 
+    def process_game_events(self):
+        if self._gevent_queue.empty():
+            # if the game event queue is empty just skip the code below.
+            return
+        try:
+            while 1:
+                e = self._gevent_queue.get_nowait()
+                print "Event: %s" % e.event_type
+                if e.event_type not in self._event_handler:
+                    continue
+                self._event_handler[e.event_type](e)
+        except Queue.Empty:
+            pass # expected
+
     def _perform_move(self, move):
         if self.level:
             self.level.perform_move(move)
@@ -348,23 +347,19 @@ class GameWindow(gui.Widget):
     def _time_paradox(self, e):
         self.game_over = True
         print "TIME PARADOX: %s" % (e.reason)
-        self.last_update = 0
-        self.reupdate()
+        self.repaint()
 
     def _reset_crate(self, event):
         self._crates[event.source].pos = event.source.position
-        self.last_update = 0
         self.repaint()
 
     def _end_of_turn(self, _):
         self._score.update_score(self.level)
-        self.last_update = 0
         self.repaint()
 
     def _game_complete(self, _):
         self.game_over = True
         self._score.update_score(self.level)
-        self.last_update = 0
         self.repaint()
         print "Your score is: %d" % self.level.score
 
