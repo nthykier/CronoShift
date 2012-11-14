@@ -1,8 +1,16 @@
 #!/usr/bin/python
 
 import argparse
+import os
 import pygame
 import sys
+
+if 1:
+    # If pgu-0.16 is there, make it available
+    d = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
+    if os.path.exists(d):
+        print "Using embedded pgu"
+        sys.path.insert(0, d)
 
 from chrono.model.level import Level, solution2actions
 
