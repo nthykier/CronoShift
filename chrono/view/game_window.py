@@ -39,6 +39,7 @@ import functools
 import itertools
 import pygame
 import pygame.locals as pg
+import Queue
 
 from chrono.model.direction import Direction
 from chrono.model.field import Position
@@ -141,6 +142,7 @@ class GameWindow(object):
         self._score = ScoreTracker()
         self.auto_play = None
         self.game_over = False
+        self._gevent_queue = Queue.Queue()
         self.use_level(log_level)
         self._action2handler = {
             'move-up': self.level.perform_move,
@@ -187,10 +189,7 @@ class GameWindow(object):
         self._clones = {}
         self._gates = {}
 
-        def level_event_handler(event):
-            pygame.event.post(pygame.event.Event(pg.USEREVENT, code=lambda:event))
-
-        level.add_event_listener(level_event_handler)
+        level.add_event_listener(self._gevent_queue.put)
 
         # Populate the game with the level's objects
         if 1:
@@ -425,10 +424,16 @@ class GameWindow(object):
                     self._handle_mouse(lpos)
                 elif event.type == pg.KEYDOWN:
                     self.pressed_key = event.key
-                elif event.type == pg.USEREVENT:
-                    e = event.code()
+
+            if self._gevent_queue.empty():
+                # if the game event queue is empty just skip the code below.
+                continue
+            try:
+                while 1:
+                    e = self._gevent_queue.get_nowait()
                     print "Event: %s" % e.event_type
                     if e.event_type not in self._event_handler:
                         continue
                     self._event_handler[e.event_type](e)
-
+            except Queue.Empty:
+                pass # expected
