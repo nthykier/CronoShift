@@ -41,6 +41,8 @@ import pygame
 import pygame.locals as pg
 import Queue
 
+from pgu import gui
+
 from chrono.model.direction import Direction
 from chrono.model.field import Position
 
@@ -67,7 +69,6 @@ DEFAULT_CONTROLS = {
     pg.K_SPACE: 'skip-turn',
     pg.K_RETURN: 'enter-time-machine',
 
-    pg.K_ESCAPE: 'quit-game',
     pg.K_F2: 'print-actions',
 }
 
@@ -121,13 +122,15 @@ class ScoreTracker(pygame.sprite.Sprite):
             yield None
             yield None
 
-class GameWindow(object):
+class GameWindow(gui.Widget):
     """The main game object."""
 
-    def __init__(self, log_level):
-        self.screen = pygame.display.get_surface()
-        self.pressed_key = None
-        self.running = True
+    def __init__(self, **params):
+        params.setdefault('width', 300)
+        params.setdefault('height', 300)
+        super(GameWindow, self).__init__(**params)
+        self.surface = pygame.Surface((300, 300))
+        self.surface.fill((0, 0, 0))
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
@@ -142,16 +145,17 @@ class GameWindow(object):
         self._score = ScoreTracker()
         self.auto_play = None
         self.game_over = False
+        self.active_animation = False
         self._gevent_queue = Queue.Queue()
-        self.use_level(log_level)
+        self.level = None
+        self.last_update = 0
         self._action2handler = {
-            'move-up': self.level.perform_move,
-            'move-down': self.level.perform_move,
-            'move-left': self.level.perform_move,
-            'move-right': self.level.perform_move,
-            'skip-turn': self.level.perform_move,
-            'enter-time-machine': self.level.perform_move,
-            'quit-game': self._quit,
+            'move-up': self._perform_move,
+            'move-down': self._perform_move,
+            'move-left': self._perform_move,
+            'move-right': self._perform_move,
+            'skip-turn': self._perform_move,
+            'enter-time-machine': self._perform_move,
             'print-actions': self._print_actions,
         }
         self._event_handler = {
@@ -169,7 +173,6 @@ class GameWindow(object):
             'reset-crate': self._reset_crate,
         }
         self._controls = DEFAULT_CONTROLS
-
 
     @property
     def controls(self):
@@ -198,9 +201,10 @@ class GameWindow(object):
             self.sprites.add(sprite)
 
         # Render the level map
-        self.background, overlays = make_background(level,
-                                                    map_cache=self._map_cache,
-                                                    tileset=self._tileset)
+        background, overlays = make_background(level,
+                                               map_cache=self._map_cache,
+                                               tileset=self._tileset)
+        self.surface.blit(background, (0,0))
 
         for field in level.iter_fields():
             # Crates looks best in 32x32, gates and buttons in 24x16
@@ -246,31 +250,38 @@ class GameWindow(object):
         self._score.reset_score()
         self.sprites.add(self._score)
         level.start()
+        self.repaint()
 
-    def control(self):
-        """Handle the controls of the game."""
-
-        keys = pygame.key.get_pressed()
-
-        def pressed(key):
-            """Check if the specified key is pressed."""
-
-            return self.pressed_key == key or keys[key]
-
-        if self.pressed_key is not None:
-            action = self._controls.get(self.pressed_key, None)
-            if action:
-                if self.auto_play:
-                    print "Auto-playing stopped (user took over)"
-                    self.auto_play = None
-                self._action2handler[action](action)
-        #else:
-        #    for k in itertools.ifilter(pressed, self._controls):
-        #        action = self._controls[k]
-        #        self._action2handler[action](action)
-        #        break
-
-        self.pressed_key = None
+    def event(self, e):
+        if not self.level:
+            return
+        if e.type == pg.KEYDOWN:
+            if not self.active_animation:
+                self.pressed_key = e.key
+                action = self._controls.get(e.key, None)
+                if action:
+                    if self.auto_play:
+                        print "Auto-playing stopped (user took over)"
+                        self.auto_play = None
+                    self._action2handler[action](action)
+                    return True
+        elif e.type == pg.MOUSEMOTION:
+                corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
+                mpos = pygame.mouse.get_pos()
+                lpos = gpos2lpos(mpos, c=corr)
+                self._handle_mouse(lpos)
+        if self._gevent_queue.empty():
+            # if the game event queue is empty just skip the code below.
+            return
+        try:
+            while 1:
+                e = self._gevent_queue.get_nowait()
+                print "Event: %s" % e.event_type
+                if e.event_type not in self._event_handler:
+                    continue
+                self._event_handler[e.event_type](e)
+        except Queue.Empty:
+            pass # expected
 
     def _move(self, d, event):
         """Start walking in specified direction."""
@@ -288,6 +299,8 @@ class GameWindow(object):
         target = pos.dir_pos(d)
         actor.direction = d
         actor.animation = actor.walk_animation()
+        self.last_update = 0
+        self.reupdate()
 
     def _field_state_change(self, event):
         src_pos = event.source.position
@@ -296,6 +309,8 @@ class GameWindow(object):
             if event.source.can_enter:
                 nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
+            self.last_update = 0
+            self.reupdate()
 
     def _player_clone(self, event):
         self._score.update_score(self.level)
@@ -303,6 +318,8 @@ class GameWindow(object):
         self._clones[event.source] = sprite
         self.sprites.add(sprite)
         self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
+        self.last_update = 0
+        self.reupdate()
 
     def _print_actions(self, _):
         def _action2sf(container):
@@ -326,24 +343,33 @@ class GameWindow(object):
         for clone in self.level.iter_clones():
             print " %s" % ("".join(_action2sf(clone)))
 
-    def _quit(self, _):
-        self.running = False
+    def _perform_move(self, move):
+        if self.level:
+            self.level.perform_move(move)
 
     def _time_paradox(self, e):
         self.game_over = True
         self.auto_play = None
         print "TIME PARADOX: %s" % (e.reason)
+        self.last_update = 0
+        self.reupdate()
 
     def _reset_crate(self, event):
         self._crates[event.source].pos = event.source.position
+        self.last_update = 0
+        self.repaint()
 
     def _end_of_turn(self, _):
         self._score.update_score(self.level)
+        self.last_update = 0
+        self.repaint()
 
     def _game_complete(self, _):
         self.game_over = True
         self.auto_play = None
         self._score.update_score(self.level)
+        self.last_update = 0
+        self.repaint()
         print "Your score is: %d" % self.level.score
 
     def _handle_mouse(self, lpos):
@@ -370,70 +396,43 @@ class GameWindow(object):
                     s = Sprite(o.position, ((hilight,),), c_depth=-1)
                     self.sprites.add(s)
                     self.ohilights.append(s)
+            self.repaint()
 
-    def main(self):
-        """Run the main loop."""
 
-        clock = pygame.time.Clock()
+    def paint(self, s):
         # Draw the whole screen initially
-        self.screen.blit(self.background, (0, 0))
-        self.overlays.draw(self.screen)
-        pygame.display.flip()
-        has_animation = lambda x: self._clones[x].animation is not None
-        fcounter = 1
+        s.blit(self.surface, (0, 0))
+        if self.level:
+            self.overlays.draw(s)
+            self.update(s)
 
-        # The main game loop
-        while self.running:
-            # Don't clear shadows and overlays, only sprites.
-            self.sprites.clear(self.screen, self.background)
+    def update(self, s):
+        if not self.level:
+            return
+        update_sprites = False
+        t = pygame.time.get_ticks()
+        if t - self.last_update > 0.667: # 1/15 or ~15 fps
+            last_update = t
+            self.update_sprites = True
+
+        # Don't clear shadows and overlays, only sprites.
+        self.sprites.clear(s, self.surface)
+
+        if update_sprites or 1:
             self.sprites.update()
-            # If the player's animation is finished, check for keypresses
-            if not any(itertools.ifilter(has_animation, self._clones)):
-                self.control()
-                for k in self._clones:
-                    self._clones[k].update()
+            has_animation = lambda x: self._clones[x].animation is not None
+            self.active_animation = any(itertools.ifilter(has_animation,
+                                                          self._clones))
             self.shadows.update()
-            # Don't add shadows to dirty rectangles, as they already fit inside
-            # sprite rectangles.
-            self.shadows.draw(self.screen)
-            dirty = self.sprites.draw(self.screen)
-            # Don't add ovelays to dirty rectangles, only the places where
-            # sprites are need to be updated, and those are already dirty.
-            self.overlays.draw(self.screen)
-            # Update the dirty areas of the screen
-            pygame.display.update(dirty)
-            # Wait for one tick of the game clock
-            clock.tick(15)
-            fcounter = (fcounter + 1) % 15
-            if not fcounter:
-                # "new second"
-                if self.auto_play:
-                    act = next(self.auto_play, None)
-                    if act:
-                        self._action2handler[act](act)
-                    else:
-                        self.auto_play = None
-            # Process pygame events
-            for event in pygame.event.get():
-                if event.type == pg.QUIT:
-                    self.running = False
-                elif event.type == pg.MOUSEMOTION:
-                    corr = (-MAP_TILE_WIDTH/2, -MAP_TILE_HEIGHT)
-                    mpos = pygame.mouse.get_pos()
-                    lpos = gpos2lpos(mpos, c=corr)
-                    self._handle_mouse(lpos)
-                elif event.type == pg.KEYDOWN:
-                    self.pressed_key = event.key
 
-            if self._gevent_queue.empty():
-                # if the game event queue is empty just skip the code below.
-                continue
-            try:
-                while 1:
-                    e = self._gevent_queue.get_nowait()
-                    print "Event: %s" % e.event_type
-                    if e.event_type not in self._event_handler:
-                        continue
-                    self._event_handler[e.event_type](e)
-            except Queue.Empty:
-                pass # expected
+        # Don't add shadows to dirty rectangles, as they already fit inside
+        # sprite rectangles.
+        self.shadows.draw(s)
+        dirty = self.sprites.draw(s)
+        # Don't add ovelays to dirty rectangles, only the places where
+        # sprites are need to be updated, and those are already dirty.
+        self.overlays.draw(s)
+        # Update the dirty areas of the screen
+        # pygame.display.update(dirty)
+        return dirty
+
