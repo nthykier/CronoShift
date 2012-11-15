@@ -227,7 +227,7 @@ class GameWindow(gui.Widget):
         if event.source in self._crates:
             actor = self._crates[event.source]
         else:
-            actor = self._clones[event.source]
+            actor = self._clones[event.source][0]
 
         if d == Direction.NO_ACT or not event.success:
             actor.animation = actor.do_nothing_animation()
@@ -250,13 +250,15 @@ class GameWindow(gui.Widget):
     def _player_clone(self, event):
         if event.event_type == "add-player-clone":
             sprite = PlayerSprite(event.source, self._sprite_cache['player'])
-            self._clones[event.source] = sprite
+            shadow = Shadow(sprite, self._sprite_cache["shadow"][0][0])
+            self._clones[event.source] = (sprite, shadow)
             self.sprites.add(sprite)
-            self.shadows.add(Shadow(sprite, self._sprite_cache["shadow"][0][0]))
+            self.shadows.add(shadow)
         elif event.source in self._clones:
-            s = self._clones[event.source]
+            csprite, shadow = self._clones[event.source]
             del self._clones[event.source]
-            s.kill()
+            csprite.kill()
+            shadow.kill()
 
         self.repaint()
 
@@ -310,7 +312,7 @@ class GameWindow(gui.Widget):
         if event.source in self._crates:
             actor = self._crates[event.source]
         elif event.source in self._clones:
-            actor = self._clones[event.source]
+            actor = self._clones[event.source][0]
         actor.pos = event.source.position
         self.repaint()
 
@@ -364,7 +366,7 @@ class GameWindow(gui.Widget):
         self.sprites.clear(s, self.surface)
 
         self.sprites.update()
-        has_animation = lambda x: self._clones[x].animation is not None
+        has_animation = lambda x: self._clones[x][0].animation is not None
         self.active_animation = any(itertools.ifilter(has_animation,
                                                       self._clones))
         self.shadows.update()
