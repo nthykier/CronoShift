@@ -34,7 +34,7 @@ import re
 
 from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
-from chrono.model.field import parse_field, Position
+from chrono.model.field import parse_field, Position, Wall
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -733,6 +733,23 @@ class Level(BaseLevel):
             raise TimeParadoxError
 
 class EditableLevel(BaseLevel):
+
+    def new_map(self, width, height):
+        self._name = "untitled"
+        self._width = width
+        self._height = height
+        self._metadata = {}
+        self._start_location = None
+        self._goal_location = None
+        self._crates = {}
+        self._lvl = []
+        for x in range(width):
+            column = []
+            self._lvl.append(column)
+            for y in range(height):
+                w = Wall("+", position=Position(x, y))
+                column.append(w)
+        self._emit_event(EditorEvent("new-map"))
 
     def perform_change(self, ctype, position, *args, **kwargs):
         self._make_field(position, args)
