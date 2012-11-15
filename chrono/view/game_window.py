@@ -57,11 +57,11 @@ class GameWindow(gui.Widget):
     """The main game object."""
 
     def __init__(self, **params):
-        params['width'] = 300
+        params['width'] = 450
         params['height'] = 300
         params['focusable'] = False
         super(GameWindow, self).__init__(**params)
-        self.surface = pygame.Surface((300, 300))
+        self.surface = pygame.Surface((450, 300))
         self.surface.fill((0, 0, 0))
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
@@ -79,6 +79,7 @@ class GameWindow(gui.Widget):
         self._gevent_queue = Queue.Queue()
         self.level = None
         self._event_handler = {
+            # play
             'move-up': functools.partial(self._move, Direction.NORTH),
             'move-down': functools.partial(self._move, Direction.SOUTH),
             'move-left': functools.partial(self._move, Direction.WEST),
@@ -93,30 +94,40 @@ class GameWindow(gui.Widget):
             'goal-obtained': lambda *x: self.goal.kill(),
             'goal-lost': lambda *x: self.sprites.add(self.goal),
             'jump-moveable': self._jump_moveable,
+
+            # edit
+            'new-map': self._new_map,
         }
 
     def use_level(self, level):
         """Set the level as the current one."""
 
+        self.level = level
+        level.add_event_listener(self._gevent_queue.put)
+        self._new_map()
+
+        mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
+        mhilight.fill(pygame.Color("red"))
+        mhilight.set_alpha(0x80)
+        s = Sprite((0,0), ((mhilight,),), c_depth=-1)
+        self.sprites.add(s)
+        self.mhilight = s
+
+
+    def _new_map(self, *args):
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
-        self.level = level
         self._clones = {}
         self._gates = {}
 
-        level.add_event_listener(self._gevent_queue.put)
-
-        # Populate the game with the level's objects
-        if 1:
-            sprite = Sprite(level.goal_location.position, self._sprite_cache['house'])
-            self.goal = sprite
-            self.sprites.add(sprite)
+        level = self.level
 
         # Render the level map
         background, overlays = make_background(level,
                                                map_cache=self._map_cache,
                                                tileset=self._tileset)
+        self.surface.fill((0, 0, 0))
         self.surface.blit(background, (0,0))
 
         for field in level.iter_fields():
@@ -140,6 +151,25 @@ class GameWindow(gui.Widget):
             if sprite:
                 self.sprites.add(sprite)
 
+        if level.start_location:
+            # Highlight the start location
+            image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
+            image.fill(pygame.Color("blue"))
+            image.set_alpha(0x80)
+            self.sprites.add(Sprite(level.start_location.position, ((image,),), c_depth=-1))
+
+        if level.goal_location:
+            sprite = Sprite(level.goal_location.position, self._sprite_cache['house'])
+            self.goal = sprite
+            self.sprites.add(sprite)
+
+
+        # Add the overlays for the level map
+        for (x, y), image in overlays.iteritems():
+            overlay = pygame.sprite.Sprite(self.overlays)
+            overlay.image = image
+            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
+
         try:
             iter_clones = level.iter_clones
         except AttributeError:
@@ -149,25 +179,6 @@ class GameWindow(gui.Widget):
         if iter_clones:
             for clone in iter_clones():
                 self._new_clone(clone)
-
-        if 1:
-            # Highlight the start location
-            image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-            image.fill(pygame.Color("blue"))
-            image.set_alpha(0x80)
-            self.sprites.add(Sprite(level.start_location.position, ((image,),), c_depth=-1))
-            mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-            mhilight.fill(pygame.Color("red"))
-            mhilight.set_alpha(0x80)
-            s = Sprite(level.start_location.position, ((mhilight,),), c_depth=-1)
-            self.sprites.add(s)
-            self.mhilight = s
-
-        # Add the overlays for the level map
-        for (x, y), image in overlays.iteritems():
-            overlay = pygame.sprite.Sprite(self.overlays)
-            overlay.image = image
-            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
 
         self.repaint()
 
