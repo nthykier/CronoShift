@@ -159,6 +159,7 @@ class Application(gui.Desktop):
         self.level.load_level(fname)
         self.level.add_event_listener(sc)
         self.game_window.use_level(self.level)
+        self.level.start()
 
     def play_solution(self, *args):
         if not self.level:

@@ -179,6 +179,16 @@ class GameWindow(gui.Widget):
             if sprite:
                 self.sprites.add(sprite)
 
+        try:
+            iter_clones = level.iter_clones
+        except AttributeError:
+            # Not a playable map, no clones to place
+            iter_clones = None
+
+        if iter_clones:
+            for clone in iter_clones():
+                self._new_clone(clone)
+
         if 1:
             # Highlight the start location
             image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
@@ -198,8 +208,6 @@ class GameWindow(gui.Widget):
             overlay.image = image
             overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
 
-
-        level.start()
         self.repaint()
 
     def event(self, e):
@@ -247,13 +255,16 @@ class GameWindow(gui.Widget):
             self._gates[src_pos].state = nstate
             self.repaint()
 
+    def _new_clone(self, clone):
+        sprite = PlayerSprite(clone, self._sprite_cache['player'])
+        shadow = Shadow(sprite, self._sprite_cache["shadow"][0][0])
+        self._clones[clone] = (sprite, shadow)
+        self.sprites.add(sprite)
+        self.shadows.add(shadow)
+
     def _player_clone(self, event):
         if event.event_type == "add-player-clone":
-            sprite = PlayerSprite(event.source, self._sprite_cache['player'])
-            shadow = Shadow(sprite, self._sprite_cache["shadow"][0][0])
-            self._clones[event.source] = (sprite, shadow)
-            self.sprites.add(sprite)
-            self.shadows.add(shadow)
+            self._new_clone(event.source)
         elif event.source in self._clones:
             csprite, shadow = self._clones[event.source]
             del self._clones[event.source]
@@ -280,8 +291,13 @@ class GameWindow(gui.Widget):
                     yield actions[a]
                     break
                 yield actions[a] + actions[b] + ' '
+        try:
+            iter_clones = self.level.iter_clones
+        except AttributeError:
+            # Not a playable "Level", ignore...
+            return
 
-        for clone in self.level.iter_clones():
+        for clone in iter_clones():
             print " %s" % ("".join(_action2sf(clone)))
 
     def process_game_events(self):
