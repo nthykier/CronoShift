@@ -37,14 +37,14 @@ class Position(Pos):
         return self + Direction.dir_update(direction)
 
 class Field(object):
-    def __init__(self, symbol):
+    def __init__(self, symbol, position=None):
         self._symbol = symbol
         self._is_source = False
         self._is_target = False
         self._activated = False
         self._targets = set()
         self._sources = set()
-        self._pos = None
+        self._pos = position
 
     @property
     def position(self):
@@ -135,9 +135,6 @@ class Field(object):
 
 class Wall(Field):
 
-    def __init__(self, symbol):
-        super(Wall, self).__init__(symbol)
-
     @property
     def is_wall(self):
         return True
@@ -148,11 +145,11 @@ class Wall(Field):
 
 class Gate(Field):
 
-    def __init__(self, symbol):
-        super(Gate, self).__init__(symbol)
+    def __init__(self, *args, **kwords):
+        super(Gate, self).__init__(*args, **kwords)
         self.closed = True
         self._is_target = True
-        if symbol == "_":
+        if self.symbol == "_":
             self.closed = False
 
     def toogle_activation(self, _=True):
@@ -169,8 +166,8 @@ class Gate(Field):
 
 class Button(Field):
 
-    def __init__(self, symbol):
-        super(Button, self).__init__(symbol)
+    def __init__(self, *args, **kwords):
+        super(Button, self).__init__(*args, **kwords)
         self._is_source = True
 
     def toogle_activation(self, newstate=None):
@@ -183,14 +180,10 @@ class Button(Field):
                 target.deactivate()
 
 class StartLocation(Field):
-
-    def __init__(self, symbol):
-        super(StartLocation, self).__init__(symbol)
+    pass
 
 class GoalLocation(Field):
-
-    def __init__(self, symbol):
-        super(GoalLocation, self).__init__(symbol)
+    pass
 
 def parse_field(symbol):
     if symbol == "+":
