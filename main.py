@@ -86,8 +86,9 @@ def make_edit_ctrls(app, width, height):
     spacer = 8
     from_left = spacer
 
-    play_lvl = gui.Button("Play level")
+    play_lvl = gui.Button("New map")
     c.add(play_lvl, from_left, spacer)
+    play_lvl.connect(gui.CLICK, app.new_map, None)
     play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
 
     from_left += play_lvl.rect.w + spacer
@@ -223,6 +224,13 @@ class Application(gui.Desktop):
         self.reset_level()
         print "Playing solution"
         self.auto_play = solution2actions(sol)
+
+    def new_map(self, *args):
+        if not self.edit_level:
+            self.edit_level = EditableLevel()
+            self.game_window.use_level(self.edit_level)
+
+        self.edit_level.new_map(15, 10)
 
     def event(self, evt):
         if evt.type == pygame.KEYDOWN and self.ctrl.event(evt):
