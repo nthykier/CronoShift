@@ -140,10 +140,12 @@ class Application(gui.Desktop):
 
     def reset_clone(self, *args):
         if self.level:
+            self.auto_play = None
             self.level.perform_move('reset-time-jump')
 
     def reset_level(self, *args):
         if self.level:
+            self.auto_play = None
             self.level.perform_move('reset-level')
 
     def action_open_lvl(self,value):
@@ -151,6 +153,7 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def load_level(self, fname):
+        self.auto_play = None
         self.level = Level()
         sc = functools.partial(self.score.update_score, self.level)
         self.level.load_level(fname)
@@ -165,7 +168,7 @@ class Application(gui.Desktop):
         if not sol:
             print "%s has no solution" % level.name
             return
-        # FIXME: reset
+        self.reset_level()
         print "Playing solution"
         self.auto_play = solution2actions(sol)
 
