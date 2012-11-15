@@ -15,7 +15,7 @@ if 1:
 
 from pgu import gui
 
-from chrono.model.level import Level, solution2actions
+from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.view.game_window import GameWindow
 
@@ -81,6 +81,44 @@ class ScoreTracker(gui.Label):
         t = lvl.turn
         self.score = (lvl.score, t[0] + 1, t[1] + 1, lvl.number_of_clones)
 
+def make_edit_ctrls(app, width, height):
+    c = gui.Container(width=width, height=height)
+    spacer = 8
+    from_left = spacer
+
+    play_lvl = gui.Button("Play level")
+    c.add(play_lvl, from_left, spacer)
+    play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
+
+    from_left += play_lvl.rect.w + spacer
+
+    return c
+
+def make_game_ctrls(app, width, height):
+    c = gui.Container(width=width, height=height)
+    spacer = 8
+    from_left = spacer
+
+    play_s = gui.Button("Play Solution")
+    play_s.connect(gui.CLICK, app.play_solution, None)
+    c.add(play_s, from_left, spacer)
+    play_s.rect.w, play_s.rect.h = play_s.resize()
+
+    from_left += play_s.rect.w + spacer
+
+    reset_tj = gui.Button("Reset clone")
+    reset_tj.connect(gui.CLICK, app.reset_clone, None)
+    c.add(reset_tj, from_left, spacer)
+    reset_tj.rect.w, reset_tj.rect.h = reset_tj.resize()
+
+    from_left += reset_tj.rect.w + spacer
+
+    reset_lvl = gui.Button("Reset level")
+    reset_lvl.connect(gui.CLICK, app.reset_level, None)
+    c.add(reset_lvl, from_left, spacer)
+    reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
+
+    return c
 
 class Application(gui.Desktop):
 
@@ -95,6 +133,7 @@ class Application(gui.Desktop):
 
         self.fcounter = 0
         self.score = ScoreTracker()
+        self.edit_level = None
         self.level = None
         self.auto_play = None
         self.game_window = game_window = GameWindow()
@@ -110,33 +149,40 @@ class Application(gui.Desktop):
         menus.rect.w, menus.rect.h = menus.resize()
         from_top += menus.rect.h + spacer
 
-        c.add(game_window, from_left, from_top)
+        c.add(game_window, spacer, from_top)
         game_window.rect.w, game_window.rect.h = game_window.resize()
 
         from_top += game_window.rect.h + spacer
 
-        c.add(self.score, from_left, from_top)
+        c.add(self.score, spacer, from_top)
         self.score.rect.w, self.score.rect.h = self.score.resize()
         from_top += self.score.rect.h + spacer
 
-        play_s = gui.Button("Play Solution")
-        play_s.connect(gui.CLICK, self.play_solution, None)
-        c.add(play_s, from_left, from_top)
-        play_s.rect.w, play_s.rect.h = play_s.resize()
 
-        from_left += play_s.rect.w + spacer
+        play_ctrls = make_game_ctrls(self, width=640, height=480 - from_top)
+        edit_ctrls = make_edit_ctrls(self, width=640, height=480 - from_top)
 
-        reset_tj = gui.Button("Reset clone")
-        reset_tj.connect(gui.CLICK, self.reset_clone, None)
-        c.add(reset_tj, from_left, from_top)
-        reset_tj.rect.w, reset_tj.rect.h = reset_tj.resize()
+        group = gui.Group(name='ctrl-mode', value=play_ctrls)
 
-        from_left += reset_tj.rect.w + spacer
+        play_mode = gui.Tool(group, gui.Label("Play-mode"), play_ctrls)
+        edit_mode = gui.Tool(group, gui.Label("Edit-mode"), edit_ctrls)
 
-        reset_lvl = gui.Button("Reset level")
-        reset_lvl.connect(gui.CLICK, self.reset_level, None)
-        c.add(reset_lvl, from_left, from_top)
-        reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
+        c.add(play_mode, spacer, from_top)
+        play_mode.rect.w, play_mode.rect.h = play_mode.resize()
+
+        c.add(edit_mode, 2 * spacer + play_mode.rect.w, from_top)
+
+        from_top += play_mode.rect.h + spacer
+
+        w = gui.ScrollArea(play_ctrls)
+
+        def switch_mode():
+            w.widget = group.value
+
+        group.connect(gui.CHANGE, switch_mode)
+
+        c.add(w, 0, from_top)
+        w.rect.w, w.rect.h = w.resize()
 
         self.widget = c
 
@@ -156,10 +202,12 @@ class Application(gui.Desktop):
 
     def load_level(self, fname):
         self.auto_play = None
+        self.edit_level = EditableLevel()
         self.level = Level()
         self.ctrl.level = self.level
         sc = functools.partial(self.score.update_score, self.level)
-        self.level.load_level(fname)
+        self.edit_level.load_level(fname)
+        self.level.init_from_level(self.edit_level)
         self.level.add_event_listener(sc)
         self.game_window.use_level(self.level)
         self.level.start()
