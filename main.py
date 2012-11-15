@@ -170,7 +170,7 @@ class Application(gui.Desktop):
         self.auto_play = solution2actions(sol)
 
     def event(self, evt):
-        if self.game_window.event(evt):
+        if evt.type == pygame.KEYDOWN and self.game_window.event(evt):
             self.game_window.focus()
             return
         super(Application, self).event(evt)
