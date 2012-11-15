@@ -46,7 +46,6 @@ class Field(object):
         self._sources = set()
         self._pos = None
 
-
     @property
     def position(self):
         return self._pos
@@ -125,6 +124,14 @@ class Field(object):
         if self._activated:
             self._activated = False
             self.toogle_activation(False)
+
+    def copy(self):
+        other = type(self)(self.symbol)
+        other._sources = set()
+        other._targets = set()
+        other._activated = self._activated
+        other._pos = self._pos
+        return other
 
 class Wall(Field):
 

@@ -183,6 +183,21 @@ class BaseLevel(object):
     def remove_event_listener(self, handler):
         self._handlers.remove(handler)
 
+    def init_from_level(self, other):
+        self._width = other.width
+        self._height = other.height
+        self._start_location = other.start_location
+        self._goal_location = other.goal_location
+        self._metadata = other._metadata.copy()
+        self._crates = other._crates.copy()
+        self._lvl = [list(imap(lambda f: f.copy(), c)) for c in other._lvl]
+        other2self = lambda x: self.get_field(x.position)
+        for of in other.iter_fields():
+            mf = self.get_field(of.position)
+            if of.is_activation_source:
+                for mt in imap(other2self, of.iter_activation_targets()):
+                    mf.add_activation_target(mt)
+
     def load_level(self, fname, infd=None, verbose=1):
         self._name = fname
         if infd is not None:
@@ -339,6 +354,10 @@ class Level(BaseLevel):
 
     def load_level(self, *args, **kwords):
         super(Level, self).load_level(*args, **kwords)
+        self._crates_orig = self._crates.copy()
+
+    def init_from_level(self, *args, **kwords):
+        super(Level, self).init_from_level(*args, **kwords)
         self._crates_orig = self._crates.copy()
 
     def start(self):
