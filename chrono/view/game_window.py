@@ -53,33 +53,13 @@ from chrono.view.sprites import (
     )
 from chrono.view.tile_cache import TileCache
 
-DEFAULT_CONTROLS = {
-    pg.K_UP: 'move-up',
-    pg.K_w: 'move-up',
-
-    pg.K_DOWN: 'move-down',
-    pg.K_s: 'move-down',
-
-    pg.K_RIGHT: 'move-right',
-    pg.K_d: 'move-right',
-
-    pg.K_LEFT: 'move-left',
-    pg.K_a: 'move-left',
-
-    pg.K_SPACE: 'skip-turn',
-    pg.K_RETURN: 'enter-time-machine',
-
-    pg.K_F2: 'print-actions',
-    pg.K_j: 'reset-time-jump',
-}
-
 class GameWindow(gui.Widget):
     """The main game object."""
 
     def __init__(self, **params):
         params['width'] = 300
         params['height'] = 300
-        params['focusable'] = True
+        params['focusable'] = False
         super(GameWindow, self).__init__(**params)
         self.surface = pygame.Surface((300, 300))
         self.surface.fill((0, 0, 0))
@@ -98,16 +78,6 @@ class GameWindow(gui.Widget):
         self.active_animation = False
         self._gevent_queue = Queue.Queue()
         self.level = None
-        self._action2handler = {
-            'move-up': self._perform_move,
-            'move-down': self._perform_move,
-            'move-left': self._perform_move,
-            'move-right': self._perform_move,
-            'skip-turn': self._perform_move,
-            'enter-time-machine': self._perform_move,
-            'reset-time-jump': self._perform_move,
-            'print-actions': self._print_actions,
-        }
         self._event_handler = {
             'move-up': functools.partial(self._move, Direction.NORTH),
             'move-down': functools.partial(self._move, Direction.SOUTH),
@@ -124,15 +94,6 @@ class GameWindow(gui.Widget):
             'goal-lost': lambda *x: self.sprites.add(self.goal),
             'jump-moveable': self._jump_moveable,
         }
-        self._controls = DEFAULT_CONTROLS
-
-    @property
-    def controls(self):
-        return self._controls.copy()
-
-    @controls.setter
-    def controls(self, cmap):
-        self._controls = cmap.copy()
 
     def use_level(self, level):
         """Set the level as the current one."""
@@ -213,14 +174,7 @@ class GameWindow(gui.Widget):
     def event(self, e):
         if not self.level:
             return
-        if e.type == pg.KEYDOWN:
-            if not self.active_animation:
-                self.pressed_key = e.key
-                action = self._controls.get(e.key, None)
-                if action:
-                    self._action2handler[action](action)
-                    return True
-        elif e.type == pg.MOUSEMOTION:
+        if e.type == pg.MOUSEMOTION:
             corr = (self.rect.x - MAP_TILE_WIDTH/2,
                     self.rect.y - MAP_TILE_HEIGHT)
             mpos = pygame.mouse.get_pos()
@@ -273,33 +227,6 @@ class GameWindow(gui.Widget):
 
         self.repaint()
 
-    def _print_actions(self, _):
-        def _action2sf(container):
-            actions = {
-                'move-up': 'N',
-                'move-right': 'E',
-                'move-down': 'S',
-                'move-left': 'W',
-                'skip-turn': 'H',
-                'enter-time-machine': 'T',
-            }
-            it = iter(container)
-            while 1:
-                a = next(it)
-                b = next(it, None)
-                if b is None:
-                    yield actions[a]
-                    break
-                yield actions[a] + actions[b] + ' '
-        try:
-            iter_clones = self.level.iter_clones
-        except AttributeError:
-            # Not a playable "Level", ignore...
-            return
-
-        for clone in iter_clones():
-            print " %s" % ("".join(_action2sf(clone)))
-
     def process_game_events(self):
         if self._gevent_queue.empty():
             # if the game event queue is empty just skip the code below.
@@ -313,10 +240,6 @@ class GameWindow(gui.Widget):
                 self._event_handler[e.event_type](e)
         except Queue.Empty:
             pass # expected
-
-    def _perform_move(self, move):
-        if self.level:
-            self.level.perform_move(move)
 
     def _time_paradox(self, e):
         self.game_over = True

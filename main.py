@@ -16,6 +16,7 @@ if 1:
 from pgu import gui
 
 from chrono.model.level import Level, solution2actions
+from chrono.ctrl.controller import PlayKeyController
 from chrono.view.game_window import GameWindow
 
 class OpenLevelDialog(gui.Dialog):
@@ -96,6 +97,8 @@ class Application(gui.Desktop):
         self.score = ScoreTracker()
         self.level = None
         self.auto_play = None
+        self.game_window = game_window = GameWindow()
+        self.ctrl = PlayKeyController(view=self.game_window)
         self.open_lvl_d = OpenLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
 
@@ -107,7 +110,6 @@ class Application(gui.Desktop):
         menus.rect.w, menus.rect.h = menus.resize()
         from_top += menus.rect.h + spacer
 
-        self.game_window = game_window = GameWindow()
         c.add(game_window, from_left, from_top)
         game_window.rect.w, game_window.rect.h = game_window.resize()
 
@@ -155,6 +157,7 @@ class Application(gui.Desktop):
     def load_level(self, fname):
         self.auto_play = None
         self.level = Level()
+        self.ctrl.level = self.level
         sc = functools.partial(self.score.update_score, self.level)
         self.level.load_level(fname)
         self.level.add_event_listener(sc)
@@ -174,7 +177,7 @@ class Application(gui.Desktop):
         self.auto_play = solution2actions(sol)
 
     def event(self, evt):
-        if evt.type == pygame.KEYDOWN and self.game_window.event(evt):
+        if evt.type == pygame.KEYDOWN and self.ctrl.event(evt):
             self.game_window.focus()
             return
         super(Application, self).event(evt)
