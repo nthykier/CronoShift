@@ -86,9 +86,16 @@ def make_edit_ctrls(app, width, height):
     spacer = 8
     from_left = spacer
 
-    play_lvl = gui.Button("New map")
+    new_map = gui.Button("New map")
+    c.add(new_map, from_left, spacer)
+    new_map.connect(gui.CLICK, app.new_map, None)
+    new_map.rect.w, new_map.rect.h = new_map.resize()
+
+    from_left += new_map.rect.w + spacer
+
+    play_lvl = gui.Button("Play Level")
     c.add(play_lvl, from_left, spacer)
-    play_lvl.connect(gui.CLICK, app.new_map, None)
+    play_lvl.connect(gui.CLICK, app.play_edit_level, None)
     play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
 
     from_left += play_lvl.rect.w + spacer
@@ -132,6 +139,7 @@ class Application(gui.Desktop):
         from_top = 0
         from_left = spacer
 
+        self._mode = "play"
         self.fcounter = 0
         self.score = ScoreTracker()
         self.edit_level = None
@@ -163,29 +171,49 @@ class Application(gui.Desktop):
         play_ctrls = make_game_ctrls(self, width=640, height=480 - from_top)
         edit_ctrls = make_edit_ctrls(self, width=640, height=480 - from_top)
 
-        group = gui.Group(name='ctrl-mode', value=play_ctrls)
+        self.group = gui.Group(name='ctrl-mode', value="play")
 
-        play_mode = gui.Tool(group, gui.Label("Play-mode"), play_ctrls)
-        edit_mode = gui.Tool(group, gui.Label("Edit-mode"), edit_ctrls)
+        play_mode_label = gui.Label("Play-mode")
+        play_mode = gui.Tool(self.group, play_mode_label, "play")
+        edit_mode = gui.Tool(self.group, gui.Label("Edit-mode"), "edit")
 
         c.add(play_mode, spacer, from_top)
         play_mode.rect.w, play_mode.rect.h = play_mode.resize()
 
         c.add(edit_mode, 2 * spacer + play_mode.rect.w, from_top)
+        edit_mode.rect.w, edit_mode.rect.h = edit_mode.resize()
 
         from_top += play_mode.rect.h + spacer
 
         w = gui.ScrollArea(play_ctrls)
 
         def switch_mode():
-            w.widget = group.value
+            self._mode = self.group.value
+            if self.mode == "play":
+                w.widget = play_ctrls
+                if self.level:
+                    self.game_window.use_level(self.level)
+            else:
+                w.widget = edit_ctrls
+                if self.edit_level:
+                    self.game_window.use_level(self.edit_level)
 
-        group.connect(gui.CHANGE, switch_mode)
+            play_mode_label.focus()
+
+        self.group.connect(gui.CHANGE, switch_mode)
 
         c.add(w, 0, from_top)
         w.rect.w, w.rect.h = w.resize()
 
         self.widget = c
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, val):
+        self.group.value = val
 
     def reset_clone(self, *args):
         if self.level:
@@ -209,9 +237,13 @@ class Application(gui.Desktop):
         sc = functools.partial(self.score.update_score, self.level)
         self.edit_level.load_level(fname)
         self.level.init_from_level(self.edit_level)
+        lvl = self.edit_level
+        if self.mode == "play":
+            lvl = self.level
+        self.game_window.use_level(lvl)
         self.level.add_event_listener(sc)
-        self.game_window.use_level(self.level)
         self.level.start()
+
 
     def play_solution(self, *args):
         if not self.level:
@@ -231,6 +263,18 @@ class Application(gui.Desktop):
             self.game_window.use_level(self.edit_level)
 
         self.edit_level.new_map(15, 10)
+
+    def play_edit_level(self, *args):
+        if not self.edit_level:
+            return
+        self.mode = "play"
+        self.level = Level()
+        self.ctrl.level = self.level
+        self.level.init_from_level(self.edit_level)
+        self.game_window.use_level(self.level)
+        sc = functools.partial(self.score.update_score, self.level)
+        self.level.add_event_listener(sc)
+        self.level.start()
 
     def event(self, evt):
         if evt.type == pygame.KEYDOWN and self.ctrl.event(evt):
