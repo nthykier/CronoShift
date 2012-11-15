@@ -341,6 +341,7 @@ class Level(BaseLevel):
             'move-right': functools.partial(self._move, Direction.EAST),
             'skip-turn': functools.partial(self._move, Direction.NO_ACT),
             'reset-time-jump': self._reset_action,
+            'reset-level': self._reset_action,
             'enter-time-machine': self._enter_time_machine,
         }
         return act2f[action](action)
@@ -473,31 +474,40 @@ class Level(BaseLevel):
                 self._emit_event(GameEvent('add-player-clone', source=self._player))
 
     def _reset_action(self, action):
+        self._reset_movables()
+        self._turn_no = 0
         if action == "reset-time-jump":
-            self._reset_movables()
             # Remove the latest clone
             self._clones.pop()
             self._emit_event(GameEvent('remove-player-clone', source=self._player))
-            self._turn_no = 0
-            if self._clones:
-                if len(self._actions) == self._turn_max:
-                    self._turn_max = max(self._clones)
-                self._score -= len(self._actions)
-            else:
-                # reseting the first clone
-                self._turn_max = 0
-                self._score = 0
+        elif action == "reset-level":
+            for c in self._clones:
+                self._emit_event(GameEvent('remove-player-clone', source=c))
+            self._clones = []
 
-            if self._got_goal:
-                self._emit_event(GameEvent('goal-lost'))
-                self._got_goal = False
-            # ... and replace it with a new one.
-            self._active_player = True
-            self._actions = []
+        if self._clones:
+            if len(self._actions) == self._turn_max:
+                # -1 for the "enter-time-machine" action
+                self._turn_max = len(max(self._clones, key=len)) - 1
+            self._score -= len(self._actions)
+        else:
+            # reseting all clones or the first clone
+            self._turn_max = 0
+            self._score = 0
 
-            self._player = PlayerClone(self.start_location.position, self._actions)
-            self._clones.append(self._player)
-            self._emit_event(GameEvent('add-player-clone', source=self._player))
+        if self._got_goal:
+            self._emit_event(GameEvent('goal-lost'))
+            self._got_goal = False
+
+        # We always reset by removing a clone (or all clones), so we
+        # have insert a clone to replace the removed one (or insert
+        # the new "first" clone).
+        self._active_player = True
+        self._actions = []
+
+        self._player = PlayerClone(self.start_location.position, self._actions)
+        self._clones.append(self._player)
+        self._emit_event(GameEvent('add-player-clone', source=self._player))
 
     def _reset_movables(self, clones=True):
         """Reset all movables to their start positions

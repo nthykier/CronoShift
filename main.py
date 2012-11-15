@@ -90,6 +90,7 @@ class Application(gui.Desktop):
         c = gui.Container(width=640,height=480)
         spacer = 8
         from_top = 0
+        from_left = spacer
 
         self.fcounter = 0
         self.score = ScoreTracker()
@@ -107,20 +108,43 @@ class Application(gui.Desktop):
         from_top += menus.rect.h + spacer
 
         self.game_window = game_window = GameWindow()
-        c.add(game_window, spacer, from_top)
+        c.add(game_window, from_left, from_top)
         game_window.rect.w, game_window.rect.h = game_window.resize()
 
         from_top += game_window.rect.h + spacer
 
-        c.add(self.score, spacer, from_top)
+        c.add(self.score, from_left, from_top)
         self.score.rect.w, self.score.rect.h = self.score.resize()
         from_top += self.score.rect.h + spacer
 
         play_s = gui.Button("Play Solution")
         play_s.connect(gui.CLICK, self.play_solution, None)
-        c.add(play_s, spacer, from_top)
+        c.add(play_s, from_left, from_top)
+        play_s.rect.w, play_s.rect.h = play_s.resize()
+
+        from_left += play_s.rect.w + spacer
+
+        reset_tj = gui.Button("Reset clone")
+        reset_tj.connect(gui.CLICK, self.reset_clone, None)
+        c.add(reset_tj, from_left, from_top)
+        reset_tj.rect.w, reset_tj.rect.h = reset_tj.resize()
+
+        from_left += reset_tj.rect.w + spacer
+
+        reset_lvl = gui.Button("Reset level")
+        reset_lvl.connect(gui.CLICK, self.reset_level, None)
+        c.add(reset_lvl, from_left, from_top)
+        reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
 
         self.widget = c
+
+    def reset_clone(self, *args):
+        if self.level:
+            self.level.perform_move('reset-time-jump')
+
+    def reset_level(self, *args):
+        if self.level:
+            self.level.perform_move('reset-level')
 
     def action_open_lvl(self,value):
         self.open_lvl_d.close()
