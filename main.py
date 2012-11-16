@@ -268,9 +268,17 @@ class Application(gui.Desktop):
         if not self.edit_level:
             return
         self.mode = "play"
-        self.level = Level()
+        level = Level()
+        try:
+            level.init_from_level(self.edit_level)
+        except ValueError as e:
+            c = gui.Container()
+            c.add(gui.Label(str(e)), 8, 8)
+            d = gui.Dialog(gui.Label("Cannot play level"), c)
+            d.open()
+            return
+        self.level = level
         self.ctrl.level = self.level
-        self.level.init_from_level(self.edit_level)
         self.game_window.use_level(self.level)
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)

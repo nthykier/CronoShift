@@ -369,8 +369,12 @@ class Level(BaseLevel):
         super(Level, self).load_level(*args, **kwords)
         self._crates_orig = self._crates.copy()
 
-    def init_from_level(self, *args, **kwords):
-        super(Level, self).init_from_level(*args, **kwords)
+    def init_from_level(self, other, *args, **kwords):
+        if not other.start_location:
+            raise ValueError("Missing start location")
+        if not other.goal_location:
+            raise ValueError("Missing goal location")
+        super(Level, self).init_from_level(other,*args, **kwords)
         self._crates_orig = self._crates.copy()
 
     def start(self):
