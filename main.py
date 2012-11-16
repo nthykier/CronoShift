@@ -55,6 +55,39 @@ class OpenLevelDialog(gui.Dialog):
         if dlg.value:
             self.li.value = dlg.value
 
+class NewLevelDialog(gui.Dialog):
+    def __init__(self,**params):
+        title = gui.Label("New Level")
+
+        t = gui.Table()
+
+        self.value = gui.Form()
+        self.input_name = gui.Input(name="name", value="untitled")
+        self.input_width = gui.Input(name="width", value=10)
+        self.input_height = gui.Input(name="height", value=10)
+
+        t.tr()
+        t.td(gui.Label("Name: "))
+        t.td(self.input_name,colspan=3)
+
+        t.tr()
+        t.td(gui.Label("Width: "))
+        t.td(self.input_width)
+        t.td(gui.Label("Height: "))
+        t.td(self.input_height)
+
+        t.tr()
+        e = gui.Button("Create")
+        e.connect(gui.CLICK,self.send,gui.CHANGE)
+        t.td(e,colspan=2)
+
+        e = gui.Button("Cancel")
+        e.connect(gui.CLICK,self.close,None)
+        t.td(e,colspan=2)
+
+        gui.Dialog.__init__(self,title,t)
+
+
 class ScoreTracker(gui.Label):
 
     def __init__(self):
@@ -88,7 +121,7 @@ def make_edit_ctrls(app, width, height):
 
     new_map = gui.Button("New map")
     c.add(new_map, from_left, spacer)
-    new_map.connect(gui.CLICK, app.new_map, None)
+    new_map.connect(gui.CLICK, app.new_lvl_d.open, None)
     new_map.rect.w, new_map.rect.h = new_map.resize()
 
     from_left += new_map.rect.w + spacer
@@ -148,7 +181,9 @@ class Application(gui.Desktop):
         self.game_window = game_window = GameWindow()
         self.ctrl = PlayKeyController(view=self.game_window)
         self.open_lvl_d = OpenLevelDialog()
+        self.new_lvl_d = NewLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
+        self.new_lvl_d.connect(gui.CHANGE, self.new_map, None)
 
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
@@ -256,7 +291,6 @@ class Application(gui.Desktop):
         d = gui.Dialog(gui.Label(title_msg), c)
         d.open()
 
-
     def play_solution(self, *args):
         if not self.level:
             return
@@ -270,11 +304,19 @@ class Application(gui.Desktop):
         self.auto_play = solution2actions(sol)
 
     def new_map(self, *args):
-        if not self.edit_level:
-            self.edit_level = EditableLevel()
-            self.game_window.use_level(self.edit_level)
+        self.new_lvl_d.close()
+        res = self.new_lvl_d.value
 
-        self.edit_level.new_map(15, 10)
+        edit_level = self.edit_level or EditableLevel()
+
+        try:
+            edit_level.new_map(int(res["width"].value), int(res["height"].value))
+        except (TypeError, ValueError) as e:
+            self._show_error("Cannot crate map", str(e))
+            return
+
+        self.edit_level = edit_level
+        self.game_window.use_level(edit_level)
 
     def play_edit_level(self, *args):
         if not self.edit_level:

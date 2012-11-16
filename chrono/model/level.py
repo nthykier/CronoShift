@@ -739,6 +739,9 @@ class Level(BaseLevel):
 class EditableLevel(BaseLevel):
 
     def new_map(self, width, height):
+        if width < 3 or height < 3:
+            raise ValueError("Width and height must both be at least 3")
+
         self._name = "untitled"
         self._width = width
         self._height = height
