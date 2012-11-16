@@ -62,13 +62,13 @@ class NewLevelDialog(gui.Dialog):
         t = gui.Table()
 
         self.value = gui.Form()
-        self.input_name = gui.Input(name="name", value="untitled")
+#        self.input_name = gui.Input(name="name", value="untitled")
         self.input_width = gui.Input(name="width", value=10)
         self.input_height = gui.Input(name="height", value=10)
 
-        t.tr()
-        t.td(gui.Label("Name: "))
-        t.td(self.input_name,colspan=3)
+#        t.tr()
+#        t.td(gui.Label("Name: "))
+#        t.td(self.input_name,colspan=3)
 
         t.tr()
         t.td(gui.Label("Width: "))
