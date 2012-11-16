@@ -231,11 +231,17 @@ class Application(gui.Desktop):
 
     def load_level(self, fname):
         self.auto_play = None
-        self.edit_level = EditableLevel()
+        edit_level = EditableLevel()
+        try:
+            edit_level.load_level(fname)
+        except IOError as e:
+            self._show_error("Cannot load map", str(e))
+            return
+
+        self.edit_level = edit_level
         self.level = Level()
         self.ctrl.level = self.level
         sc = functools.partial(self.score.update_score, self.level)
-        self.edit_level.load_level(fname)
         self.level.init_from_level(self.edit_level)
         lvl = self.edit_level
         if self.mode == "play":
@@ -243,6 +249,12 @@ class Application(gui.Desktop):
         self.game_window.use_level(lvl)
         self.level.add_event_listener(sc)
         self.level.start()
+
+    def _show_error(self, title_msg, body_msg):
+        c = gui.Container()
+        c.add(gui.Label(body_msg), 8, 8)
+        d = gui.Dialog(gui.Label(title_msg), c)
+        d.open()
 
 
     def play_solution(self, *args):
@@ -267,16 +279,13 @@ class Application(gui.Desktop):
     def play_edit_level(self, *args):
         if not self.edit_level:
             return
-        self.mode = "play"
         level = Level()
         try:
             level.init_from_level(self.edit_level)
         except ValueError as e:
-            c = gui.Container()
-            c.add(gui.Label(str(e)), 8, 8)
-            d = gui.Dialog(gui.Label("Cannot play level"), c)
-            d.open()
+            self._show_error("Cannot play map", str(e))
             return
+        self.mode = "play"
         self.level = level
         self.ctrl.level = self.level
         self.game_window.use_level(self.level)
