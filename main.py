@@ -114,24 +114,58 @@ class ScoreTracker(gui.Label):
         t = lvl.turn
         self.score = (lvl.score, t[0] + 1, t[1] + 1, lvl.number_of_clones)
 
+class TileIcon(gui.Widget):
+
+    def __init__(self, image, **kwords):
+        self.surface = image
+        kwords.setdefault("x", 1)
+        kwords.setdefault("y", 1)
+        kwords.setdefault("width", image.get_rect().w + 2)
+        kwords.setdefault("height", image.get_rect().h + 2)
+        super(TileIcon, self).__init__(**kwords)
+
+    def paint(self, s):
+        s.blit(self.surface,  (0, 0))
+
 def make_edit_ctrls(app, width, height):
     c = gui.Container(width=width, height=height)
     spacer = 8
     from_left = spacer
+    from_top = spacer
 
     new_map = gui.Button("New map")
-    c.add(new_map, from_left, spacer)
+    c.add(new_map, from_left, from_top)
     new_map.connect(gui.CLICK, app.new_lvl_d.open, None)
     new_map.rect.w, new_map.rect.h = new_map.resize()
 
     from_left += new_map.rect.w + spacer
 
     play_lvl = gui.Button("Play Level")
-    c.add(play_lvl, from_left, spacer)
+    c.add(play_lvl, from_left, from_top)
     play_lvl.connect(gui.CLICK, app.play_edit_level, None)
     play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
 
     from_left += play_lvl.rect.w + spacer
+
+    play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
+
+    from_top += play_lvl.rect.h + spacer
+    from_left = spacer
+
+    fields = [("field", "tileset", 0, 3), ("wall", "tileset", 0, 0),
+              ("gate", "gate", 0, 0), ("gate", "gate", 1, 0),
+              ("button", "button", 0, 0), ("goal", "house", 0, 0)]
+
+    group = gui.Group(name="tile", value=fields[0])
+
+    for name, sprite, x, y in fields:
+        ti = TileIcon(app.game_window.map_cache[sprite][x][y])
+        ti.rect.w, ti.rect.h = ti.resize()
+        tool = gui.Tool(group, ti, name)
+        c.add(tool, from_left, from_top)
+        tool.rect.w, tool.rect.h = tool.resize()
+        from_left += tool.rect.w + spacer
+        ti.repaint()
 
     return c
 
@@ -157,7 +191,6 @@ def make_game_ctrls(app, width, height):
     reset_lvl = gui.Button("Reset level")
     reset_lvl.connect(gui.CLICK, app.reset_level, None)
     c.add(reset_lvl, from_left, spacer)
-    reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
 
     return c
 
@@ -167,10 +200,7 @@ class Application(gui.Desktop):
         super(Application, self).__init__(**params)
         self.connect(gui.QUIT, self.quit, None)
 
-        c = gui.Container(width=640,height=480)
-        spacer = 8
-        from_top = 0
-        from_left = spacer
+        self.widget = gui.Container(width=640,height=480)
 
         self._mode = "play"
         self.fcounter = 0
@@ -178,12 +208,21 @@ class Application(gui.Desktop):
         self.edit_level = None
         self.level = None
         self.auto_play = None
-        self.game_window = game_window = GameWindow()
+        self.game_window = GameWindow()
         self.ctrl = PlayKeyController(view=self.game_window)
         self.open_lvl_d = OpenLevelDialog()
         self.new_lvl_d = NewLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
         self.new_lvl_d.connect(gui.CHANGE, self.new_map, None)
+
+    def init(self, *args, **kwords):
+        super(Application, self).init(*args, **kwords)
+
+        c = self.widget
+        game_window = self.game_window
+        spacer = 8
+        from_top = 0
+        from_left = spacer
 
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
@@ -240,7 +279,8 @@ class Application(gui.Desktop):
         c.add(w, 0, from_top)
         w.rect.w, w.rect.h = w.resize()
 
-        self.widget = c
+        self.resize()
+        self.repaint()
 
     @property
     def mode(self):

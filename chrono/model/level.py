@@ -765,8 +765,7 @@ class EditableLevel(BaseLevel):
         fields = {
         'field': functools.partial(Field, ' '),
         'crate': functools.partial(Field, ' '),
-        'gate-open': functools.partial(Gate, '_'),
-        'gate-closed': functools.partial(Gate, '-'),
+        'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),
         'start-location': functools.partial(StartLocation, 'S'),
         'goal-location': functools.partial(GoalLocation, 'G'),
