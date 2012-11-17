@@ -251,6 +251,7 @@ class Application(gui.Desktop):
 
         self.ctrl = self.play_ctrl
         self.mctrl = self.play_mctrl
+        self.mctrl.active = True
         self.open_lvl_d = OpenLevelDialog()
         self.new_lvl_d = NewLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
@@ -304,6 +305,7 @@ class Application(gui.Desktop):
 
         def switch_mode():
             self._mode = self.group.value
+            self.mctrl.active = False
             if self.mode == "play":
                 w.widget = play_ctrls
                 self.mctrl = self.play_mctrl
@@ -316,6 +318,7 @@ class Application(gui.Desktop):
                 if self.edit_level:
                     self.game_window.use_level(self.edit_level)
 
+            self.mctrl.active = True
             play_mode_label.focus()
 
         self.group.connect(gui.CHANGE, switch_mode)

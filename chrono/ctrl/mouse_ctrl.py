@@ -34,10 +34,36 @@ from chrono.view.sprites import gpos2lpos, MAP_TILE_WIDTH, MAP_TILE_HEIGHT
 
 class MouseController(object):
     def __init__(self, game_window, level=None):
+        self._active = False
         self.game_window = game_window
-        self.level = level
         self.last_pos = Position(0, 0)
         self.cur_pos = Position(0, 0)
+        self.mouse_hilight = None
+        self.mouse_rel_hilight = []
+        self.level = level
+
+    @property
+    def level(self):
+        return self._level
+
+    @level.setter
+    def level(self, lvl):
+        self._level = lvl
+        if lvl and self.active and not self.mouse_hilight:
+            self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, nval):
+        self._active = nval
+        if nval and self.level:
+            self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
+            self._hilight_related(self.cur_pos)
+        elif not nval and self.mouse_hilight:
+            self.remove_all_hilights()
 
     def get_field_position(self, gpos):
         """Determine the logical position at a given graphical position
@@ -69,19 +95,33 @@ class MouseController(object):
         if self.cur_pos != npos:
             self.last_pos = self.cur_pos
             self.cur_pos = npos
-            if update_hilight:
-                self.game_window.mhilight.position = npos
+            if update_hilight and self.mouse_hilight:
+                self.mouse_hilight.pos = npos
+                self.game_window.repaint()
             return npos
         return None
 
-    def _update_hilight(self, npos):
-        self.game_window._handle_mouse(npos)
+    def _hilight_related(self, lpos):
+        field = self.level.get_field(lpos)
+        other = None
+        if field.is_activation_source:
+            other = field.iter_activation_targets()
+        if field.is_activation_target:
+            other = field.iter_activation_sources()
+        if self.mouse_rel_hilight:
+            for old in self.mouse_rel_hilight:
+                old.kill()
+            self.mouse_rel_hilight = []
+        if other:
+            for o in other:
+                s = self.game_window.make_hilight(o.position)
+                self.mouse_rel_hilight.append(s)
 
     def event(self, e):
         if e.type == pg.MOUSEMOTION:
             npos = self.new_position(e.pos)
             if npos:
-                self._update_hilight(npos)
+                self._hilight_related(npos)
                 return True
             return False
 

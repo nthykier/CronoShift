@@ -70,6 +70,7 @@ class GameWindow(gui.Widget):
         self.surface = pygame.Surface((450, 300))
         self.surface.fill((0, 0, 0))
         self.shadows = pygame.sprite.RenderUpdates()
+        self.hilights = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
         self.overlays_sprites = {}
@@ -81,7 +82,6 @@ class GameWindow(gui.Widget):
         self._clones = {}
         self._gates = {}
         self._crates = {}
-        self.mhilight = None
         self.ohilights = []
         self.game_over = False
         self.active_animation = False
@@ -115,14 +115,6 @@ class GameWindow(gui.Widget):
         self.level = level
         level.add_event_listener(self._gevent_queue.put)
         self._new_map()
-
-        mhilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-        mhilight.fill(pygame.Color("red"))
-        mhilight.set_alpha(0x80)
-        s = Sprite((0,0), ((mhilight,),), c_depth=-1)
-        self.sprites.add(s)
-        self.mhilight = s
-
 
     def _new_map(self, *args):
         self.shadows = pygame.sprite.RenderUpdates()
@@ -312,31 +304,39 @@ class GameWindow(gui.Widget):
         self.repaint()
         print "Your score is: %d" % self.level.score
 
-    def _handle_mouse(self, lpos):
-        if not self.mhilight or lpos == self.mhilight.pos:
-            return
+    def make_hilight(self, lpos, color="yellow"):
+        hilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
+        hilight.fill(pygame.Color(color))
+        hilight.set_alpha(0x80)
+        s = Sprite(lpos, ((hilight,),))
+        self.hilights.add(s)
+        return s
+
+    def _remove_all_hilights(self):
+        self.mouse_hilight.kill()
+        if self.mouse_rel_hilight:
+            for o in self.mouse_rel_hilight:
+                o.kill()
+            self.mouse_rel_hilight = []
+
+    def _hilight_related(self, lpos):
         if (lpos[0] < self.level.width and
                lpos[1] < self.level.height):
-            self.mhilight.pos = lpos
             field = self.level.get_field(lpos)
             other = None
             if field.is_activation_source:
                 other = field.iter_activation_targets()
             if field.is_activation_target:
                 other = field.iter_activation_sources()
-            if self.ohilights:
-                for old in self.ohilights:
+            if self.mouse_rel_hilight:
+                for old in self.mouse_rel_hilight:
                     old.kill()
-                self.ohilights = []
+                self.mouse_rel_hilight = []
             if other:
                 for o in other:
-                    hilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-                    hilight.fill(pygame.Color("yellow"))
-                    hilight.set_alpha(0x80)
-                    s = Sprite(o.position, ((hilight,),), c_depth=-1)
+                    s = self.game_window.make_hilight(o.position, color="yellow")
                     self.sprites.add(s)
-                    self.ohilights.append(s)
-            self.repaint()
+                    self.mouse_rel_hilight.append(s)
 
 
     def paint(self, s):
@@ -352,6 +352,7 @@ class GameWindow(gui.Widget):
         # Don't clear shadows and overlays, only sprites.
         self.sprites.clear(s, self.surface)
         self.animated_background.clear(s, self.surface)
+        self.hilights.clear(s, self.surface)
 
         self.sprites.update()
         self.animated_background.update()
@@ -369,7 +370,10 @@ class GameWindow(gui.Widget):
         # if no actor approcated it (eg. via buttons)
         dirty = self.animated_background.draw(s)
 
-        # Draw actors after the background so they always appear "on top"
+        # Draw hilights on top of backgrounds...
+        dirty.extend(self.hilights.draw(s))
+
+        # Draw actors (and crates) on top of everything
         dirty.extend(self.sprites.draw(s))
 
 
