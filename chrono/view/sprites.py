@@ -202,8 +202,59 @@ class PlayerSprite(MoveableSprite):
         self.direction = Direction.EAST
         self.image = self.frames[self.direction][0]
 
+def update_background(tiles, background, overlays, level, field):
+    pos = field.position
+    def wall(pos):
+        if 0 <= pos.x < level.width and 0 <= pos.y < level.height:
+            return level.get_field(pos).is_wall
+        return True
+
+    wall_dir2 = lambda pos, d: wall(pos.dir_pos(d))
+    wall_dir = functools.partial(wall_dir2, pos)
+
+    if wall(pos):
+        tile = 3, 3
+        # Draw different tiles depending on neighbourhood
+        if not wall_dir(Direction.SOUTH):
+            if wall_dir(Direction.WEST) and wall_dir(Direction.EAST):
+                tile = 1, 2
+            elif wall_dir(Direction.EAST):
+                tile = 0, 2
+            elif wall_dir(Direction.WEST):
+                tile = 2, 2
+            else:
+                tile = 3, 2
+        else:
+            south = pos.dir_pos(Direction.SOUTH)
+            if wall_dir2(south, Direction.EAST) and wall_dir2(south, Direction.WEST):
+                # Walls at SW, S and SE
+                tile = 1, 1
+            elif wall_dir2(south, Direction.EAST):
+                # Walls at S and SE
+                tile = 0, 1
+            elif wall_dir2(south, Direction.WEST):
+                # Walls at SW and S
+                tile = 2, 1
+            else:
+                tile = 3, 1
+        # Add overlays if the wall may be obscuring something
+        if not wall_dir(Direction.NORTH):
+            if wall_dir(Direction.EAST) and wall_dir(Direction.WEST):
+                over = 1, 0
+            elif wall_dir(Direction.EAST):
+                over = 0, 0
+            elif wall_dir(Direction.WEST):
+                over = 2, 0
+            else:
+                over = 3, 0
+            overlays[pos] = tiles[over[0]][over[1]]
+    else:
+        tile = 0, 3
+    tile_image = tiles[tile[0]][tile[1]]
+    background.blit(tile_image,
+                    (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
+
 def make_background(level, tileset=None, map_cache=None):
-    marked = {}
     if tileset is None:
         tileset = "tileset" # default is literally "tileset"
     if map_cache is None:
@@ -213,47 +264,9 @@ def make_background(level, tileset=None, map_cache=None):
     image = pygame.Surface((level.width*MAP_TILE_WIDTH,
                             level.height*MAP_TILE_HEIGHT))
     overlays = {}
-    wall = lambda p: level.get_field(pos).symbol == '+'
-    wall_dir2 = lambda pos, d: wall(pos.dir_pos(d))
+    ub = functools.partial(update_background, tiles, image, overlays, level)
+
     for field in level.iter_fields():
-        pos = field.position
-        wall_dir = functools.partial(wall_dir2, pos)
-        if wall(pos):
-            # Draw different tiles depending on neighbourhood
-            if not wall_dir(Direction.SOUTH):
-                if wall_dir(Direction.WEST) and wall_dir(Direction.EAST):
-                    tile = 1, 2
-                elif wall_dir(Direction.EAST):
-                    tile = 0, 2
-                elif wall_dir(Direction.WEST):
-                    tile = 2, 2
-                else:
-                    tile = 3, 2
-            else:
-                if (wall(Position(pos.x + 1, pos.y + 1)) and
-                        wall(Position(pos.x - 1, pos.y + 1))):
-                    tile = 1, 1
-                elif wall(Position(pos.x + 1, pos.y + 1)):
-                    tile = 0, 1
-                elif wall(Position(pos.x - 1, pos.y + 1)):
-                    tile = 2, 1
-                else:
-                    tile = 3, 1
-                # Add overlays if the wall may be obscuring something
-            if not wall_dir(Direction.NORTH):
-                if wall_dir(Direction.EAST) and wall_dir(Direction.WEST):
-                    over = 1, 0
-                elif wall_dir(Direction.EAST):
-                    over = 0, 0
-                elif wall_dir(Direcion.WEST):
-                    over = 2, 0
-                else:
-                    over = 3, 0
-                overlays[pos] = tiles[over[0]][over[1]]
-        else:
-            tile = 0, 3
-        tile_image = tiles[tile[0]][tile[1]]
-        image.blit(tile_image,
-                   (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
+        ub(field)
     return image, overlays
     
