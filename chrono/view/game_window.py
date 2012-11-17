@@ -312,32 +312,6 @@ class GameWindow(gui.Widget):
         self.hilights.add(s)
         return s
 
-    def _remove_all_hilights(self):
-        self.mouse_hilight.kill()
-        if self.mouse_rel_hilight:
-            for o in self.mouse_rel_hilight:
-                o.kill()
-            self.mouse_rel_hilight = []
-
-    def _hilight_related(self, lpos):
-        if (lpos[0] < self.level.width and
-               lpos[1] < self.level.height):
-            field = self.level.get_field(lpos)
-            other = None
-            if field.is_activation_source:
-                other = field.iter_activation_targets()
-            if field.is_activation_target:
-                other = field.iter_activation_sources()
-            if self.mouse_rel_hilight:
-                for old in self.mouse_rel_hilight:
-                    old.kill()
-                self.mouse_rel_hilight = []
-            if other:
-                for o in other:
-                    s = self.game_window.make_hilight(o.position, color="yellow")
-                    self.sprites.add(s)
-                    self.mouse_rel_hilight.append(s)
-
 
     def paint(self, s):
         # Draw the whole screen initially
