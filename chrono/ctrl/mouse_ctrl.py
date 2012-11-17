@@ -63,7 +63,14 @@ class MouseController(object):
             self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
             self._hilight_related(self.cur_pos)
         elif not nval and self.mouse_hilight:
-            self.remove_all_hilights()
+            self._remove_all_hilights()
+
+    def _remove_all_hilights(self):
+        self.mouse_hilight.kill()
+        if self.mouse_rel_hilight:
+            for o in self.mouse_rel_hilight:
+                o.kill()
+            self.mouse_rel_hilight = []
 
     def get_field_position(self, gpos):
         """Determine the logical position at a given graphical position
@@ -150,7 +157,7 @@ class EditMouseController(MouseController):
             if npos:
                 pressed = pygame.mouse.get_pressed()
                 if self.brush_mode == "none":
-                    self._update_hilight(npos)
+                    self._hilight_related(npos)
                 elif pressed[0]:
                     self._paint(npos)
                 return True
