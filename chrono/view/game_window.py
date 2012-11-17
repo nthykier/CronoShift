@@ -68,7 +68,7 @@ class GameWindow(gui.Widget):
         self.overlays = pygame.sprite.RenderUpdates()
         self._tileset = "tileset"
         self._sprite_cache = TileCache(32, 32)
-        self._map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
+        self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
         self._clones = {}
         self._gates = {}
         self._crates = {}
@@ -125,7 +125,7 @@ class GameWindow(gui.Widget):
 
         # Render the level map
         background, overlays = make_background(level,
-                                               map_cache=self._map_cache,
+                                               map_cache=self.map_cache,
                                                tileset=self._tileset)
         self.surface.fill((0, 0, 0))
         self.surface.blit(background, (0,0))
@@ -142,12 +142,12 @@ class GameWindow(gui.Widget):
                 self._crates[crate] = c_sprite
                 self.sprites.add(c_sprite)
             if field.symbol == '-' or field.symbol == '_':
-                sprite = Sprite(field.position, self._map_cache['gate'], c_depth=-2)
+                sprite = Sprite(field.position, self.map_cache['gate'], c_depth=-2)
                 self._gates[field.position] = sprite
                 if field.symbol == '-':
                     sprite.state = GATE_CLOSED
             if field.symbol == 'b':
-                sprite = Sprite(field.position, self._map_cache['button'], c_depth=-2)
+                sprite = Sprite(field.position, self.map_cache['button'], c_depth=-2)
             if sprite:
                 self.sprites.add(sprite)
 
