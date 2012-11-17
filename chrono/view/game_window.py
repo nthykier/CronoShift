@@ -66,6 +66,7 @@ class GameWindow(gui.Widget):
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
+        self.animated_background = pygame.sprite.RenderUpdates()
         self._tileset = "tileset"
         self._sprite_cache = TileCache(32, 32)
         self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
@@ -92,7 +93,7 @@ class GameWindow(gui.Widget):
             'game-complete': self._game_complete,
             'end-of-turn': self._end_of_turn,
             'goal-obtained': lambda *x: self.goal.kill(),
-            'goal-lost': lambda *x: self.sprites.add(self.goal),
+            'goal-lost': lambda *x: self.animated_background.add(self.goal),
             'jump-moveable': self._jump_moveable,
 
             # edit
@@ -118,6 +119,7 @@ class GameWindow(gui.Widget):
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
+        self.animated_background = pygame.sprite.RenderUpdates()
         self._clones = {}
         self._gates = {}
 
@@ -135,21 +137,21 @@ class GameWindow(gui.Widget):
             #   - if its "on top of" a field 32x32 usually looks best.
             #   - if it is (like) a field, 24x16 is usually better
             # - use sprite_cache and map_cache accordingly.
-            sprite = None
+            ani_bg = None
             crate = level.get_crate_at(field.position)
             if crate:
                 c_sprite = MoveableSprite(field.position, self._sprite_cache['crate'], c_depth=1)
                 self._crates[crate] = c_sprite
                 self.sprites.add(c_sprite)
             if field.symbol == '-' or field.symbol == '_':
-                sprite = Sprite(field.position, self.map_cache['gate'], c_depth=-2)
-                self._gates[field.position] = sprite
+                ani_bg = Sprite(field.position, self.map_cache['gate'])
+                self._gates[field.position] = ani_bg
                 if field.symbol == '-':
-                    sprite.state = GATE_CLOSED
+                    ani_bg.state = GATE_CLOSED
             if field.symbol == 'b':
-                sprite = Sprite(field.position, self.map_cache['button'], c_depth=-2)
-            if sprite:
-                self.sprites.add(sprite)
+                ani_bg = Sprite(field.position, self.map_cache['button'])
+            if ani_bg:
+                self.animated_background.add(ani_bg)
 
         if level.start_location:
             # Highlight the start location
@@ -161,14 +163,15 @@ class GameWindow(gui.Widget):
         if level.goal_location:
             sprite = Sprite(level.goal_location.position, self._sprite_cache['house'])
             self.goal = sprite
-            self.sprites.add(sprite)
+            self.animated_background.add(sprite)
 
 
         # Add the overlays for the level map
         for (x, y), image in overlays.iteritems():
             overlay = pygame.sprite.Sprite(self.overlays)
-            overlay.image = image
-            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,(y-1) * MAP_TILE_HEIGHT))
+            overlay.image = image.subsurface(0, 0, MAP_TILE_WIDTH, MAP_TILE_HEIGHT/2)
+            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,
+                                                          y * MAP_TILE_HEIGHT - MAP_TILE_HEIGHT/2))
 
         try:
             iter_clones = level.iter_clones
@@ -314,8 +317,10 @@ class GameWindow(gui.Widget):
 
         # Don't clear shadows and overlays, only sprites.
         self.sprites.clear(s, self.surface)
+        self.animated_background.clear(s, self.surface)
 
         self.sprites.update()
+        self.animated_background.update()
         has_animation = lambda x: self._clones[x][0].animation is not None
         self.active_animation = any(itertools.ifilter(has_animation,
                                                       self._clones))
@@ -324,12 +329,18 @@ class GameWindow(gui.Widget):
         # Don't add shadows to dirty rectangles, as they already fit inside
         # sprite rectangles.
         self.shadows.draw(s)
-        dirty = self.sprites.draw(s)
+
+
+        # Draw the "animated" background (gates).  These may be dirty even
+        # if no actor approcated it (eg. via buttons)
+        dirty = self.animated_background.draw(s)
+
+        # Draw actors after the background so they always appear "on top"
+        dirty.extend(self.sprites.draw(s))
+
+
         # Don't add ovelays to dirty rectangles, only the places where
         # sprites are need to be updated, and those are already dirty.
         self.overlays.draw(s)
-        # Update the dirty areas of the screen
-        # pygame.display.update(dirty)
 
         return dirty
-
