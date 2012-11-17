@@ -82,7 +82,6 @@ class GameWindow(gui.Widget):
         self._clones = {}
         self._gates = {}
         self._crates = {}
-        self.ohilights = []
         self.game_over = False
         self.active_animation = False
         self._gevent_queue = Queue.Queue()
