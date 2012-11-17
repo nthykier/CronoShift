@@ -69,7 +69,7 @@ class KeyController(object):
                                          % self.level.turn[0])
                 diag.connect(gui.CHANGE, self._action2handler[action], action)
                 diag.open()
-                return
+                return True
 
             self._action2handler[action](action)
             return True
