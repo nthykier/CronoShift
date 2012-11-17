@@ -27,6 +27,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import pygame.locals as pg
+from pgu import gui
+
+from chrono.ctrl.diag import ConfirmDialog
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -61,6 +64,13 @@ class KeyController(object):
             return False
         action = self._controls.get(e.key, None)
         if action:
+            if action == "enter-time-machine" and self.level.turn[0] < 1:
+                diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
+                                         % self.level.turn[0])
+                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.open()
+                return
+
             self._action2handler[action](action)
             return True
         return False
