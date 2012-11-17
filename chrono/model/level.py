@@ -34,7 +34,8 @@ import re
 
 from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
-from chrono.model.field import parse_field, Position, Wall
+from chrono.model.field import (parse_field, Position, Wall, Field, Gate, Button,
+                                StartLocation, GoalLocation)
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -759,7 +760,7 @@ class EditableLevel(BaseLevel):
         self._emit_event(EditorEvent("new-map"))
 
     def perform_change(self, ctype, position, *args, **kwargs):
-        self._make_field(position, args)
+        self._make_field(position, ctype)
 
     def _make_field(self, position, field):
         fields = {
@@ -777,7 +778,7 @@ class EditableLevel(BaseLevel):
             self._emit_event(EditorEvent("remove-crate"), source=oldcrate)
 
         f = fields[field]()
-        f.set_position(position)
+        f._set_position(position)
         # FIXME handle source and targets
         self._lvl[position.x][position.y] = f
         self._emit_event(EditorEvent("replace-tile", source=f))
