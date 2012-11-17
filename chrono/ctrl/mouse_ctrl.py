@@ -93,15 +93,12 @@ class EditMouseController(MouseController):
         self.field_tool = "field"
 
     def _paint(self, lpos):
-        print "PAINT %s -- %s/%s" % (str(lpos), self.brush_mode, self.field_tool)
         if self.brush_mode == "field-brush":
             self.level.perform_change(self.field_tool, lpos)
 
     def event(self, e):
         if e.type == pg.MOUSEBUTTONDOWN:
             lpos = self.get_field_position(e.pos)
-            print "MD %s -- %s/%s" % (str(lpos), self.brush_mode, self.field_tool)
-
             if lpos is None:
                 return False
             if self.brush_mode == "none":

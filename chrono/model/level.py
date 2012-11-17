@@ -765,6 +765,7 @@ class EditableLevel(BaseLevel):
     def _make_field(self, position, field):
         fields = {
         'field': functools.partial(Field, ' '),
+        'wall': functools.partial(Wall, '+'),
         'crate': functools.partial(Field, ' '),
         'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),

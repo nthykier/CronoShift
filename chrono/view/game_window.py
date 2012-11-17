@@ -54,6 +54,11 @@ from chrono.view.sprites import (
     )
 from chrono.view.tile_cache import TileCache
 
+def _kill_sprite(container, key):
+    if key in container:
+        container[key].kill()
+        del container[key]
+
 class GameWindow(gui.Widget):
     """The main game object."""
 
@@ -67,7 +72,9 @@ class GameWindow(gui.Widget):
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
+        self.overlays_sprites = {}
         self.animated_background = pygame.sprite.RenderUpdates()
+        self.animated_background_sprites = {}
         self._tileset = "tileset"
         self._sprite_cache = TileCache(32, 32)
         self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
@@ -122,6 +129,8 @@ class GameWindow(gui.Widget):
         self.sprites = SortedUpdates()
         self.overlays = pygame.sprite.RenderUpdates()
         self.animated_background = pygame.sprite.RenderUpdates()
+        self.overlays_sprites = {}
+        self.animated_background_sprites = {}
         self._clones = {}
         self._gates = {}
 
@@ -152,6 +161,7 @@ class GameWindow(gui.Widget):
                     ani_bg.state = GATE_CLOSED
             if field.symbol == 'b':
                 ani_bg = Sprite(field.position, self.map_cache['button'])
+                self.animated_background_sprites[field.position] = ani_bg
             if ani_bg:
                 self.animated_background.add(ani_bg)
 
@@ -168,12 +178,7 @@ class GameWindow(gui.Widget):
             self.animated_background.add(sprite)
 
 
-        # Add the overlays for the level map
-        for (x, y), image in overlays.iteritems():
-            overlay = pygame.sprite.Sprite(self.overlays)
-            overlay.image = image.subsurface(0, 0, MAP_TILE_WIDTH, MAP_TILE_HEIGHT/2)
-            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,
-                                                          y * MAP_TILE_HEIGHT - MAP_TILE_HEIGHT/2))
+        self._add_overlay(overlays)
 
         try:
             iter_clones = level.iter_clones
@@ -187,14 +192,34 @@ class GameWindow(gui.Widget):
 
         self.repaint()
 
+    def _add_overlay(self, overlays):
+        # Add the overlays for the level map
+        for pos, image in overlays.iteritems():
+            x, y = pos
+            overlay = pygame.sprite.Sprite(self.overlays)
+            overlay.image = image.subsurface(0, 0, MAP_TILE_WIDTH, MAP_TILE_HEIGHT/2)
+            overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,
+                                                          y * MAP_TILE_HEIGHT - MAP_TILE_HEIGHT/2))
+            self.overlays_sprites[Position(x,y)] = overlay
+
     def _replace_tile(self, evt):
         f = evt.source
+
+        # Kill the old animations on this field (if any)
+        _kill_sprite(self._gates, f.position)
+        _kill_sprite(self.animated_background_sprites, f.position)
+        _kill_sprite(self.overlays, f.position)
+
+        # Kill "nearby" overlays - they should only be "south", but mah
+        for d in (Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST):
+            dpos = f.position.dir_pos(d)
+            _kill_sprite(self.overlays, dpos)
+
         # FIXME: remove old overlay
-        update_background(self.map_cache[self._tileset], self.surface, {}, self.level, f)
+        overlays = update_background(self.map_cache[self._tileset], self.surface, self.level, f, fixup=True)
+        self._add_overlay(overlays)
         ani_bg = None
-        if f.position in self._gates:
-            self._gates[f.position].kill()
-            del self._gates[f.position]
+
         if f.symbol == '-' or f.symbol == '_':
             ani_bg = Sprite(f.position, self.map_cache['gate'])
             self._gates[f.position] = ani_bg
@@ -318,7 +343,6 @@ class GameWindow(gui.Widget):
         # Draw the whole screen initially
         s.blit(self.surface, (0, 0))
         if self.level:
-            self.overlays.draw(s)
             self.update(s)
 
     def update(self, s):

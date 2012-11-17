@@ -202,8 +202,10 @@ class PlayerSprite(MoveableSprite):
         self.direction = Direction.EAST
         self.image = self.frames[self.direction][0]
 
-def update_background(tiles, background, overlays, level, field):
+def update_background(tiles, background, level, field, fixup=False, overlays=None):
     pos = field.position
+    if overlays is None:
+        overlays = {}
     def wall(pos):
         if 0 <= pos.x < level.width and 0 <= pos.y < level.height:
             return level.get_field(pos).is_wall
@@ -254,6 +256,13 @@ def update_background(tiles, background, overlays, level, field):
     background.blit(tile_image,
                     (field.x * MAP_TILE_WIDTH, field.y * MAP_TILE_HEIGHT))
 
+    if fixup:
+        for d in (Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST):
+            ff = level.get_field(field.position.dir_pos(d))
+            update_background(tiles, background, level, ff, fixup=False, overlays=overlays)
+
+    return overlays
+
 def make_background(level, tileset=None, map_cache=None):
     if tileset is None:
         tileset = "tileset" # default is literally "tileset"
@@ -264,7 +273,7 @@ def make_background(level, tileset=None, map_cache=None):
     image = pygame.Surface((level.width*MAP_TILE_WIDTH,
                             level.height*MAP_TILE_HEIGHT))
     overlays = {}
-    ub = functools.partial(update_background, tiles, image, overlays, level)
+    ub = functools.partial(update_background, tiles, image, level, overlays=overlays)
 
     for field in level.iter_fields():
         ub(field)
