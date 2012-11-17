@@ -49,7 +49,8 @@ from chrono.model.field import Position
 from chrono.view.sprites import (
         make_background, SortedUpdates, Sprite, PlayerSprite,
         Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
-        GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos
+        GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos,
+        update_background
     )
 from chrono.view.tile_cache import TileCache
 
@@ -98,6 +99,7 @@ class GameWindow(gui.Widget):
 
             # edit
             'new-map': self._new_map,
+            'replace-tile': self._replace_tile,
         }
 
     def use_level(self, level):
@@ -185,16 +187,24 @@ class GameWindow(gui.Widget):
 
         self.repaint()
 
-    def event(self, e):
-        if not self.level:
-            return
-        if e.type == pg.MOUSEMOTION:
-            corr = (self.rect.x - MAP_TILE_WIDTH/2,
-                    self.rect.y - MAP_TILE_HEIGHT)
-            mpos = pygame.mouse.get_pos()
-            lpos = gpos2lpos(mpos, c=corr)
-            self._handle_mouse(lpos)
-            return True
+    def _replace_tile(self, evt):
+        f = evt.source
+        # FIXME: remove old overlay
+        update_background(self.map_cache[self._tileset], self.surface, {}, self.level, f)
+        ani_bg = None
+        if f.position in self._gates:
+            self._gates[f.position].kill()
+            del self._gates[f.position]
+        if f.symbol == '-' or f.symbol == '_':
+            ani_bg = Sprite(f.position, self.map_cache['gate'])
+            self._gates[f.position] = ani_bg
+            if f.symbol == '-':
+                ani_bg.state = GATE_CLOSED
+        if f.symbol == 'b':
+            ani_bg = Sprite(f.position, self.map_cache['button'])
+        if ani_bg:
+            self.animated_background.add(ani_bg)
+        self.repaint()
 
     def _move(self, d, event):
         """Start walking in specified direction."""

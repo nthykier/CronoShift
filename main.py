@@ -17,6 +17,7 @@ from pgu import gui
 
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
+from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
 from chrono.view.game_window import GameWindow
 
 class OpenLevelDialog(gui.Dialog):
@@ -147,25 +148,32 @@ def make_edit_ctrls(app, width, height):
 
     from_left += play_lvl.rect.w + spacer
 
-    play_lvl.rect.w, play_lvl.rect.h = play_lvl.resize()
+    write_lvl = gui.Button("Write Level")
+    c.add(write_lvl, from_left, from_top)
+    write_lvl.connect(gui.CLICK, app.write_level, None)
+    write_lvl.rect.w, write_lvl.rect.h = write_lvl.resize()
 
-    from_top += play_lvl.rect.h + spacer
+    from_top += write_lvl.rect.h + spacer
+
     from_left = spacer
 
-    fields = [("field", "tileset", 0, 3), ("wall", "tileset", 0, 0),
-              ("gate", "gate", 0, 0), ("gate", "gate", 1, 0),
-              ("button", "button", 0, 0), ("goal", "house", 0, 0)]
+    fields = [("none", None, 0, 0), ("field", "tileset", 0, 3),
+              ("wall", "tileset", 0, 0), ("gate", "gate", 0, 0),
+              ("button", "button", 0, 0)]
 
-    group = gui.Group(name="tile", value=fields[0])
+    group = gui.Group(name="tile", value=fields[0][0])
 
     for name, sprite, x, y in fields:
-        ti = TileIcon(app.game_window.map_cache[sprite][x][y])
-        ti.rect.w, ti.rect.h = ti.resize()
-        tool = gui.Tool(group, ti, name)
+        if sprite:
+            w = TileIcon(app.game_window.map_cache[sprite][x][y])
+        else:
+            w = gui.Label(name)
+        w.rect.w, w.rect.h = w.resize()
+        tool = gui.Tool(group, w, name)
+        tool.connect(gui.CLICK, app.chg_edit_mode, name)
         c.add(tool, from_left, from_top)
         tool.rect.w, tool.rect.h = tool.resize()
         from_left += tool.rect.w + spacer
-        ti.repaint()
 
     return c
 
@@ -209,7 +217,13 @@ class Application(gui.Desktop):
         self.level = None
         self.auto_play = None
         self.game_window = GameWindow()
-        self.ctrl = PlayKeyController(view=self.game_window)
+        self.play_ctrl = PlayKeyController(view=self.game_window)
+        self.play_mctrl = MouseController(self.game_window)
+        self.edit_ctrl = None
+        self.edit_mctrl = EditMouseController(self.game_window)
+
+        self.ctrl = self.play_ctrl
+        self.mctrl = self.play_mctrl
         self.open_lvl_d = OpenLevelDialog()
         self.new_lvl_d = NewLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
@@ -265,9 +279,12 @@ class Application(gui.Desktop):
             self._mode = self.group.value
             if self.mode == "play":
                 w.widget = play_ctrls
+                self.mctrl = self.play_mctrl
+                self.ctrl = self.play_ctrl
                 if self.level:
                     self.game_window.use_level(self.level)
             else:
+                self.mctrl = self.edit_mctrl
                 w.widget = edit_ctrls
                 if self.edit_level:
                     self.game_window.use_level(self.edit_level)
@@ -315,7 +332,9 @@ class Application(gui.Desktop):
 
         self.edit_level = edit_level
         self.level = Level()
-        self.ctrl.level = self.level
+        self.play_ctrl.level = self.level
+        self.play_mctrl.level = self.level
+        self.edit_mctrl.level = edit_level
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
         lvl = self.edit_level
@@ -352,11 +371,27 @@ class Application(gui.Desktop):
         try:
             edit_level.new_map(int(res["width"].value), int(res["height"].value))
         except (TypeError, ValueError) as e:
-            self._show_error("Cannot crate map", str(e))
+            self._show_error("Cannot create map", str(e))
             return
 
         self.edit_level = edit_level
+        self.edit_mctrl.level = edit_level
         self.game_window.use_level(edit_level)
+
+    def chg_edit_mode(self, mode):
+        if mode != "none":
+            self.edit_mctrl.brush_mode = "field-brush"
+            self.edit_mctrl.field_tool = mode
+        else:
+            self.edit_mctrl.brush_mode = "none"
+
+    def write_level(self, *args):
+        if not self.edit_level:
+            return
+        try:
+            self.edit_level.print_lvl("<stdout>", sys.stdout)
+        except IOError as e:
+            self._show_error("Cannot save map", str(e))
 
     def play_edit_level(self, *args):
         if not self.edit_level:
@@ -376,10 +411,10 @@ class Application(gui.Desktop):
         self.level.start()
 
     def event(self, evt):
-        if evt.type == pygame.KEYDOWN and self.ctrl.event(evt):
+        if self.mctrl.event(evt) or self.ctrl.event(evt):
             self.game_window.focus()
-            return
-        super(Application, self).event(evt)
+            return True
+        return super(Application, self).event(evt)
 
     def loop(self):
         self.game_window.process_game_events()

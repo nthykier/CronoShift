@@ -772,6 +772,12 @@ class EditableLevel(BaseLevel):
         'goal-location': functools.partial(GoalLocation, 'G'),
         }
 
+        if (not (0 < position.x < self.width - 1) or
+                not (0 < position.y < self.height - 1)):
+            # Ignore attempts to change the "outer" wall and anything
+            # outside the level.
+            return
+
         oldcrate = self.get_crate_at(position)
         if oldcrate:
             del self._crates[position]
