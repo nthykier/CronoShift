@@ -392,8 +392,6 @@ class Level(BaseLevel):
 
 
     def perform_move(self, action):
-        if self._time_paradox:
-            return
         if self._do_action(action):
             self._do_end_of_turn()
 
@@ -417,6 +415,9 @@ class Level(BaseLevel):
         return act2f[action](action)
 
     def _move(self, direction, action):
+        if self._time_paradox:
+            return False
+
         if direction != Direction.NO_ACT and not self._player_active:
             return False # ignore movement if the player is not active
         if self._player_active:
@@ -424,6 +425,9 @@ class Level(BaseLevel):
         return True
 
     def _enter_time_machine(self, action):
+        if self._time_paradox:
+            return False
+
         if self._player.position != self._start_location.position:
             # Ignore unless the player is on the start position
             return False
@@ -544,6 +548,7 @@ class Level(BaseLevel):
                 self._emit_event(GameEvent('add-player-clone', source=self._player))
 
     def _reset_action(self, action):
+        self._time_paradox = False
         self._reset_movables()
         self._turn_no = 0
         if action == "reset-time-jump":
