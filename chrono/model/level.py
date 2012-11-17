@@ -600,14 +600,6 @@ class Level(BaseLevel):
                 c.position = self.start_location.position
                 self._emit_event(GameEvent("jump-moveable", source=c))
 
-    def show_field(self, position):
-        x, y = position
-        fstr = "%" + str(x+1) + "s"
-        line = "".join(row[y].symbol for row in self._lvl)
-        print fstr % "v"
-        print line
-        print fstr % "^"
-
     def check_lvl(self, verbose=False, require_solution=False):
         if verbose:
             print "Checking %s ..." % self.name
@@ -616,14 +608,10 @@ class Level(BaseLevel):
         for field in self.iter_fields():
             if field.is_activation_source and \
                     first(field.iter_activation_targets()) is None:
-                if verbose:
-                    self.show_field(field.position)
                 print "W: lvl %s: activator (%s) at %s has no targets" \
                       % (self.name, field.symbol, str(field.position))
             if field.is_activation_target and \
                     first(field.iter_activation_sources()) is None:
-                if verbose:
-                    self.show_field(field.position)
                 print "W: lvl %s: activable (%s) at %s has no sources" \
                       % (self.name, field.symbol, str(field.position))
         if require_solution and solution is None:
