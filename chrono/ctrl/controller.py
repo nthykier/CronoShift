@@ -57,6 +57,8 @@ class KeyController(object):
     def event(self, e):
         if not self.level:
             return False
+        if e.type != pg.KEYDOWN:
+            return False
         action = self._controls.get(e.key, None)
         if action:
             self._action2handler[action](action)
@@ -91,10 +93,12 @@ class PlayKeyController(KeyController):
         }
 
     def event(self, e):
-       if self.view.active_animation:
+        if e.type != pg.KEYDOWN:
+            return False
+        if self.view.active_animation:
             # Let the current animation finish first...
             return e.key in self._controls
-       return super(PlayKeyController, self).event(e)
+        return super(PlayKeyController, self).event(e)
 
 
     def _perform_move(self, move):
