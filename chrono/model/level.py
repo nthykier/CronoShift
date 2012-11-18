@@ -762,8 +762,6 @@ class EditableLevel(BaseLevel):
         if width < 3 or height < 3:
             raise ValueError("Width and height must both be at least 3")
 
-        self._name = "untitled"
-        self._metadata = {}
         crates = {}
         lvl = []
         def _new_field(npos, t):
@@ -791,6 +789,10 @@ class EditableLevel(BaseLevel):
             # have been properly moved.
             self._start_location = None
             self._goal_location = None
+            # Keep old metadata on resize
+            self._metadata = {}
+            # Keep old name on resize
+            self._name = "untitled"
 
         self._width = width
         self._height = height
