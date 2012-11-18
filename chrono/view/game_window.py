@@ -193,6 +193,7 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, ((image,),))
         if field.symbol == 'G':
             ani_bg = Sprite(field.position, self._sprite_cache['house'])
+            self.goal = ani_bg
         if ani_bg:
             self.animated_background.add(ani_bg)
             self.animated_background_sprites[field.position] = ani_bg

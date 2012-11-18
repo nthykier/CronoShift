@@ -820,11 +820,12 @@ class EditableLevel(BaseLevel):
             old = self.start_location
             if field == "goal":
                 old = self.goal_location
-            opos = old.position
-            nf = Field(' ')
-            nf._set_position(opos)
-            self._lvl[opos.x][opos.y] = nf
-            self._emit_event(EditorEvent("remove-special-field", source=old))
+            if old is not None:
+                opos = old.position
+                nf = Field(' ')
+                nf._set_position(opos)
+                self._lvl[opos.x][opos.y] = nf
+                self._emit_event(EditorEvent("remove-special-field", source=old))
 
         oldcrate = self.get_crate_at(position)
         if oldcrate:
