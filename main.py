@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import argparse
+import itertools
 import functools
 import os
 import pygame
@@ -230,25 +231,40 @@ def make_edit_ctrls(app, width, height):
 def make_game_ctrls(app, width, height):
     c = gui.Container(width=width, height=height)
     spacer = 8
+    from_top = spacer
     from_left = spacer
 
     play_s = gui.Button("Play Solution")
     play_s.connect(gui.CLICK, app.play_solution, None)
-    c.add(play_s, from_left, spacer)
+    c.add(play_s, from_left, from_top)
     play_s.rect.w, play_s.rect.h = play_s.resize()
 
     from_left += play_s.rect.w + spacer
 
     reset_tj = gui.Button("Reset clone")
     reset_tj.connect(gui.CLICK, app.reset_clone, None)
-    c.add(reset_tj, from_left, spacer)
+    c.add(reset_tj, from_left, from_top)
     reset_tj.rect.w, reset_tj.rect.h = reset_tj.resize()
 
     from_left += reset_tj.rect.w + spacer
 
     reset_lvl = gui.Button("Reset level")
     reset_lvl.connect(gui.CLICK, app.reset_level, None)
-    c.add(reset_lvl, from_left, spacer)
+    c.add(reset_lvl, from_left, from_top)
+    reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
+
+    from_left = spacer
+    from_top += reset_lvl.rect.h + spacer
+
+    l = gui.Label("Auto finish time-jump: ")
+    c.add(l, from_left, from_top)
+    l.rect.w, l.rect.h = l.resize()
+
+    from_left += l.rect.w + spacer
+
+    cbox = app.skip_till_time_jump
+    c.add(cbox, from_left, from_top)
+    cbox.rect.w, cbox.rect.h = cbox.resize()
 
     return c
 
@@ -290,6 +306,8 @@ class Application(gui.Desktop):
         self.edit_level = None
         self.level = None
         self.auto_play = None
+        self.skip_till_time_jump = gui.Switch(value=False)
+        self.skip_till_time_jump.connect(gui.CHANGE, self.toogle_auto_finish)
         self.game_window = GameWindow()
         self.ctrl_widget = self.widget
         self.ctrl_widget.game_window = self.game_window
@@ -310,6 +328,7 @@ class Application(gui.Desktop):
         super(Application, self).init(*args, **kwords)
 
         c = self.widget
+
         game_window = self.game_window
         spacer = 8
         from_top = 0
@@ -399,6 +418,26 @@ class Application(gui.Desktop):
         self.open_lvl_d.close()
         self.load_level(self.open_lvl_d.value['fname'].value)
 
+    def game_event(self, ge):
+        if ge.event_type != "time-jump" and ge.event_type != "enter-time-machine":
+            return
+        if not self.skip_till_time_jump.value:
+            return
+        if ge.event_type == "time-jump":
+            self.auto_play = None
+            return
+        self.fcounter = 0
+        self.auto_play = itertools.repeat("skip-turn")
+
+    def toogle_auto_finish(self, *args):
+        nvalue = self.skip_till_time_jump.value
+        if not nvalue:
+            self.auto_play = None
+        if nvalue and self.mode == "play" and not self.auto_play:
+            if self.level.turn[0] > 0 and not self.level.active_player:
+                self.fcounter = 0
+                self.auto_play = itertools.repeat("skip-turn")
+
     def load_level(self, fname):
         self.auto_play = None
         edit_level = EditableLevel()
@@ -410,6 +449,7 @@ class Application(gui.Desktop):
 
         self.edit_level = edit_level
         self.level = Level()
+        self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
         self.play_mctrl.level = self.level
         self.edit_mctrl.level = edit_level
@@ -434,6 +474,8 @@ class Application(gui.Desktop):
         if not self.level:
             return
 
+        self.skip_till_time_jump.value = False
+
         sol = self.level.get_metadata_raw("solution")
         if not sol:
             print "%s has no solution" % level.name
@@ -441,6 +483,7 @@ class Application(gui.Desktop):
         self.reset_level()
         print "Playing solution"
         self.auto_play = solution2actions(sol)
+        self.fcounter = 0
 
     def new_map(self, *args):
         self.new_lvl_d.close()
@@ -490,6 +533,7 @@ class Application(gui.Desktop):
             return
         self.mode = "play"
         self.level = level
+        self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
         self.game_window.use_level(self.level, grid=False)
         sc = functools.partial(self.score.update_score, self.level)
@@ -523,4 +567,8 @@ if __name__ == "__main__":
         app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
         if args.play_solution:
             app.connect(gui.INIT, app.play_solution)
+    if not args.play_solution:
+        def _set(): # lambda statements cannot have assignments, so...
+            app.skip_till_time_jump.value = True
+        app.connect(gui.INIT, _set)
     app.run(delay=67) # 15 fps =~ 67 ms delay
