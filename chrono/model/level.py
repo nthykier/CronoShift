@@ -743,6 +743,16 @@ class Level(BaseLevel):
 
 class EditableLevel(BaseLevel):
 
+    def load_level(self, *args, **kwords):
+        super(EditableLevel, self).load_level(*args, **kwords)
+        # Ensure self._lvl is mutable
+        self._lvl = map(list, self._lvl)
+
+    def init_from_level(self, *args, **kwords):
+        super(EditableLevel, self).init_from_level(*args, **kwords)
+        # Ensure self._lvl is mutable
+        self._lvl = map(list, self._lvl)
+
     def new_map(self, width, height):
         if width < 3 or height < 3:
             raise ValueError("Width and height must both be at least 3")
