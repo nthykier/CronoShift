@@ -459,7 +459,7 @@ class Application(gui.Desktop):
             return
         self.mode = "play"
         self.level = level
-        self.ctrl.level = self.level
+        self.play_ctrl.level = self.level
         self.game_window.use_level(self.level)
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
