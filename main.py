@@ -42,6 +42,7 @@ if 1:
 
 from pgu import gui
 
+from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
@@ -85,33 +86,54 @@ class OpenLevelDialog(gui.Dialog):
 
 class NewLevelDialog(gui.Dialog):
     def __init__(self,**params):
-        title = gui.Label("New Level")
+        title = gui.Label("New/Resize Level")
 
         t = gui.Table()
 
         self.value = gui.Form()
-#        self.input_name = gui.Input(name="name", value="untitled")
-        self.input_width = gui.Input(name="width", value=10)
-        self.input_height = gui.Input(name="height", value=10)
-
-#        t.tr()
-#        t.td(gui.Label("Name: "))
-#        t.td(self.input_name,colspan=3)
+        self.input_width = gui.Input(name="width", value="10", size=3)
+        self.input_height = gui.Input(name="height", value="10", size=3)
+        self.input_clear = gui.Switch(value=True)
+        self.value.add(self.input_clear, name="clear", value=True)
+        self.input_trans_width = gui.Input(name="trans-width", value="0", size=3)
+        self.input_trans_height = gui.Input(name="trans-height", value="0", size=3)
 
         t.tr()
-        t.td(gui.Label("Width: "))
+        t.td(gui.Label("Size: "))
         t.td(self.input_width)
-        t.td(gui.Label("Height: "))
+        t.td(gui.Label("x"))
         t.td(self.input_height)
 
         t.tr()
-        e = gui.Button("Create")
+        t.td(gui.Label("Clear map: "))
+        t.td(self.input_clear)
+
+        t.tr()
+        t.td(gui.Label("Translation: "))
+        t.td(self.input_trans_width)
+        t.td(gui.Label("x"))
+        t.td(self.input_trans_height)
+
+        t.tr()
+        t.td(gui.Label("(relative to top left corner)"))
+
+        t.tr()
+
+        crlabel = gui.Label("Create")
+        e = gui.Button(crlabel)
         e.connect(gui.CLICK,self.send,gui.CHANGE)
-        t.td(e,colspan=2)
+        def _rename():
+            if self.input_clear.value:
+                crlabel.set_text("Create")
+            else:
+                crlabel.set_text("Resize")
+
+        self.input_clear.connect(gui.CHANGE, _rename)
+        t.td(e, colspan=2)
 
         e = gui.Button("Cancel")
         e.connect(gui.CLICK,self.close,None)
-        t.td(e,colspan=2)
+        t.td(e, colspan=2)
 
         gui.Dialog.__init__(self,title,t)
 
@@ -161,7 +183,7 @@ def make_edit_ctrls(app, width, height):
     from_left = spacer
     from_top = spacer
 
-    new_map = gui.Button("New map")
+    new_map = gui.Button("New/resize map")
     c.add(new_map, from_left, from_top)
     new_map.connect(gui.CLICK, app.new_lvl_d.open, None)
     new_map.rect.w, new_map.rect.h = new_map.resize()
@@ -427,7 +449,13 @@ class Application(gui.Desktop):
         edit_level = self.edit_level or EditableLevel()
 
         try:
-            edit_level.new_map(int(res["width"].value), int(res["height"].value))
+            clear = res["clear"].value
+            trans = None
+            if not clear:
+                trans = Position(int(res["trans-width"].value),
+                                 int(res["trans-height"].value))
+            edit_level.new_map(int(res["width"].value), int(res["height"].value),
+                               translate=trans)
         except (TypeError, ValueError) as e:
             self._show_error("Cannot create map", str(e))
             return

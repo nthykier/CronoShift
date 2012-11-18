@@ -758,24 +758,44 @@ class EditableLevel(BaseLevel):
         # Ensure self._lvl is mutable
         self._lvl = map(list, self._lvl)
 
-    def new_map(self, width, height):
+    def new_map(self, width, height, translate=None):
         if width < 3 or height < 3:
             raise ValueError("Width and height must both be at least 3")
 
         self._name = "untitled"
-        self._width = width
-        self._height = height
         self._metadata = {}
-        self._start_location = None
-        self._goal_location = None
-        self._crates = {}
-        self._lvl = []
+        crates = {}
+        lvl = []
+        def _new_field(npos, t):
+            if translate is not None:
+                opos = npos - t
+                if (0 < opos.x < self.width - 1) and (0 < opos.y < self.height - 1):
+                    ofield = self.get_field(opos)
+                    ofield._set_position(npos)
+                    crate = self.get_crate_at(opos)
+                    if crate:
+                        crates[npos] = crate
+                        crate.position = npos
+                    return ofield
+            return Wall("+", position=npos)
+
         for x in range(width):
             column = []
-            self._lvl.append(column)
+            lvl.append(column)
             for y in range(height):
-                w = Wall("+", position=Position(x, y))
-                column.append(w)
+                f = _new_field(Position(x, y), translate)
+                column.append(f)
+
+        if translate is None:
+            # clear unless they are being translated.  In the latter case, they
+            # have been properly moved.
+            self._start_location = None
+            self._goal_location = None
+
+        self._width = width
+        self._height = height
+        self._crates = crates
+        self._lvl = lvl
         self._emit_event(EditorEvent("new-map"))
 
     def perform_change(self, ctype, position, *args, **kwargs):

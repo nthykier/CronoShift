@@ -130,6 +130,7 @@ class GameWindow(gui.Widget):
         self.animated_background_sprites = {}
         self._clones = {}
         self._gates = {}
+        self._crates = {}
 
         level = self.level
 
