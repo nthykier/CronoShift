@@ -64,7 +64,8 @@ class MouseController(object):
         if nval and self.level:
             self._restore_hilights()
         elif not nval and self.mouse_hilight:
-            self._remove_all_hilights()
+            self.mouse_hilight.kill()
+            self._remove_all_related_hilights()
 
     def _new_level(self, old_lvl, new_lvl):
         pass
@@ -73,8 +74,7 @@ class MouseController(object):
         self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
         self._hilight_related(self.cur_pos)
 
-    def _remove_all_hilights(self):
-        self.mouse_hilight.kill()
+    def _remove_all_related_hilights(self):
         if self.mouse_rel_hilight:
             for o in self.mouse_rel_hilight:
                 o.kill()
@@ -209,8 +209,8 @@ class EditMouseController(MouseController):
         if self.active_pos:
             self._src_hilight = self.game_window.make_hilight(self.active_pos, color="green")
 
-    def _remove_all_hilights(self):
-        super(EditMouseController, self)._remove_all_hilights()
+    def _remove_all_related_hilights(self):
+        super(EditMouseController, self)._remove_all_related_hilights()
         if self._src_hilight:
             self._src_hilight.kill()
 
@@ -218,13 +218,14 @@ class EditMouseController(MouseController):
         if self.active_pos is None or self.active_pos != lpos:
             # Click once to activate/mark
             f = self.level.get_field(lpos)
+            if self.active_pos:
+                self.active_pos = None
+                self._remove_all_related_hilights()
             if not (f.is_activation_source or f.is_activation_target):
-                if self.active_pos:
-                    self.active_pos = None
-                    self._src_hilight.kill()
                 return True
             self.active_pos = lpos
             self._src_hilight = self.game_window.make_hilight(lpos, color="green")
+            self._hilight_related(lpos)
             return True
         if self.active_pos == lpos:
             # Click twice to deactivate/unmark
