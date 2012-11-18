@@ -307,7 +307,7 @@ class Application(gui.Desktop):
         self.level = None
         self.auto_play = None
         self.skip_till_time_jump = gui.Switch(value=False)
-        self.skip_till_time_jump.connect(gui.CHANGE, self.toogle_auto_finish)
+        self.skip_till_time_jump.connect(gui.CHANGE, self.toggle_auto_finish)
         self.game_window = GameWindow()
         self.ctrl_widget = self.widget
         self.ctrl_widget.game_window = self.game_window
@@ -419,21 +419,24 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
-        if ge.event_type != "time-jump" and ge.event_type != "enter-time-machine":
+        if (ge.event_type != "time-jump" and ge.event_type != "enter-time-machine" and
+              ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
         if not self.skip_till_time_jump.value:
             return
-        if ge.event_type == "time-jump":
+        if ge.event_type != "enter-time-machine":
             self.auto_play = None
+            return
+        if self.level.active_player:
             return
         self.fcounter = 0
         self.auto_play = itertools.repeat("skip-turn")
 
-    def toogle_auto_finish(self, *args):
+    def toggle_auto_finish(self, *args):
         nvalue = self.skip_till_time_jump.value
         if not nvalue:
             self.auto_play = None
-        if nvalue and self.mode == "play" and not self.auto_play:
+        if nvalue and self.mode == "play" and not self.auto_play and self.level:
             if self.level.turn[0] > 0 and not self.level.active_player:
                 self.fcounter = 0
                 self.auto_play = itertools.repeat("skip-turn")
