@@ -229,13 +229,37 @@ def make_game_ctrls(app, width, height):
 
     return c
 
+class CTRLWidget(gui.Container):
+    """Hack to work around <...> focus/update handling"""
+
+    key_ctrl = None
+    mouse_ctrl = None
+    game_window = None
+
+    def update(self,s):
+        # Always run updates on the game window
+        self.game_window.reupdate()
+        return super(CTRLWidget, self).update(s)
+
+    def event(self, e):
+        # Arrow keys are by default used for moving focus between
+        # widgets, so give our key-handler higher priority than
+        # that...
+        if self.key_ctrl and self.key_ctrl.event(e):
+            return True
+        if super(CTRLWidget, self).event(e):
+            return True
+        if self.mouse_ctrl and self.mouse_ctrl.event(e):
+            return True
+        return False
+
 class Application(gui.Desktop):
 
     def __init__(self, **params):
         super(Application, self).__init__(**params)
         self.connect(gui.QUIT, self.quit, None)
 
-        self.widget = gui.Container(width=640,height=480)
+        self.widget = CTRLWidget(width=640,height=480)
 
         self._mode = "play"
         self.fcounter = 0
@@ -244,14 +268,16 @@ class Application(gui.Desktop):
         self.level = None
         self.auto_play = None
         self.game_window = GameWindow()
+        self.ctrl_widget = self.widget
+        self.ctrl_widget.game_window = self.game_window
         self.play_ctrl = PlayKeyController(view=self.game_window)
         self.play_mctrl = MouseController(self.game_window)
         self.edit_ctrl = None
         self.edit_mctrl = EditMouseController(self.game_window)
 
-        self.ctrl = self.play_ctrl
-        self.mctrl = self.play_mctrl
-        self.mctrl.active = True
+        self.ctrl_widget.key_ctrl = self.play_ctrl
+        self.ctrl_widget.mouse_ctrl = self.play_mctrl
+        self.ctrl_widget.mouse_ctrl.active = True
         self.open_lvl_d = OpenLevelDialog()
         self.new_lvl_d = NewLevelDialog()
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
@@ -305,21 +331,20 @@ class Application(gui.Desktop):
 
         def switch_mode():
             self._mode = self.group.value
-            self.mctrl.active = False
+            self.ctrl_widget.mouse_ctrl.active = False
             if self.mode == "play":
                 w.widget = play_ctrls
-                self.mctrl = self.play_mctrl
-                self.ctrl = self.play_ctrl
+                self.ctrl_widget.mouse_ctrl = self.play_mctrl
+                self.ctrl_widget.ctrl = self.play_ctrl
                 if self.level:
                     self.game_window.use_level(self.level)
             else:
-                self.mctrl = self.edit_mctrl
+                self.ctrl_widget.mouse_ctrl = self.edit_mctrl
                 w.widget = edit_ctrls
                 if self.edit_level:
                     self.game_window.use_level(self.edit_level)
 
-            self.mctrl.active = True
-            play_mode_label.focus()
+            self.ctrl_widget.mouse_ctrl.active = True
 
         self.group.connect(gui.CHANGE, switch_mode)
 
@@ -440,24 +465,17 @@ class Application(gui.Desktop):
         self.level.add_event_listener(sc)
         self.level.start()
 
-    def event(self, evt):
-        if self.mctrl.event(evt) or self.ctrl.event(evt):
-            self.game_window.focus()
-            return True
-        return super(Application, self).event(evt)
-
     def loop(self):
         self.game_window.process_game_events()
         self.fcounter = (self.fcounter + 1) % 15
         if not self.fcounter:
             # 15th frame
-            if self.auto_play:
+            if self.auto_play and self.mode == "play":
                 act = next(self.auto_play, None)
                 if not act:
                     self.auto_play = None
                     return
                 self.level.perform_move(act)
-                self.game_window.focus()
         super(Application, self).loop()
 
 app = Application()
