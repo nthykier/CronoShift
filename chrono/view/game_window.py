@@ -69,6 +69,7 @@ class GameWindow(gui.Widget):
         super(GameWindow, self).__init__(**params)
         self.surface = pygame.Surface((450, 300))
         self.surface.fill((0, 0, 0))
+        self.grid = False
         self.shadows = pygame.sprite.RenderUpdates()
         self.hilights = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
@@ -108,9 +109,11 @@ class GameWindow(gui.Widget):
             'replace-tile': self._replace_tile,
         }
 
-    def use_level(self, level):
+    def use_level(self, level, grid=None):
         """Set the level as the current one."""
 
+        if grid is not None:
+            self.grid = grid
         self.level = level
         level.add_event_listener(self._gevent_queue.put)
         self._new_map()
@@ -130,7 +133,8 @@ class GameWindow(gui.Widget):
         # Render the level map
         background, overlays = make_background(level,
                                                map_cache=self.map_cache,
-                                               tileset=self._tileset)
+                                               tileset=self._tileset,
+                                               grid=self.grid)
         self.surface.fill((0, 0, 0))
         self.surface.blit(background, (0,0))
 
@@ -207,7 +211,8 @@ class GameWindow(gui.Widget):
             _kill_sprite(self.overlays, dpos)
 
         # FIXME: remove old overlay
-        overlays = update_background(self.map_cache[self._tileset], self.surface, self.level, f, fixup=True)
+        overlays = update_background(self.map_cache[self._tileset], self.surface, self.level, f,
+                                     fixup=True, grid=self.grid)
         self._add_overlay(overlays)
         ani_bg = None
 

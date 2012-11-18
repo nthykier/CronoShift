@@ -202,7 +202,7 @@ class PlayerSprite(MoveableSprite):
         self.direction = Direction.EAST
         self.image = self.frames[self.direction][0]
 
-def update_background(tiles, background, level, field, fixup=False, overlays=None):
+def update_background(tiles, background, level, field, fixup=False, grid=False, overlays=None):
     pos = field.position
     if overlays is None:
         overlays = {}
@@ -260,10 +260,15 @@ def update_background(tiles, background, level, field, fixup=False, overlays=Non
         for d in (Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST):
             ff = level.get_field(field.position.dir_pos(d))
             update_background(tiles, background, level, ff, fixup=False, overlays=overlays)
+        rect = background.get_rect()
+        for x in range(MAP_TILE_WIDTH, level.width * MAP_TILE_WIDTH, MAP_TILE_WIDTH):
+            pygame.draw.line(background, (0, 0, 0), (x, 0), (x, rect.h))
+        for y in range(MAP_TILE_HEIGHT, level.width * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
+            pygame.draw.line(background, (0, 0, 0), (0, y), (rect.w, y))
 
     return overlays
 
-def make_background(level, tileset=None, map_cache=None):
+def make_background(level, tileset=None, map_cache=None, grid=False):
     if tileset is None:
         tileset = "tileset" # default is literally "tileset"
     if map_cache is None:
@@ -273,9 +278,17 @@ def make_background(level, tileset=None, map_cache=None):
     image = pygame.Surface((level.width*MAP_TILE_WIDTH,
                             level.height*MAP_TILE_HEIGHT))
     overlays = {}
-    ub = functools.partial(update_background, tiles, image, level, overlays=overlays)
+    ub = functools.partial(update_background, tiles, image, level, overlays=overlays, grid=False)
 
     for field in level.iter_fields():
         ub(field)
+
+    if grid:
+        rect = image.get_rect()
+        for x in range(MAP_TILE_WIDTH, level.width * MAP_TILE_WIDTH, MAP_TILE_WIDTH):
+            pygame.draw.line(image, (0, 0, 0), (x, 0), (x, rect.h))
+        for y in range(MAP_TILE_HEIGHT, level.width * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
+            pygame.draw.line(image, (0, 0, 0), (0, y), (rect.w, y))
+
     return image, overlays
     

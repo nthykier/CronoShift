@@ -337,12 +337,12 @@ class Application(gui.Desktop):
                 self.ctrl_widget.mouse_ctrl = self.play_mctrl
                 self.ctrl_widget.ctrl = self.play_ctrl
                 if self.level:
-                    self.game_window.use_level(self.level)
+                    self.game_window.use_level(self.level, grid=False)
             else:
                 self.ctrl_widget.mouse_ctrl = self.edit_mctrl
                 w.widget = edit_ctrls
                 if self.edit_level:
-                    self.game_window.use_level(self.edit_level)
+                    self.game_window.use_level(self.edit_level, grid=True)
 
             self.ctrl_widget.mouse_ctrl.active = True
 
@@ -393,9 +393,11 @@ class Application(gui.Desktop):
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
         lvl = self.edit_level
+        grid = True
         if self.mode == "play":
             lvl = self.level
-        self.game_window.use_level(lvl)
+            grid = False
+        self.game_window.use_level(lvl, grid=grid)
         self.level.add_event_listener(sc)
         self.level.start()
 
@@ -431,7 +433,7 @@ class Application(gui.Desktop):
 
         self.edit_level = edit_level
         self.edit_mctrl.level = edit_level
-        self.game_window.use_level(edit_level)
+        self.game_window.use_level(edit_level, grid=True)
 
     def chg_edit_mode(self, mode):
         if mode != "none":
@@ -460,7 +462,7 @@ class Application(gui.Desktop):
         self.mode = "play"
         self.level = level
         self.play_ctrl.level = self.level
-        self.game_window.use_level(self.level)
+        self.game_window.use_level(self.level, grid=False)
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
         self.level.start()
