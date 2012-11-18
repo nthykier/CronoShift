@@ -784,8 +784,19 @@ class EditableLevel(BaseLevel):
         else:
             self._make_field(position, ctype)
 
-    def _handle_connection(src_pos, target_pos):
-        raise NotImplementedError()
+    def _handle_connection(self, src_pos, target_pos):
+        source = self.get_field(src_pos)
+        target = self.get_field(target_pos)
+        if not source.is_activation_source:
+            return
+        if not target.is_activation_target:
+            return
+        if source.has_activation_target(target):
+            source.remove_activation_target(target)
+            self._emit_event(EditorEvent("field-disconnected", source=source, target=target))
+        else:
+            source.add_activation_target(target)
+            self._emit_event(EditorEvent("field-connected", source=source, target=target))
 
     def _make_field(self, position, field):
         fields = {

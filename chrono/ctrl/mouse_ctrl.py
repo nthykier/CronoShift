@@ -40,7 +40,7 @@ class MouseController(object):
         self.cur_pos = Position(0, 0)
         self.mouse_hilight = None
         self.mouse_rel_hilight = []
-        self.level = level
+        self._level = level
 
     @property
     def level(self):
@@ -48,7 +48,9 @@ class MouseController(object):
 
     @level.setter
     def level(self, lvl):
+        old = self._level
         self._level = lvl
+        self._new_level(old, lvl)
         if lvl and self.active and not self.mouse_hilight:
             self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
 
@@ -63,6 +65,9 @@ class MouseController(object):
             self._restore_hilights()
         elif not nval and self.mouse_hilight:
             self._remove_all_hilights()
+
+    def _new_level(self, old_lvl, new_lvl):
+        pass
 
     def _restore_hilights(self):
         self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
@@ -154,6 +159,51 @@ class EditMouseController(MouseController):
         if nval != "none":
             self.active_pos = None
 
+    def _edit_event(self, evt):
+        if self._brush_mode != "none":
+            # not hiligthing anything, we don't care
+            return
+        if evt.event_type != "field-connected" and evt.event_type != "field-disconnected":
+            # We only care for those two events...
+            return
+        # figure out what hilight appears/disappears (if any)
+        hipos = None
+        marked = self.active_pos
+        if marked is None:
+            # regular "mouse-over" hilight
+            marked = self.cur_pos
+
+        if marked == evt.source.position:
+            # source field is "marked", so target will change
+            hipos = evt.target.position
+        elif marked == evt.target.position:
+            # target field is "marked", so source will change
+            hipos = evt.source.position
+
+        if not hipos:
+            # None of them are "marked", so no hilighting will change
+            return
+
+        if evt.event_type == "field-connected":
+            hilight = self.game_window.make_hilight(hipos)
+            self.mouse_rel_hilight.append(hilight)
+        else:
+            nhilight = []
+            for hilight in self.mouse_rel_hilight:
+                if hilight.pos == hipos:
+                    hilight.kill()
+                else:
+                    nhilight.append(hilight)
+            self.mouse_rel_hilight = nhilight
+
+
+    def _new_level(self, old_lvl, new_lvl):
+        if old_lvl:
+            old_lvl.remove_event_listener(self._edit_event)
+        if new_lvl:
+            new_lvl.add_event_listener(self._edit_event)
+
+
     def _restore_hilights(self):
         super(EditMouseController, self)._restore_hilights()
         if self.active_pos:
@@ -192,23 +242,7 @@ class EditMouseController(MouseController):
         if source.is_activation_target and target.is_activation_source:
             # swap
             source, target = target, source
-        if source.has_activation_target(target):
-            source.remove_activation_target(target)
-            # The hilight will always disappear from the field we just clicked
-            # (e.g. we may have clicked on the source...)
-            nhilight = []
-            for hilight in self.mouse_rel_hilight:
-                if hilight.pos == lpos:
-                    hilight.kill()
-                else:
-                    nhilight.append(hilight)
-            self.mouse_rel_hilight = nhilight
-        else:
-            source.add_activation_target(target)
-            # The hilight will always appear on the field we just clicked
-            # (e.g. we may have clicked on the source...)
-            hilight = self.game_window.make_hilight(lpos)
-            self.mouse_rel_hilight.append(hilight)
+        self.level.perform_change("toggle-connection", source.position, target.position)
 
     def _paint(self, lpos):
         if self.brush_mode == "field-brush":
