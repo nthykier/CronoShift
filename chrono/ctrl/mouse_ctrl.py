@@ -215,11 +215,14 @@ class EditMouseController(MouseController):
             self._src_hilight.kill()
 
     def _right_click(self, lpos):
-        if self.active_pos is None:
+        if self.active_pos is None or self.active_pos != lpos:
             # Click once to activate/mark
             f = self.level.get_field(lpos)
             if not (f.is_activation_source or f.is_activation_target):
-                return False
+                if self.active_pos:
+                    self.active_pos = None
+                    self._src_hilight.kill()
+                return True
             self.active_pos = lpos
             self._src_hilight = self.game_window.make_hilight(lpos, color="green")
             return True
@@ -229,20 +232,27 @@ class EditMouseController(MouseController):
             self._src_hilight.kill()
             return True
 
+    def _left_click(self, lpos):
         source = self.level.get_field(self.active_pos)
+        if self.active_pos == lpos:
+            # Click on marked => attempt to change its initial state
+            self.level.perform_change("set-initial-state", lpos, not source.activated)
+            return True
         target = self.level.get_field(lpos)
+
         if not (target.is_activation_source or target.is_activation_target):
-            return False
+            return True
+
         if ((source.is_activation_source and target.is_activation_source) or
                 (source.is_activation_target and target.is_activation_target)):
-            # same kind - assume it is a "move mark" request
-            self.active_pos = lpos
-            self._src_hilight.pos = lpos
+            # same kind (i.e both targets or both sources) - ignore
             return True
+
         if source.is_activation_target and target.is_activation_source:
             # swap
             source, target = target, source
         self.level.perform_change("toggle-connection", source.position, target.position)
+        return True
 
     def _paint(self, lpos):
         if self.brush_mode == "field-brush":
@@ -256,6 +266,8 @@ class EditMouseController(MouseController):
             if self.brush_mode == "none":
                 if e.button == 3: # right-click
                     return self._right_click(lpos)
+                if e.button == 1: # right-click
+                    return self._left_click(lpos)
                 return False
             if e.button != 1: # left-click only atm
                 return False

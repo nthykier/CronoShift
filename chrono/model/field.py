@@ -159,25 +159,30 @@ class Wall(Field):
         return False
 
 class Gate(Field):
+    """gate
+
+    If activated, it is closed.  If deactivated, open.  (Think of it
+    as a force field)"
+    """
 
     def __init__(self, *args, **kwords):
         super(Gate, self).__init__(*args, **kwords)
-        self.closed = True
         self._is_target = True
-        if self.symbol == "_":
-            self.closed = False
+        if self.symbol == "-":
+            self._activated = True
 
-    def toogle_activation(self, _=True):
-        # invert our state
-        self.closed = not self.closed
-        if self.closed:
-            self._sym = '-'
+    def toogle_activation(self, nstate=None):
+        if nstate is None:
+            # invert our state
+            self._activated = not self._activated
+        if self._activated:
+            self._symbol = '-'
         else:
-            self._sym = '_'
+            self._symbol = '_'
 
     @property
     def can_enter(self):
-        return not self.closed
+        return not self._activated
 
 class Button(Field):
 

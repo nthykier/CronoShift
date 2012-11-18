@@ -695,7 +695,7 @@ class Level(BaseLevel):
 
         for target in changed_targets:
             target.toogle_activation()
-            et = "field-deacitvated"
+            et = "field-deactivated"
             if target.activated:
                 et = "field-activated"
             self._emit_event(GameEvent(et, source=target))
@@ -780,9 +780,24 @@ class EditableLevel(BaseLevel):
 
     def perform_change(self, ctype, position, *args, **kwargs):
         if ctype == "toggle-connection":
-            self._handle_connection(position, args[0])
+            self._handle_connection(position, *args)
+        elif ctype == "set-initial-state":
+            self._handle_set_state(position, *args)
         else:
             self._make_field(position, ctype)
+
+    def _handle_set_state(self, position, new_state):
+        field = self.get_field(position)
+        if field.symbol != "-" and field.symbol != "_":
+            # only gates have multiple starting states
+            return
+        if field.activated != new_state:
+            field.toogle_activation()
+            if new_state:
+                et = "field-activated"
+            else:
+                et = "field-deactivated"
+            self._emit_event(EditorEvent(et, source=field))
 
     def _handle_connection(self, src_pos, target_pos):
         source = self.get_field(src_pos)
