@@ -366,6 +366,17 @@ class Level(BaseLevel):
     def number_of_clones(self):
         return len(self._clones)
 
+    @property
+    def active_player(self):
+        """Returns the current clone if the "current self" is currently controllable
+
+        If the "current self" is outside the time-machine and there has
+        not been a time-paradox (etc.).
+        """
+        if self._time_paradox or not self._player_active:
+            return None
+        return self._player
+
     def load_level(self, *args, **kwords):
         super(Level, self).load_level(*args, **kwords)
         self._crates_orig = self._crates.copy()

@@ -64,13 +64,6 @@ class KeyController(object):
             return False
         action = self._controls.get(e.key, None)
         if action:
-            if action == "enter-time-machine" and self.level.turn[0] < 1:
-                diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
-                                         % self.level.turn[0])
-                diag.connect(gui.CHANGE, self._action2handler[action], action)
-                diag.open()
-                return True
-
             self._action2handler[action](action)
             return True
         return False
@@ -91,6 +84,7 @@ class PlayKeyController(KeyController):
             def_ctrl = DEFAULT_PLAY_CONTROLS
         super(PlayKeyController, self).__init__(level, def_ctrl=def_ctrl)
         self.view = view
+        self.confirm_eot_on_start = True
         self._action2handler = {
             'move-up': self._perform_move,
             'move-down': self._perform_move,
@@ -103,12 +97,30 @@ class PlayKeyController(KeyController):
         }
 
     def event(self, e):
-        if e.type != pg.KEYDOWN:
+        if e.type != pg.KEYDOWN or not self.level:
             return False
         if self.view.active_animation:
             # Let the current animation finish first...
             return e.key in self._controls
-        return super(PlayKeyController, self).event(e)
+        action = self._controls.get(e.key, None)
+        if not action:
+            return False
+        if action == "enter-time-machine" and self.level.turn[0] < 1:
+            diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
+                                     % self.level.turn[0])
+            diag.connect(gui.CHANGE, self._action2handler[action], action)
+            diag.open()
+            return # Don't consume here or the dialog won't work
+        if self.confirm_eot_on_start and action == "skip-turn":
+            current_clone = self.level.active_player
+            if current_clone is not None and current_clone.position == self.level.start_location.position:
+                diag = ConfirmDialog("Do you really want to skip your time on the time machine?")
+                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.open()
+                return # Don't consume here or the dialog won't work
+
+        self._action2handler[action](action)
+        return True
 
 
     def _perform_move(self, move):
