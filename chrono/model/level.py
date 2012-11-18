@@ -122,9 +122,10 @@ class GameEvent(object):
         return self._success
 
 class EditorEvent(object):
-    def __init__(self, event_type, source=None):
+    def __init__(self, event_type, source=None, target=None):
         self._event_type = event_type
         self._source = source
+        self._target = target
 
     @property
     def event_type(self):
@@ -133,6 +134,10 @@ class EditorEvent(object):
     @property
     def source(self):
         return self._source
+
+    @property
+    def target(self):
+        return self._target
 
 class BaseLevel(object):
 
@@ -774,7 +779,13 @@ class EditableLevel(BaseLevel):
         self._emit_event(EditorEvent("new-map"))
 
     def perform_change(self, ctype, position, *args, **kwargs):
-        self._make_field(position, ctype)
+        if ctype == "toggle-connection":
+            self._handle_connection(position, args[0])
+        else:
+            self._make_field(position, ctype)
+
+    def _handle_connection(src_pos, target_pos):
+        raise NotImplementedError()
 
     def _make_field(self, position, field):
         fields = {
@@ -783,8 +794,8 @@ class EditableLevel(BaseLevel):
         'crate': functools.partial(Field, ' '),
         'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),
-        'start-location': functools.partial(StartLocation, 'S'),
-        'goal-location': functools.partial(GoalLocation, 'G'),
+        'start': functools.partial(StartLocation, 'S'),
+        'goal': functools.partial(GoalLocation, 'G'),
         }
 
         if (not (0 < position.x < self.width - 1) or
@@ -793,10 +804,21 @@ class EditableLevel(BaseLevel):
             # outside the level.
             return
 
+        if field == "start" or field == "goal":
+            # Only one start
+            old = self.start_location
+            if field == "goal":
+                old = self.goal_location
+            opos = old.position
+            nf = Field(' ')
+            nf._set_position(opos)
+            self._lvl[opos.x][opos.y] = nf
+            self._emit_event(EditorEvent("remove-special-field", source=old))
+
         oldcrate = self.get_crate_at(position)
         if oldcrate:
             del self._crates[position]
-            self._emit_event(EditorEvent("remove-crate"), source=oldcrate)
+            self._emit_event(EditorEvent("remove-crate", source=oldcrate))
 
         f = fields[field]()
         f._set_position(position)
@@ -807,3 +829,7 @@ class EditableLevel(BaseLevel):
             c = Crate(position)
             self._crates[position] = c
             self._emit_event(EditorEvent("add-crate", source=c))
+        if field == "start":
+            self._start_location = f
+        if field == "goal":
+            self._goal_location = f

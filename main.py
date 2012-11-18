@@ -186,7 +186,8 @@ def make_edit_ctrls(app, width, height):
 
     fields = [("none", None, 0, 0), ("field", "tileset", 0, 3),
               ("wall", "tileset", 0, 0), ("gate", "gate", 0, 0),
-              ("button", "button", 0, 0)]
+              ("button", "button", 0, 0), ("crate",  None, 0, 0),
+              ("start", None, 0, 0), ("goal", None, 0, 0)]
 
     group = gui.Group(name="tile", value=fields[0][0])
 

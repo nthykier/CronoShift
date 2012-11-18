@@ -107,6 +107,9 @@ class GameWindow(gui.Widget):
             # edit
             'new-map': self._new_map,
             'replace-tile': self._replace_tile,
+            'remove-special-field': self._remove_special_field,
+            'add-crate': self._add_remove_crate,
+            'remove-crate': self._add_remove_crate,
         }
 
     def use_level(self, level, grid=None):
@@ -143,35 +146,10 @@ class GameWindow(gui.Widget):
             #   - if its "on top of" a field 32x32 usually looks best.
             #   - if it is (like) a field, 24x16 is usually better
             # - use sprite_cache and map_cache accordingly.
-            ani_bg = None
             crate = level.get_crate_at(field.position)
             if crate:
-                c_sprite = MoveableSprite(field.position, self._sprite_cache['crate'], c_depth=1)
-                self._crates[crate] = c_sprite
-                self.sprites.add(c_sprite)
-            if field.symbol == '-' or field.symbol == '_':
-                ani_bg = Sprite(field.position, self.map_cache['gate'])
-                self._gates[field.position] = ani_bg
-                if field.symbol == '-':
-                    ani_bg.state = GATE_CLOSED
-            if field.symbol == 'b':
-                ani_bg = Sprite(field.position, self.map_cache['button'])
-                self.animated_background_sprites[field.position] = ani_bg
-            if ani_bg:
-                self.animated_background.add(ani_bg)
-
-        if level.start_location:
-            # Highlight the start location
-            image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-            image.fill(pygame.Color("blue"))
-            image.set_alpha(0x80)
-            self.sprites.add(Sprite(level.start_location.position, ((image,),), c_depth=-1))
-
-        if level.goal_location:
-            sprite = Sprite(level.goal_location.position, self._sprite_cache['house'])
-            self.goal = sprite
-            self.animated_background.add(sprite)
-
+                self._add_crate(crate)
+            self._init_field(field)
 
         self._add_overlay(overlays)
 
@@ -187,6 +165,39 @@ class GameWindow(gui.Widget):
 
         self.repaint()
 
+    def _add_crate(self, crate):
+        c_sprite = MoveableSprite(crate.position, self._sprite_cache['crate'], c_depth=1)
+        self._crates[crate] = c_sprite
+        self.sprites.add(c_sprite)
+
+    def _add_remove_crate(self, evt):
+        if evt.event_type == 'add-crate':
+            self._add_crate(evt.source)
+        else:
+            _kill_sprite(self._crates, evt.source)
+
+    def _init_field(self, field):
+        ani_bg = None
+        if field.symbol == '-' or field.symbol == '_':
+            ani_bg = Sprite(field.position, self.map_cache['gate'])
+            self._gates[field.position] = ani_bg
+            if field.symbol == '-':
+                ani_bg.state = GATE_CLOSED
+        if field.symbol == 'b':
+            ani_bg = Sprite(field.position, self.map_cache['button'])
+        if field.symbol == 'S':
+            # Highlight the start location
+            image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
+            image.fill(pygame.Color("blue"))
+            image.set_alpha(0x80)
+            ani_bg = Sprite(field.position, ((image,),))
+        if field.symbol == 'G':
+            ani_bg = Sprite(field.position, self._sprite_cache['house'])
+        if ani_bg:
+            self.animated_background.add(ani_bg)
+            self.animated_background_sprites[field.position] = ani_bg
+        return
+
     def _add_overlay(self, overlays):
         # Add the overlays for the level map
         for (x, y), image in overlays.iteritems():
@@ -195,6 +206,11 @@ class GameWindow(gui.Widget):
             overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,
                                                           y * MAP_TILE_HEIGHT - MAP_TILE_HEIGHT/2))
             self.overlays_sprites[Position(x,y)] = overlay
+
+    def _remove_special_field(self, evt):
+        f = evt.source
+        print "RSF: %s at %s" % (str(f), str(f.position))
+        _kill_sprite(self.animated_background_sprites, f.position)
 
     def _replace_tile(self, evt):
         f = evt.source
@@ -215,15 +231,7 @@ class GameWindow(gui.Widget):
         self._add_overlay(overlays)
         ani_bg = None
 
-        if f.symbol == '-' or f.symbol == '_':
-            ani_bg = Sprite(f.position, self.map_cache['gate'])
-            self._gates[f.position] = ani_bg
-            if f.symbol == '-':
-                ani_bg.state = GATE_CLOSED
-        if f.symbol == 'b':
-            ani_bg = Sprite(f.position, self.map_cache['button'])
-        if ani_bg:
-            self.animated_background.add(ani_bg)
+        self._init_field(f)
         self.repaint()
 
     def _move(self, d, event):
