@@ -263,7 +263,7 @@ def update_background(tiles, background, level, field, fixup=False, grid=False, 
         rect = background.get_rect()
         for x in range(MAP_TILE_WIDTH, level.width * MAP_TILE_WIDTH, MAP_TILE_WIDTH):
             pygame.draw.line(background, (0, 0, 0), (x, 0), (x, rect.h))
-        for y in range(MAP_TILE_HEIGHT, level.width * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
+        for y in range(MAP_TILE_HEIGHT, level.height * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
             pygame.draw.line(background, (0, 0, 0), (0, y), (rect.w, y))
 
     return overlays
@@ -287,7 +287,7 @@ def make_background(level, tileset=None, map_cache=None, grid=False):
         rect = image.get_rect()
         for x in range(MAP_TILE_WIDTH, level.width * MAP_TILE_WIDTH, MAP_TILE_WIDTH):
             pygame.draw.line(image, (0, 0, 0), (x, 0), (x, rect.h))
-        for y in range(MAP_TILE_HEIGHT, level.width * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
+        for y in range(MAP_TILE_HEIGHT, level.height * MAP_TILE_HEIGHT, MAP_TILE_HEIGHT):
             pygame.draw.line(image, (0, 0, 0), (0, y), (rect.w, y))
 
     return image, overlays
