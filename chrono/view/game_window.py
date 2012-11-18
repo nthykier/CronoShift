@@ -189,8 +189,7 @@ class GameWindow(gui.Widget):
 
     def _add_overlay(self, overlays):
         # Add the overlays for the level map
-        for pos, image in overlays.iteritems():
-            x, y = pos
+        for (x, y), image in overlays.iteritems():
             overlay = pygame.sprite.Sprite(self.overlays)
             overlay.image = image.subsurface(0, 0, MAP_TILE_WIDTH, MAP_TILE_HEIGHT/2)
             overlay.rect = image.get_rect().move(Position(x*MAP_TILE_WIDTH,
@@ -203,12 +202,12 @@ class GameWindow(gui.Widget):
         # Kill the old animations on this field (if any)
         _kill_sprite(self._gates, f.position)
         _kill_sprite(self.animated_background_sprites, f.position)
-        _kill_sprite(self.overlays, f.position)
+        _kill_sprite(self.overlays_sprites, f.position)
 
         # Kill "nearby" overlays - they should only be "south", but mah
         for d in (Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST):
             dpos = f.position.dir_pos(d)
-            _kill_sprite(self.overlays, dpos)
+            _kill_sprite(self.overlays_sprites, dpos)
 
         # FIXME: remove old overlay
         overlays = update_background(self.map_cache[self._tileset], self.surface, self.level, f,
