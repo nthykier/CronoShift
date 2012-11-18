@@ -87,8 +87,23 @@ class Field(object):
         self._targets.add(target)
         target._add_source(self)
 
+    def remove_activation_target(self, target):
+        if not self.is_activation_source:
+            raise NotImplementedError("%s is not an activation source" % self.symbol)
+        if not target.is_activation_target:
+            raise ValueError("%s is not an activation target" % self.symbol)
+
+        self._targets.remove(target)
+        target._remove_source(self)
+
+    def has_activation_target(self, target):
+        return target in self._targets
+
     def _add_source(self, source):
         self._sources.add(source)
+
+    def _remove_source(self, source):
+        self._sources.remove(source)
 
     def _set_position(self, pos):
         self._pos = pos

@@ -60,10 +60,13 @@ class MouseController(object):
     def active(self, nval):
         self._active = nval
         if nval and self.level:
-            self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
-            self._hilight_related(self.cur_pos)
+            self._restore_hilights()
         elif not nval and self.mouse_hilight:
             self._remove_all_hilights()
+
+    def _restore_hilights(self):
+        self.mouse_hilight = self.game_window.make_hilight(self.cur_pos, color="red")
+        self._hilight_related(self.cur_pos)
 
     def _remove_all_hilights(self):
         self.mouse_hilight.kill()
@@ -136,8 +139,76 @@ class EditMouseController(MouseController):
 
     def __init__(self, game_window, level=None):
         super(EditMouseController, self).__init__(game_window, level=level)
-        self.brush_mode = "none"
+        self.active_pos = None
+        self._brush_mode = "none"
         self.field_tool = "field"
+        self._src_hilight = None
+
+    @property
+    def brush_mode(self):
+        return self._brush_mode
+
+    @brush_mode.setter
+    def brush_mode(self, nval):
+        self._brush_mode = nval
+        if nval != "none":
+            self.active_pos = None
+
+    def _restore_hilights(self):
+        super(EditMouseController, self)._restore_hilights()
+        if self.active_pos:
+            self._src_hilight = self.game_window.make_hilight(self.active_pos, color="green")
+
+    def _remove_all_hilights(self):
+        super(EditMouseController, self)._restore_hilights()
+        if self._src_hilight:
+            self._src_hilight.kill()
+
+    def _right_click(self, lpos):
+        if self.active_pos is None:
+            # Click once to activate/mark
+            f = self.level.get_field(lpos)
+            if not (f.is_activation_source or f.is_activation_target):
+                return False
+            self.active_pos = lpos
+            self._src_hilight = self.game_window.make_hilight(lpos, color="green")
+            return True
+        if self.active_pos == lpos:
+            # Click twice to deactivate/unmark
+            self.active_pos = None
+            self._src_hilight.kill()
+            return True
+
+        source = self.level.get_field(self.active_pos)
+        target = self.level.get_field(lpos)
+        if not (target.is_activation_source or target.is_activation_target):
+            return False
+        if ((source.is_activation_source and target.is_activation_source) or
+                (source.is_activation_target and target.is_activation_target)):
+            # same kind - assume it is a "move mark" request
+            self.active_pos = lpos
+            self._src_hilight.pos = lpos
+            return True
+        if source.is_activation_target and target.is_activation_source:
+            # swap
+            source, target = target, source
+        if source.has_activation_target(target):
+            source.remove_activation_target(target)
+            # The hilight will always disappear from the field we just clicked
+            # (e.g. we may have clicked on the source...)
+            nhilight = []
+            for hilight in self.mouse_rel_hilight:
+                if hilight.pos == lpos:
+                    hilight.kill()
+                else:
+                    nhilight.append(hilight)
+            self.mouse_rel_hilight = nhilight
+        else:
+            source.add_activation_target(target)
+            # The hilight will always appear on the field we just clicked
+            # (e.g. we may have clicked on the source...)
+            hilight = self.game_window.make_hilight(lpos)
+            self.mouse_rel_hilight.append(hilight)
 
     def _paint(self, lpos):
         if self.brush_mode == "field-brush":
@@ -149,15 +220,20 @@ class EditMouseController(MouseController):
             if lpos is None:
                 return False
             if self.brush_mode == "none":
+                if e.button == 3: # right-click
+                    return self._right_click(lpos)
+                return False
+            if e.button != 1: # left-click only atm
                 return False
             self._paint(lpos)
             return True
-        if e.type == pg.MOUSEMOTION:
+        elif e.type == pg.MOUSEMOTION:
             npos = self.new_position(e.pos)
             if npos:
                 pressed = pygame.mouse.get_pressed()
                 if self.brush_mode == "none":
-                    self._hilight_related(npos)
+                    if self.active_pos is None:
+                        self._hilight_related(npos)
                 elif pressed[0]:
                     self._paint(npos)
                 return True
