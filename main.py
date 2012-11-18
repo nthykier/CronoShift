@@ -509,8 +509,18 @@ class Application(gui.Desktop):
                 self.level.perform_move(act)
         super(Application, self).loop()
 
-app = Application()
-if len(sys.argv) > 1:
-    # Load the level - we have to wait for the init event before
-    app.connect(gui.INIT, lambda *x: app.load_level(sys.argv[1]), None)
-app.run(delay=67) # 15 fps =~ 67 ms delay
+if __name__ == "__main__":
+    app = Application()
+    parser = argparse.ArgumentParser(description="Play ChronoShift levels")
+    parser.add_argument('--play-solution', action="store_true", dest="play_solution",
+                        default=False, help="Auto-play the solution")
+    parser.add_argument('level', action="store", default=None, nargs="?",
+                        help="The level files to check")
+    args = parser.parse_args()
+
+    if args.level:
+        # Load the level - we have to wait for the init event before
+        app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
+        if args.play_solution:
+            app.connect(gui.INIT, app.play_solution)
+    app.run(delay=67) # 15 fps =~ 67 ms delay
