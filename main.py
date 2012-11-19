@@ -419,15 +419,15 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
-        if (ge.event_type != "time-jump" and ge.event_type != "enter-time-machine" and
+        if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
         if not self.skip_till_time_jump.value:
             return
-        if ge.event_type != "enter-time-machine":
+        if ge.event_type != "end-of-turn":
             self.auto_play = None
             return
-        if self.level.active_player:
+        if self.level.active_player or self.auto_play:
             return
         self.fcounter = 0
         self.auto_play = itertools.repeat("skip-turn")
