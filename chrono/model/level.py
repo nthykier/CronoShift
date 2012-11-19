@@ -608,9 +608,10 @@ class Level(BaseLevel):
         optional variable "clones" can be set to false.
         """
         # De-activate fields with crates on them
-        r = self._crates
+        r = list(self._crates)
         if clones:
-            r = chain(self._crates, (c.position for c in self._clones))
+            r.extend((c.position for c in self._clones))
+
         self._changed_targets([], r)
         self._crates = self._crates_orig.copy()
         for p in self._crates:
