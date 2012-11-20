@@ -1,0 +1,114 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage{CJKutf8}
+
+\usepackage{fullpage}
+\usepackage{amsmath}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage{verbatim}
+\usepackage[font=small,labelfont=bf]{caption}
+
+% Kudos to Rasmus Melgaard (s040873) for the basic template.
+\newcommand{\buildtitle}
+{
+        \title{
+        \vspace{-0.5in}\rule{\textwidth}{2pt}
+        \vspace*{6px}
+        \noindent\LARGE DTU, Technical University of Denmark\\
+        \vspace*{-4px}
+        \noindent\large Department of Informatics and Mathematical
+        Modelling\\
+        \vspace*{-4px}
+        \rule{\textwidth}{2pt}\vspace*{0.25in}
+        \course\\
+        \LARGE \bf
+        \reporttitle
+        }
+}
+%}}}1
+% {{{1 commands to insert things
+\newcommand{\figurepng}[3][0.80]
+{
+    \begin{figure}[h]
+    \centering
+    \includegraphics[width=#1\textwidth]{#2.png}
+    \caption{#3}
+    \label{#2}
+    \end{figure}
+}
+
+% args: 
+% 1:    file name without .pdf
+\newcommand{\templatebig}[1]
+{
+    \begin{landscape}
+    \noindent
+    \subsubsection{#1}
+    \fbox{\includegraphics{eps/#1.pdf}}
+    \end{landscape}
+}
+
+% args: 
+% 1:    file name without .pdf
+\newcommand{\template}[1]
+{
+    \noindent
+    \subsubsection{#1}
+    \fbox{\includegraphics{eps/#1.pdf}}
+    % paragraph #1 (end)
+}
+
+\newcommand{\code}[1]{
+\subsubsection{#1}
+%\label{par:#1}
+\lstinputlisting[language=python,tabsize=4,basicstyle=\footnotesize]{../#1}
+}
+
+% }}}1
+% newcommand {{{1
+%}}}1
+% Report title and date {{{1
+%% 時機番
+\newcommand\reporttitle{JikiBan}
+\newcommand\course{02823 Intro. to Computer Game Prototyping}
+\date{Nov 20, 2012}
+\buildtitle{}
+
+\author{
+{\bf Alexander Bang}\\
+s072457
+\and 
+{\bf Thor Bundgaard Nielsen}\\
+s060112
+\and 
+{\bf Niels Thykier}\\
+s072425
+} %}}}1
+
+\begin{document}
+%\onecolumn
+\setcounter{page}{1}
+\pagenumbering{Roman}
+
+\setcounter{tocdepth}{2}
+
+\maketitle
+\newpage
+\tableofcontents
+
+%\clearpage
+%\twocolumn
+\newpage 
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\end{document}
+
+
+% vi: textwidth=72 
