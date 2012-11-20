@@ -185,12 +185,12 @@ class GameWindow(gui.Widget):
             if field.symbol == '-':
                 ani_bg.state = GATE_CLOSED
         if field.symbol == 'b':
-            ani_bg = Sprite(field.position, self.map_cache['button'])
+            ani_bg = Sprite(field.position, self.map_cache['stonebutton'])
         if field.symbol == 'S':
             # Highlight the start location
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
         if field.symbol == 'G':
-            ani_bg = Sprite(field.position, self._sprite_cache['house'])
+            ani_bg = Sprite(field.position, self.map_cache['coingoal'])
             self.goal = ani_bg
         if ani_bg:
             self.animated_background.add(ani_bg)
@@ -258,7 +258,10 @@ class GameWindow(gui.Widget):
             if event.source.can_enter:
                 nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
-            self.repaint()
+        if event.source.symbol == "b":
+            b = self.animated_background_sprites[src_pos]
+            if b:
+                b.state = int(event.source.activated)
 
     def _new_clone(self, clone):
         sprite = PlayerSprite(clone, self._sprite_cache['player'])
