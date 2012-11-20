@@ -1,2 +1,6 @@
 *.pyc
 *.psproj
+*.pdf
+*.toc
+*.log
+*.aux
