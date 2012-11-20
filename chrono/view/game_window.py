@@ -180,7 +180,7 @@ class GameWindow(gui.Widget):
     def _init_field(self, field):
         ani_bg = None
         if field.symbol == '-' or field.symbol == '_':
-            ani_bg = Sprite(field.position, self.map_cache['gate'])
+            ani_bg = Sprite(field.position, self.map_cache['campfiregate'])
             self._gates[field.position] = ani_bg
             if field.symbol == '-':
                 ani_bg.state = GATE_CLOSED
@@ -188,10 +188,7 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, self.map_cache['button'])
         if field.symbol == 'S':
             # Highlight the start location
-            image = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))
-            image.fill(pygame.Color("blue"))
-            image.set_alpha(0x80)
-            ani_bg = Sprite(field.position, ((image,),))
+            ani_bg = Sprite(field.position, self.map_cache['timemachine'])
         if field.symbol == 'G':
             ani_bg = Sprite(field.position, self._sprite_cache['house'])
             self.goal = ani_bg
