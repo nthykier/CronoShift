@@ -335,8 +335,8 @@ class Application(gui.Desktop):
         from_left = spacer
 
         pygame.mixer.init()
-        self.time_paradox_sound = pygame.mixer.Sound("..\sound\123921__silencer1337__machinefail.wav")
-        self.win_sound          = pygame.mixer.Sound("..\sound\90138__pierrecartoons1979__win1.wav")
+        self.time_paradox_sound = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
+        self.win_sound          = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
 
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
