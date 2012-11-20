@@ -234,6 +234,8 @@ class EditMouseController(MouseController):
             return True
 
     def _left_click(self, lpos):
+        if not self.active_pos:
+            return
         source = self.level.get_field(self.active_pos)
         if self.active_pos == lpos:
             # Click on marked => attempt to change its initial state
