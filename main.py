@@ -405,13 +405,15 @@ class Application(gui.Desktop):
         self.group.value = val
 
     def reset_clone(self, *args):
+        if self.auto_play:
+            return
         if self.level:
-            self.auto_play = None
             self.level.perform_move('reset-time-jump')
 
     def reset_level(self, *args):
+        if self.auto_play:
+            return
         if self.level:
-            self.auto_play = None
             self.level.perform_move('reset-level')
 
     def action_open_lvl(self,value):
