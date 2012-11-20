@@ -7,11 +7,19 @@ Comment: This file describes the license/copyright information for the images
  .
  Images may have been modified (incl. but not limited to resizing, cropping etc.).
 
+Files: image/campfiregate.png images/timemachine.png images/watergate.png images/onetimepassage.png
+ images/onetimebutton.png images/coingoal images/stonebutton images/teleporter
+Comment: All images are merges between images/tileset.png (see below) and our custom images
+Copyright: 2012, Alexander Bang <bang.alexander@gmail.com>
+License: BSD-2
+
 Files: images/crate.png images/ground.png images/shadow.png images/tileset.png
  images/house.png images/player.png
 Downloaded-From: https://bitbucket.org/thesheep/qq/src
  (commit: 1090d7e5537f8e51517922fdb1aaf7d99b4f06e8)
 Copyright: 2008, 2009 Radomir Dopieralski <qq@sheep.art.pl>
+License: BSD-2
+
 License: BSD-2
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
