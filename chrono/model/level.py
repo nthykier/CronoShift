@@ -689,13 +689,14 @@ class Level(BaseLevel):
                     changed_targets.discard(t)
                 else:
                     changed_targets.add(t)
+            f.toggle_activation()
             if f in deactivated:
                 self._emit_event(GameEvent("field-deactivated", source=f))
             else:
                 self._emit_event(GameEvent("field-activated", source=f))
 
         for target in changed_targets:
-            target.toogle_activation()
+            # targets have already been activated/deactivated at this point.
             et = "field-deactivated"
             if target.activated:
                 et = "field-activated"

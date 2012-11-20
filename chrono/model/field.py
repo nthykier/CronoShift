@@ -124,7 +124,7 @@ class Field(object):
     def is_wall(self):
         return False
 
-    def toogle_activation(self, newstate=None):
+    def toggle_activation(self, newstate=None):
         pass
 
     def on_enter(self, obj):
@@ -133,12 +133,12 @@ class Field(object):
     def activate(self):
         if not self._activated:
             self._activated = True
-            self.toogle_activation(True)
+            self.toggle_activation(True)
 
     def deactivate(self):
         if self._activated:
             self._activated = False
-            self.toogle_activation(False)
+            self.toggle_activation(False)
 
     def copy(self):
         other = type(self)(self.symbol)
@@ -171,7 +171,7 @@ class Gate(Field):
         if self.symbol == "-":
             self._activated = True
 
-    def toogle_activation(self, nstate=None):
+    def toggle_activation(self, nstate=None):
         if nstate is None:
             # invert our state
             self._activated = not self._activated
@@ -190,14 +190,11 @@ class Button(Field):
         super(Button, self).__init__(*args, **kwords)
         self._is_source = True
 
-    def toogle_activation(self, newstate=None):
+    def toggle_activation(self, newstate=None):
         if newstate is None:
-            newstate = not self.activated
+            self._activated = not self._activated
         for target in self._targets:
-            if newstate:
-                target.activate()
-            else:
-                target.deactivate()
+            target.toggle_activation()
 
 class StartLocation(Field):
     pass
@@ -215,7 +212,7 @@ class Teleporter(Field):
         if symbol == "d":
             self.closed = False
 
-    def toogle_activation(self, _=True):
+    def toggle_activation(self, _=True):
         # invert our state
         self.closed = not self.closed
         if self.closed:
