@@ -185,6 +185,24 @@ class GoalLocation(Field):
     def __init__(self, symbol):
         super(GoalLocation, self).__init__(symbol)
 
+class Teleporter(Field):
+
+    def __init__(self, symbol):
+        super(Teleporter, self).__init__(symbol)
+        self.closed = True
+        self._is_target = True
+        self._is_source = True
+        if symbol == "d":
+            self.closed = False
+
+    def toogle_activation(self, _=True):
+        # invert our state
+        self.closed = not self.closed
+        if self.closed:
+            self._sym = 't'
+        else:
+            self._sym = 'd'
+
 def parse_field(symbol):
     if symbol == "+":
         return Wall(symbol)
