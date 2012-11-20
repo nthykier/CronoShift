@@ -816,7 +816,7 @@ class EditableLevel(BaseLevel):
             # only gates have multiple starting states
             return
         if field.activated != new_state:
-            field.toogle_activation()
+            field.toggle_activation()
             if new_state:
                 et = "field-activated"
             else:
