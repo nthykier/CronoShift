@@ -334,6 +334,10 @@ class Application(gui.Desktop):
         from_top = 0
         from_left = spacer
 
+        pygame.mixer.init()
+        self.time_paradox_sound = pygame.mixer.Sound("..\sound\123921__silencer1337__machinefail.wav")
+        self.win_sound          = pygame.mixer.Sound("..\sound\90138__pierrecartoons1979__win1.wav")
+
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
                 ('File/Quit', self.quit, None),
@@ -421,6 +425,10 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
+        if ge.event_type == "game-complete":
+            self.win_sound.play()
+        elif ge.event_type == "time-paradox":
+            self.time_paradox_sound.play()
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
