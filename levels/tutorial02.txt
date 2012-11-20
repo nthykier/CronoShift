@@ -1,14 +1,17 @@
 2D SuperFun!
 +++++
-+S b+
+++b++
++ Sb+
++  ++
 ++-++
-+  G+
+++G++
 +++++
 
-button (3, 1) -> gate (2, 2)
+button (2, 1) -> gate (2, 4)
+button (3, 2) -> gate (2, 4)
 
 Description: Demonstrate a simple gate.
 Solution: 
- EE HH HH HW WT
+ EH HH WT
  .
- EH SS EW NN WT
+ SS SN NN T
