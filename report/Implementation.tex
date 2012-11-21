@@ -1,0 +1,61 @@
+\section{Implementation}
+\subsection{Unity implementation}
+The game has initially been developed in unity, which is the default development tool for the course, but for technical reasons it was rewritten in python. This section decribes the inital steps of the development cycle before this change.
+Initially the game was supposed to be a fusion between the two games Chronotron and Shift. Shift is a 2D platform game seen from the side where the world is black and white, which can be inverted at the touch of a button. Our game is seen from the top, so this feature is not trivial to implement, and was therefore posponed until the other core mechanics where in place.
+The mechanics were divided into four scripts:\\
+
+\begin{lstlisting}
+Manager: responsible for loading and running the game.
+Turn controller: which moves all the clones each turn and checks for possible paradoxes.
+Player: the script controlling the movement of the player character as well as reading user inputs.
+Past self: which remembers and replays the players previous movements and animates it.
+\end{lstlisting}
+
+The first step was to get a movable player, which was done by importing the thirdperson controller script from unity. The player could now be moved around the plane but could not be rotated and more importantly the movement was in real time. If the game was going to be turnbased the player needed to move the same distance each time, so the user could predict the outcome of the movement. A few attempts were made to addapt the thirdperson controller, but in the end it was completely rewritten, since most of it was not needed anyway. \\
+\paragraph {Level generation} At this point the world was still a flat plane, so work began on the manager whose responsibility included loading an actual level. The level is made up of empty tiles walls and interactive objects. To simplify creation of new levels a simple text file format was chosen, which the manager interprets and make a graphical representation of. This way the levels do not need to be hard coded a all and anyone can potentially make new challenges. The following format was chosen for the file.
+
+\begin{table}
+\caption{Game object representation}
+\begin{tabular}{c c}
+\hline
+Char & Game object
+\hline
++ & Wall\\
+" " & empty tile\\
+b & button\\
+_ & open gate\\
+- & close gate\\
+S & start\\
+G & goal\\
+c & crate\\
+\hline
+\end{tabular}
+\end{table}
+
+Example of a level file
+
+\begin{verbatim}
+2D SuperFun!
++++++
++S b+
+++-++
++   +
+++_++
++  G+
++++++
+
+button (3, 1) -> gate (2, 2)
+button (3, 1) -> gate (2, 4)
+
+Description: Show that a button can affect more than one gate
+ and it is not always enough to just "keep it pressed!".
+Solution:
+ EE HW HH HH HE HW WT
+ .
+ EH SS SS EW NN NN WT
+\end{Verbatim}
+
+The first line is simply a magic word (the game didn't have a title at this point). After that is the level layout and the mapping between the interactive game obejcts. The decription is currently unused. The solution is a series of commands that enables the computer to play through the level on its own. The solution was not a planned feature at this point in the development, but it is a part of the final file format.
+
+\paragraph{Unity problems}
+While it is farily simple to restrict unity to a top-down 2D view, it is not so trivial to restrict it to a turnbased format. The update fuction was used to move the player and his past selves, but they need to move at the exact same time and exactly one tile. With one player the controls can be locked, so that no movement commands are accepted, before he has moved to the middle of the next tile. When there is more than one player, the computer has to move the remaining player character. But now locking the controls doesn't solve the problem, because the active player is not the only one, who needs to finish moving. If the player moves before all his past selves and crates have been moved, the game becomes desynchronized and the game rules can be broken. This can partly be solved by making sure that all clones have finished, by having all of them notify the turn controller. This make the turncontoller and the player script tightly coupled however.  

@@ -54,7 +54,7 @@ Wall: +
 field: " "
 start: S
 goal: G
-box: C
+box: c
 button: b
 open gate: "_"
 closed gate: "-"
@@ -82,4 +82,5 @@ Narrow passage that collapses
 Teleporters with activators
 Shift feature with buttons
 Limited turn number per clone
+Ice block that functions like a crate but moves until it hits something
 Interesting levels with new mechanics
