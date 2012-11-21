@@ -86,13 +86,13 @@ class PlayKeyController(KeyController):
         self.view = view
         self.confirm_eot_on_start = True
         self._action2handler = {
-            'move-up': self._perform_move,
-            'move-down': self._perform_move,
-            'move-left': self._perform_move,
-            'move-right': self._perform_move,
-            'skip-turn': self._perform_move,
-            'enter-time-machine': self._perform_move,
-            'reset-time-jump': self._perform_move,
+            'move-up': self.perform_move,
+            'move-down': self.perform_move,
+            'move-left': self.perform_move,
+            'move-right': self.perform_move,
+            'skip-turn': self.perform_move,
+            'enter-time-machine': self.perform_move,
+            'reset-time-jump': self.perform_move,
             'print-actions': self._print_actions,
         }
 
@@ -106,6 +106,13 @@ class PlayKeyController(KeyController):
         l = self.level
         if not action:
             return False
+        return self._action2handler[action](action)
+
+    def perform_move(self, action):
+        if not self.level:
+            return
+        l = self.level
+        current_clone = l.active_player
         if action == "enter-time-machine":
             if l.turn[0] < 1:
                 # turn 1, we are sure the "current self" is active and outside
@@ -115,28 +122,25 @@ class PlayKeyController(KeyController):
                 diag.connect(gui.CHANGE, self._action2handler[action], action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
-            if not l.active_player:
+            if not current_clone:
                 ErrorDialog("The player is already inside the time machine.\n" +
                             "Did you want to skip turn?", "Illegal move").open()
-                return
-            if l.active_player.position != l.start_location.position:
-                ErrorDialog("The player must be on top of the time machine to enter it.", "Illegal move").open()
-                return
+                return # Don't consume here or the dialog won't work
+            if current_clone.position != l.start_location.position:
+                ErrorDialog("The player must be on top of the time machine to enter it.",
+                            "Illegal move").open()
+                return # Don't consume here or the dialog won't work
         if self.confirm_eot_on_start and action == "skip-turn":
-            current_clone = l.active_player
-            if current_clone is not None and current_clone.position == l.start_location.position:
+            if (current_clone is not None and
+                    current_clone.position == l.start_location.position):
                 diag = ConfirmDialog("Do you really want to skip your time on the time machine?")
                 diag.connect(gui.CHANGE, self._action2handler[action], action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
 
-        self._action2handler[action](action)
+
+        l.perform_move(action)
         return True
-
-
-    def _perform_move(self, move):
-        if self.level:
-            self.level.perform_move(move)
 
     def _print_actions(self, _):
         def _action2sf(container):
