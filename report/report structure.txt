@@ -2,11 +2,12 @@ Introduction
 - a short overview of the game, relation to existing games 
  
 Detailed Description of the Game
-- game rules
-- desired features
+- game rules (NT)
+- desired features (NT)
 	game elements
 		teleporters
 		shift mechanic
+		"Dance evolution" pile (show movements of other clones)
 - technical challenges
 	synchronization
 	non-determanism
@@ -15,8 +16,11 @@ Detailed Description of the Game
 	is the level solveable and are there trivial/brute force solutions?
 		the optimal solution?
 		simply fix by scoring games
+-emotional engagement of player (TBN)
+	off by one error?!
+	primaryly should invoke joy from solving problem and finding a new way of thinking
  
-Implementation
+Implementation (Alex)
 - technical design including short description of the game's scripts and reasons for choosing this design.
 	model-view-controller 
 		view-controller er næsten seperaret
@@ -30,11 +34,12 @@ Implementation
 
 
 Analysis
-- discuss the playability of the game (prototype? or theoritical game?). 
-- give a summary of feedback from having a few friends play the game.
+- discuss the playability of the game (prototype? or theoritical game?). (TBN) 
+- give a summary of feedback from having a few friends play the game. (TBN)
  
 Discussion
-- discuss the evolution of your game concept from your original pitch to the final version.
+- discuss the evolution of your game concept from your original pitch to the final version. (TBN)
+	started with shift + chronotron, ended up with sokuban + chronotron
 - what would you do differently if you knew at the start what you know now. 
 
 Conclusion
