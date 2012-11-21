@@ -528,7 +528,10 @@ class Level(BaseLevel):
                 self._time_paradox_event("Clone and crate on the same field %s [Non-Determinism]" \
                                              % str(clone.position))
                 return
-
+            if not self.get_field(clone.position).can_enter:
+                self._time_paradox_event("Clone is on an unreachable field at end of turn: %s" \
+                                         % str(clone.position))
+                return
 
         if not self._got_goal and self.goal_location.position in entered:
             self._got_goal = True
@@ -706,13 +709,10 @@ class Level(BaseLevel):
         clone.position = dest_pos
         self._emit_event(GameEvent(action, source=clone))
 
-        if not self.get_field(dest_pos).can_enter:
-            self._time_paradox_event("Clone is on an unreachable field at end of turn: %s" \
-                                         % str(dest_pos))
-            raise TimeParadoxError
         # we cannot check if a crate is on top of the clone here (reliably at least)
         # because the clone may move before it is mow'ed down (rather than moving into
         # a box).  So we wait till moves have been done.
+        # - We also defer checking if a clone is now stuck in a gate (etc.)
 
     def _move_clone_w_crate(self, clone, crate, clone_dest_pos, crate_dest_pos, action):
         # Move the crate first...
