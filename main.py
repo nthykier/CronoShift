@@ -47,6 +47,7 @@ from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
+from chrono.ctrl.diag import ErrorDialog
 from chrono.view.game_window import GameWindow
 
 class OpenLevelDialog(gui.Dialog):
@@ -478,10 +479,7 @@ class Application(gui.Desktop):
         self.level.start()
 
     def _show_error(self, title_msg, body_msg):
-        c = gui.Container()
-        c.add(gui.Label(body_msg), 8, 8)
-        d = gui.Dialog(gui.Label(title_msg), c)
-        d.open()
+        ErrorDialog(body_msg, title_msg).open()
 
     def play_solution(self, *args):
         if not self.level:

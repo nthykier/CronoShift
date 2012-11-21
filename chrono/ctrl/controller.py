@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import pygame.locals as pg
 from pgu import gui
 
-from chrono.ctrl.diag import ConfirmDialog
+from chrono.ctrl.diag import ConfirmDialog, ErrorDialog
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -103,17 +103,28 @@ class PlayKeyController(KeyController):
             # Let the current animation finish first...
             return e.key in self._controls
         action = self._controls.get(e.key, None)
+        l = self.level
         if not action:
             return False
-        if action == "enter-time-machine" and self.level.turn[0] < 1:
-            diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
-                                     % self.level.turn[0])
-            diag.connect(gui.CHANGE, self._action2handler[action], action)
-            diag.open()
-            return # Don't consume here or the dialog won't work
+        if action == "enter-time-machine":
+            if l.turn[0] < 1:
+                # turn 1, we are sure the "current self" is active and outside
+                # the time machine
+                diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
+                                         % self.level.turn[0])
+                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.open()
+                return # Don't consume here or the dialog won't work
+            if not l.active_player:
+                ErrorDialog("The player is already inside the time machine.\n" +
+                            "Did you want to skip turn?", "Illegal move").open()
+                return
+            if l.active_player.position != l.start_location.position:
+                ErrorDialog("The player must be on top of the time machine to enter it.", "Illegal move").open()
+                return
         if self.confirm_eot_on_start and action == "skip-turn":
-            current_clone = self.level.active_player
-            if current_clone is not None and current_clone.position == self.level.start_location.position:
+            current_clone = l.active_player
+            if current_clone is not None and current_clone.position == l.start_location.position:
                 diag = ConfirmDialog("Do you really want to skip your time on the time machine?")
                 diag.connect(gui.CHANGE, self._action2handler[action], action)
                 diag.open()
