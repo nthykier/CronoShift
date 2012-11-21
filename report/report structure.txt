@@ -1,0 +1,55 @@
+Introduction
+- a short overview of the game, relation to existing games 
+ 
+Detailed Description of the Game
+- game rules (NT)
+- desired features (NT)
+	game elements
+		teleporters
+		shift mechanic
+		"Dance evolution" pile (show movements of other clones)
+- technical challenges
+	synchronization
+	non-determanism
+	time paradoxes
+		how to recognise (e.g. at the curent step is it still possible to somehow reach the time machine?)
+	Level design
+		is the level solveable and are there trivial/brute force solutions?
+			the optimal solution?
+			simply fix by scoring games
+-emotional engagement of player (TBN)
+	off by one error?!
+	primaryly should invoke joy from solving problem and finding a new way of thinking
+ 
+Implementation (Alex)
+- technical design including short description of the game's scripts and reasons for choosing this design.
+	model-view-controller 
+		view-controller er næsten seperaret
+		model er fuldstændigt seperaret
+			viewet bruger modellen
+		controlleren bruger viewet en gang imellem
+			controlleren har mulighed for at bede viewet om at highlighte felter (når der peges med musen)
+- implementation issues, note any particular technical difficulties and work-arounds.
+ 	unity problemmer
+	sound?
+
+
+Analysis
+- discuss the playability of the game (prototype? or theoritical game?). (TBN) 
+- give a summary of feedback from having a few friends play the game. (TBN)
+ 
+Discussion
+- discuss the evolution of your game concept from your original pitch to the final version. (TBN)
+	started with shift + chronotron, ended up with sokuban + chronotron
+- what would you do differently if you knew at the start what you know now. 
+
+Conclusion
+ 
+Future work
+- what would be your next steps if you were to continue working on the game.
+	ditch pygame and PGU?
+	implement more desired features
+
+References
+- list of resources and references you used
+ 
