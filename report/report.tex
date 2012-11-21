@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \usepackage{pdflscape}
 \usepackage{verbatim}
+\usepackage{hyperref}
 \usepackage[font=small,labelfont=bf]{caption}
 
 % Kudos to Rasmus Melgaard (s040873) for the basic template.
@@ -35,7 +36,7 @@
     \centering
     \includegraphics[width=#1\textwidth]{#2.png}
     \caption{#3}
-    \label{#2}
+    \label{fig:#2}
     \end{figure}
 }
 

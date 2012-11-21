@@ -1,12 +1,40 @@
 \section{Game description}
 
-This section will cover the game rules, the (un)implemented features,
-and the technical challenges of making the game.
+This section will cover the game representation, its rules, the
+(un)implemented features, and the technical challenges of making the
+game.
 
-\subsection{Game rules}
-To complete a level, the player must obtain the goal (``gold coin''),
-return to start and enter the time machine.  Each turn, the player can
-do one of the following moves:
+\subsection{Game basics}
+The game world is represented as a grid.  Each tile is basically
+either a:
+
+\begin{itemize}
+\item field - passable, stateless
+\item wall - impassable, stateless
+\item button - passable, source (activator)
+\item gate - passible/impassable, target (activatable)
+\end{itemize}
+
+There are two special singleton fields, the ``time machine'' and
+the ``goal''.  Both fields are passable like a normal field, but
+they have special game semantics, which will be covered in the
+game rules.
+
+There are two movable elements, namely the player(s) and crates.  The
+former are directly controlled by the player and the latter can be
+pushed by the player.
+
+A screenshot of graphical representation of the elements is available
+in figure~\ref{fig:IconExplanation}.
+
+\figurepng{IconExplanation}{A visual representation of the game}
+
+\paragraph{Game objective}
+To complete a given level, the player must obtain the goal (``gold coin''),
+return to the time machine and enter it.
+
+\subsection{Player actions}
+Each turn, the player can do one of the following moves:
 
 \begin{itemize}
 \item Stand still (i.e. ``do nothing'')
@@ -24,32 +52,53 @@ The player has the ability to go back in time to the first turn.  As
 the player goes back in time, the world will reset it self to its
 initial state, but with one crucial difference.
 
-There is now an extra player in the level; namely the ``current self''
-that performed the time jump and the ``past self/selves''.  The latter
-will carry out their actions (as the player did in that time jump) and
-eventually enter the time machine.
+There is now an extra ``player'' in the level; namely the ``current
+self'' that performed the time jump and the ``past self/selves''.  The
+latter will carry out their actions (as the player did in that time
+jump) and eventually enter the time machine.
 
 All ``selves'' are identically in terms of play rules (e.g. any of
-them can pick up the goal).  The only difference is that the player
-actively controls the ``current self''.
+them can pick up the goal).  Particularly, all ``selves'' must
+eventually enter the time machine.  The only difference is that the
+player actively controls the ``current self''.
 
 Time jumping allows the player to do things that would not otherwise
-be possible, though at the risk of introducing temporal paradoxes.
+be possible by playing ``ping-poing'' with his/her ``past selves'',
+though at the risk of introducing temporal paradoxes (see
+\nameref{temporal-paradox}).
+
+Any number of ``player selves'' are allowed to occupy the same
+tile.
+
+\subsubsection{Buttons and gates}
+The player can also manipulate the game world via buttons (an
+``activator''), which then triggers a gate (an ``activatable'').
+
+Buttons are ``on'' when either a create or at least one ``player
+self'' is on top.  While the button is ``on'' it will keep its
+``activatables'' active.  As an example, consider the little game
+world in figure~\ref{fig:button-gate-ex}.
+
+\figurepng{button-gate-ex}{A small example game with a button and a closed gate}
+
+
 
 \subsubsection{Losing}
 
-There are three different ways of losing.
+There are three different ways of losing
+\footnote{Implementation Detail: The game calls all cases for a ``Time paradox''.}.
 
 \paragraph{Getting stuck}
-If the player gets stuck and is unable to return to start, it is not
-possible to win.  If the player gets stuck in a closed gate or a
-crate, the game will automatically mark the game as lost.
+If a ``player self'' gets stuck and is unable to return to start, it
+is not possible to win.  If the player gets stuck in a closed gate or
+a crate, the game will automatically mark the game as lost.
 
 If the player simply manages to ``lock himself/herself into a corner''
 with no path back to start, the game will still continue (despite being
 unsolvable) until the player restarts/gives up.
 
 \paragraph{Temporal paradox}
+\label{temporal-paradox}
 As the name suggests, a temporal paradox (``time paradox'') is a bad
 thing.  What happens if your current self prevent your past self from
 becoming the current self?  In this game, you simply lose.
