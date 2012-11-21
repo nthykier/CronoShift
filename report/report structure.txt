@@ -13,9 +13,10 @@ Detailed Description of the Game
 	non-determanism
 	time paradoxes
 		how to recognise (e.g. at the curent step is it still possible to somehow reach the time machine?)
-	is the level solveable and are there trivial/brute force solutions?
-		the optimal solution?
-		simply fix by scoring games
+	Level design
+		is the level solveable and are there trivial/brute force solutions?
+			the optimal solution?
+			simply fix by scoring games
 -emotional engagement of player (TBN)
 	off by one error?!
 	primaryly should invoke joy from solving problem and finding a new way of thinking
