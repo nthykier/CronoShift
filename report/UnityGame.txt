@@ -1,0 +1,85 @@
+UnityGame
+Hollywood pitch
+	The unholy marriage between Skokoban and Chronotron
+
+
+Design document
+Map
+	Holder styr på vægge, knapper og lignende
+
+Central turn manager med script
+	styrer klonerne
+	effekten af en handling udføres turen efter
+
+Klonerne optager, husker og replayer egne handlinger 
+	- optager nuværende klon
+	- muligt at optage ulovlig handlinger
+	- kloner kan være på samme felt
+	
+Ventefunktion
+Highlight aktiv klon
+
+Paradoks
+Post move if in wall => paradoks
+Paradoks og gameover hvis en af de tidligere kloner ikke er ved start ved enden af sine handlinger
+
+Objekter
+Sokoban box
+	- Kan ikke skubbes ind i andre bokse
+	- Boks og klon der ender på samme felt resulterer i paradoks
+	- Kan aktivere knapper
+Knapper
+	- Kan aktiveres af en box eller klon
+
+UI
+	- "Dance evolution" pile + turn counter
+Score
+	- Sum(moves)+(kloner)
+	- min score er bedst
+	
+Extra mekanismer
+	- Mulighed for at gå på loftet
+	- muligvis max antal moves i alt
+	- muligvis max antal moves per klon
+
+Leveleditor file format
+	- Endline immunity \r ? \n
+	
+int, int
++++++
++S G+
++++++
+
+Wall: +
+field: " "
+start: S
+goal: G
+box: ??
+button: b
+open gate: "_"
+closed gate: "-"
+
+____________________________________________________
+
+TODO list of things to do
+____________________________________________________
+
+Specifications
+One page desciption of the game
+Pictures showing progression through a level
+Think about engagement and emotions invoked in the player
+Think about sound
+
+Small arrow to indicate active clone
+Main menu with level select
+Move to next level upon completion
+UI arrows to indicate action
+Paradox game over screen with sounds
+
+Optional
+Gates with multiple buttons
+Narrow passage that collapses
+Teleporters with activators
+Shift feature with buttons
+Limited turn number per clone
+Interesting levels with new mechanics
