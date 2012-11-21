@@ -54,7 +54,7 @@ Wall: +
 field: " "
 start: S
 goal: G
-box: ??
+box: C
 button: b
 open gate: "_"
 closed gate: "-"
