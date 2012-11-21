@@ -47,6 +47,7 @@ from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
+from chrono.ctrl.diag import ErrorDialog
 from chrono.view.game_window import GameWindow
 
 class OpenLevelDialog(gui.Dialog):
@@ -233,6 +234,14 @@ def make_game_ctrls(app, width, height):
     spacer = 8
     from_top = spacer
     from_left = spacer
+
+    enter_tm = gui.Button("Enter time machine")
+    enter_tm.connect(gui.CLICK, app.play_ctrl.perform_move,
+                     "enter-time-machine")
+    c.add(enter_tm, from_left, from_top)
+    enter_tm.rect.w, enter_tm.rect.h = enter_tm.resize()
+
+    from_left += enter_tm.rect.w + spacer
 
     play_s = gui.Button("Play Solution")
     play_s.connect(gui.CLICK, app.play_solution, None)
@@ -425,13 +434,17 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
-        if ge.event_type == "game-complete":
-            self.win_sound.play()
-        elif ge.event_type == "time-paradox":
-            self.time_paradox_sound.play()
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
+
+        if ge.event_type == "game-complete":
+            self.win_sound.play()
+            self.auto_play = None
+        elif ge.event_type == "time-paradox":
+            self.time_paradox_sound.play()
+            self.auto_play = None
+
         if not self.skip_till_time_jump.value:
             return
         if ge.event_type != "end-of-turn":
@@ -478,10 +491,7 @@ class Application(gui.Desktop):
         self.level.start()
 
     def _show_error(self, title_msg, body_msg):
-        c = gui.Container()
-        c.add(gui.Label(body_msg), 8, 8)
-        d = gui.Dialog(gui.Label(title_msg), c)
-        d.open()
+        ErrorDialog(body_msg, title_msg).open()
 
     def play_solution(self, *args):
         if not self.level:

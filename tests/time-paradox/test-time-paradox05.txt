@@ -9,6 +9,6 @@ button (3, 1) -> gate (2, 2)
 
 Description: Walking into a closed gate is a time-paradox or a time-paradox
 Solution:
- ES NW T
+ ES HN WT
  .
- EE WW T
+ EH EW WT

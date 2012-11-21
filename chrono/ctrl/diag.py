@@ -28,6 +28,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pgu import gui
 
+class ErrorDialog(gui.Dialog):
+    def __init__(self, msg, title="Error!"):
+        self.title = gui.Label(title)
+        self.body = gui.Table()
+        button_ok = gui.Button("Ok")
+        # Handle multiple messages (works only because the text is
+        # not changed)
+        for line in msg.split("\n"):
+            self.body.tr()
+            self.body.td(gui.Label(line))
+        self.body.tr()
+        self.body.td(button_ok)
+        button_ok.connect(gui.CLICK, self.close)
+
+        super(ErrorDialog, self).__init__(self.title, self.body)
+
 class ConfirmDialog(gui.Dialog):
 
     def __init__(self, msg, title="Are you certain?"):
@@ -35,8 +51,11 @@ class ConfirmDialog(gui.Dialog):
         self.body = gui.Table()
         button_ok = gui.Button("Confirm")
         button_no = gui.Button("Cancel")
-        self.body.tr()
-        self.body.td(gui.Label(msg))
+        # Handle multiple messages (works only because the text is
+        # not changed)
+        for line in msg.split("\n"):
+            self.body.tr()
+            self.body.td(gui.Label(line))
         self.body.tr()
         self.body.td(button_ok)
         self.body.td(button_no)

@@ -1,0 +1,98 @@
+\section{Game description}
+
+This section will cover the game rules, the (un)implemented features,
+and the technical challenges of making the game.
+
+\subsection{Game rules}
+To complete a level, the player must obtain the goal (``gold coin''),
+return to start and enter the time machine.  Each turn, the player can
+do one of the following moves:
+
+\begin{itemize}
+\item Stand still (i.e. ``do nothing'')
+\item Attempt to move to a neighbouring square (i.e. up, down, left or right)
+\item Enter time machine (only allowed on top of the time-machine)
+\end{itemize}
+
+The player can push a crate by moving ``into'' it provided that the
+destination for the crate is available.  It is not possible to
+``pull'' crates and the player can push at most one crate.  These
+are basically the same rules used in Sokoban for moving crates.
+
+\paragraph{Time jumping}
+The player has the ability to go back in time to the first turn.  As
+the player goes back in time, the world will reset it self to its
+initial state, but with one crucial difference.
+
+There is now an extra player in the level; namely the ``current self''
+that performed the time jump and the ``past self/selves''.  The latter
+will carry out their actions (as the player did in that time jump) and
+eventually enter the time machine.
+
+All ``selves'' are identically in terms of play rules (e.g. any of
+them can pick up the goal).  The only difference is that the player
+actively controls the ``current self''.
+
+Time jumping allows the player to do things that would not otherwise
+be possible, though at the risk of introducing temporal paradoxes.
+
+\subsubsection{Losing}
+
+There are three different ways of losing.
+
+\paragraph{Getting stuck}
+If the player gets stuck and is unable to return to start, it is not
+possible to win.  If the player gets stuck in a closed gate or a
+crate, the game will automatically mark the game as lost.
+
+If the player simply manages to ``lock himself/herself into a corner''
+with no path back to start, the game will still continue (despite being
+unsolvable) until the player restarts/gives up.
+
+\paragraph{Temporal paradox}
+As the name suggests, a temporal paradox (``time paradox'') is a bad
+thing.  What happens if your current self prevent your past self from
+becoming the current self?  In this game, you simply lose.
+
+\paragraph{Non-Determinism}
+All valid actions are carried out ``simultaneously''.  If one (or
+more) valid action(s) causes another valid action to fail, the result
+is non-deterministic.
+
+As an example, consider if two clones attempt to push the same
+crate.  This gives 3 cases, of which one is non-deterministic.
+
+\begin{itemize}
+\item Both clones pushes it in the same direction (i.e. they perform
+  the same action and start on the same field), the actions are
+  deterministic and will be carried out.
+\item Both clones pushes it in opposite directions.  In this case,
+  both actions are ``invalid'' because each clone can conclude (before
+  pushing) that the move will not work.  This is deterministic and
+  result in none of the clones moving.
+\item The clones pushes it in ortogonal directions.  This causes
+  non-determinism as each clone believe the action is valid, but
+  both actions cannot be carried out.
+\end{itemize}
+
+This rule is (also) a generalization of getting stuck in a gate or
+crate.
+
+\subsubsection{Scoring}
+The player is scored on the number of moves performed and the number
+of time jumps used.  For comparsion, the lowest score is considered
+best (i.e. most efficient).  The scoring rules are:
+
+\begin{itemize}
+\item 1 point per move or skipped turn by the ``current self''.
+  Entering the time machine counts as a move.
+\item 1 point per skipped turn while the ``current self'' is outside
+  the time machine.  0 points if the ``current self'' is inside the
+  time machine.
+\item 1 point for every time jump performed.
+\end{itemize}
+
+\subsection{Desired features}
+
+\subsection{Technical challenges}
+
