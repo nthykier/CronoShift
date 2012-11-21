@@ -235,6 +235,14 @@ def make_game_ctrls(app, width, height):
     from_top = spacer
     from_left = spacer
 
+    enter_tm = gui.Button("Enter time machine")
+    enter_tm.connect(gui.CLICK, app.play_ctrl.perform_move,
+                     "enter-time-machine")
+    c.add(enter_tm, from_left, from_top)
+    enter_tm.rect.w, enter_tm.rect.h = enter_tm.resize()
+
+    from_left += enter_tm.rect.w + spacer
+
     play_s = gui.Button("Play Solution")
     play_s.connect(gui.CLICK, app.play_solution, None)
     c.add(play_s, from_left, from_top)
