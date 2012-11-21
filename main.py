@@ -434,13 +434,17 @@ class Application(gui.Desktop):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
-        if ge.event_type == "game-complete":
-            self.win_sound.play()
-        elif ge.event_type == "time-paradox":
-            self.time_paradox_sound.play()
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
+
+        if ge.event_type == "game-complete":
+            self.win_sound.play()
+            self.auto_play = None
+        elif ge.event_type == "time-paradox":
+            self.time_paradox_sound.play()
+            self.auto_play = None
+
         if not self.skip_till_time_jump.value:
             return
         if ge.event_type != "end-of-turn":
