@@ -22,6 +22,7 @@ button (11, 2) -> gate (9, 9)
 button (11, 9) -> gate (5, 2)
 button (11, 9) -> gate (5, 3)
 
+Decription: You can't push more than one box at a time.
 Solution:
  EE EH HH HH HH HH HH HH HH WW WT
  .

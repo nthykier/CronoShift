@@ -17,7 +17,7 @@ button (1, 7) -> gate (1, 2)
 button (2, 8) -> gate (5, 2)
 button (3, 7) -> gate (5, 5)
 
-Description: This is impossible to solve without Magic.
+Description: It's not a paradox if you resolve it simultaniously.
 Solution:
  SW SS HW EH HS HH NH EW NN EN T
  .

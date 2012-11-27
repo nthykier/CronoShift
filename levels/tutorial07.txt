@@ -14,7 +14,7 @@ button (5, 3) -> gate (3, 5)
 button (7, 3) -> gate (3, 2)
 button (7, 3) -> gate (4, 5)
 
-Description: You just cannot do this in Sokoban.
+Description: Crates are not always so easy to get out of the way.
 Solution:
  EE SS EH HH HH HH EW WN NW WT
  .

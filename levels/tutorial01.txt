@@ -7,6 +7,6 @@
 
 nothing
 
-Description: Straight forward.
+Description: Get the coin, and get back in the time machine.
 Solution:
  EE SS WW NN T

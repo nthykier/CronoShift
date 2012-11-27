@@ -140,6 +140,22 @@ class NewLevelDialog(gui.Dialog):
         gui.Dialog.__init__(self,title,t)
 
 
+class Description(gui.Label):
+
+    def __init__(self):
+        super(Description, self).__init__()
+        self._description = None
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, ndescription):
+        if self._description != ndescription:
+            self._description = ndescription
+            self.set_text("Hint: %s" % ndescription)
+
 class ScoreTracker(gui.Label):
 
     def __init__(self):
@@ -307,11 +323,12 @@ class Application(gui.Desktop):
         super(Application, self).__init__(**params)
         self.connect(gui.QUIT, self.quit, None)
 
-        self.widget = CTRLWidget(width=640,height=480)
+        self.widget = CTRLWidget(width=640,height=490)
 
         self._mode = "play"
         self.fcounter = 0
         self.score = ScoreTracker()
+        self.description = Description()
         self.edit_level = None
         self.level = None
         self.auto_play = None
@@ -365,8 +382,8 @@ class Application(gui.Desktop):
         from_top += self.score.rect.h + spacer
 
 
-        play_ctrls = make_game_ctrls(self, width=640, height=480 - from_top)
-        edit_ctrls = make_edit_ctrls(self, width=640, height=480 - from_top)
+        play_ctrls = make_game_ctrls(self, width=640, height=490 - from_top)
+        edit_ctrls = make_edit_ctrls(self, width=640, height=490 - from_top)
 
         self.group = gui.Group(name='ctrl-mode', value="play")
 
@@ -381,6 +398,10 @@ class Application(gui.Desktop):
         edit_mode.rect.w, edit_mode.rect.h = edit_mode.resize()
 
         from_top += play_mode.rect.h + spacer
+
+        c.add(self.description, spacer, from_top)
+        self.description.rect.w, self.description.rect.h = self.description.resize()
+        from_top += self.description.rect.h + spacer
 
         w = gui.ScrollArea(play_ctrls)
 
@@ -478,9 +499,10 @@ class Application(gui.Desktop):
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
         self.play_mctrl.level = self.level
-        self.edit_mctrl.level = edit_level
+        self.edit_mctrl.level = edit_level 
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
+        self.description.description = self.level.get_metadata_raw("description")
         lvl = self.edit_level
         grid = True
         if self.mode == "play":

@@ -10,8 +10,7 @@
 button (3, 1) -> gate (2, 2)
 button (3, 1) -> gate (2, 4)
 
-Description: Show that a button can affect more than one gate
- and it is not always enough to just "keep it pressed!".
+Description: You might want to move away from the button.
 Solution:
  EE HW HH HH HE HW WT
  .

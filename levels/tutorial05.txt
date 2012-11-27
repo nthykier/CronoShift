@@ -12,7 +12,7 @@ button (7, 3) -> gate (3, 4)
 button (7, 3) -> gate (4, 3)
 button (7, 3) -> gate (6, 2)
 
-Description: Simple case with a crate that is in the way.
+Description: Crates can be pushed.
 Solution:
  WW SS SH HH HH HH HH HN NN EE T
  .

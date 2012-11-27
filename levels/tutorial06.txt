@@ -17,7 +17,7 @@ button (1, 5) -> gate (3, 4)
 button (1, 5) -> gate (4, 5)
 button (6, 5) -> gate (4, 5)
 
-Description: Surely, you can solve this level by now.
+Description: Move the mouse over an object to see what it connects to.
 Solution:
  EE EE WH EH HH HH HH HH HW WW WT
  .
