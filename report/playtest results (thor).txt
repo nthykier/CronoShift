@@ -1,0 +1,43 @@
+jerik
+sværhedsgraden ramper måske for hurtigt
+	kræver nok en del forklaring, hvilket vil blive ret langt hvis det skal blandes ind i 'forhistorie'
+	bane 4 er muligvis for svær?
+svært at forstå hvad 'vent' betyder, det skal specificeres meget at de tidligere kopier bevæger sig samtidigt
+	evt komme med directe hints som "prøv at vent på en knap"
+til spiltest er det vigtigt ikke at overvåge
+muligvis intruducer port og kloner uafhængigt af hinanden på en eller anden måde
+har muligvis brug for succes oplevelser, så bruger ikke lægger spillet fra sig med det samme.
+time machine skal være mere tydelig, jeg foreslår at vi udskifter den med huset? eller en ting af lignende størrelse
+er svært at forstå at man kun styre en af klonerne, den aktive skal være meget tydeligt anderledes (pil er muligvis ikke nok, da i chronotron er det realtime)
+vigtigt at muspegning bliver pointeret, bruger havde ingen ide.
+bane introducer
+	1
+		piletaster
+		tidsmaskine (enter)
+		mønt
+	2
+		vent (mellemrum)
+		time-jump (flere kloner)
+		hvis alle tidligere udgaver ikke kommer hjem sker der et tidsparadox!
+	3
+		? denne bane er redundant
+	4
+		mere 2 kloner
+	5
+		kasser kan skubes.
+	6
+		peg med musen og se hvad der hører til hvad
+		nu skal der tænkes!		
+jacob
+fortalt at man kan interegere med tidligere versioner af sig selv, derudover gav jeg hints for de første 3 levels 
+"get the gold and get back to the time rift"
+"previous versions of you can stay the fire"
+"you are many"
+
+måske burde der gives hints til hvor mange kloner er nødvendigt?
+mistede hurtigt interresse, han "gad ikke" og droppede baner lige så snart han havde luret konceptet. muligvis fordi han vidste at han bare kunne komme videre.
+Pointne virker ikke helt som en del af spillet, men at flashe dem over skærmen (eller lignende ville sikkert hjælpe)
+han havde ikke brug for meget information for at lure spillet, selvom den tredje klon kunne han ikke lige wrappe sit hoved omkring intuitivt.
+skulle måske have en "hint" knap. som gjorde virkede med i point systemmet?
+bør vi kunne detectere om der er sket tidsparadox? altså at man ikke er død, men at det ikke er muligt at komme hjem
+level 6 er meget sværere end de tidligere
