@@ -1,0 +1,41 @@
+Erfaren flash game spiller klarede første 10 levels uden hjælp og uden store problemer (med masser af udfordring dog) på 1 times tid
+
+ville gerne lave den "perfekte" løsning
+
+"jeg får brug for rigtigt mange ture!"
+	han brugte bare 'nok'
+
+spellcheck hints!
+var irriteret over at få hints
+	should have a show hint button!
+
+problem
+	vidste nogle gange ikke helt hvilken klon der var den rigtige
+
+Hint til level 7 bør simplificeres
+
+meget ordentlig, sad og talte ture. Eksperimenterede ikke særligt meget.
+
+foreslag
+	gør det muligt at hoppe mere end 1 klon tilbage
+	
+'sukkede' var irriteret over at han skulle tælle så meget
+	spillede videre fordi han havde lovet mig det.
+
+level 10 hint: (disapeared), but should be updated
+	watch out for traps
+	han klarrede den med mimic movements! ikke med dobbelt box løsningen
+
+var irriteret over at "kende" løsningen, men at skulle bruge lang tid på at 'programmere' det
+
+Forslag
+3 stjener løsninger
+	gå 1 stjerne ned for at bruge for mange kloner
+		han gik altid efter at resete 
+	gå 1 stjerne ned for at se hint
+
+pop-up window: Do you really want to skip your turn on the time machine
+	Confirm DOES NOT WORK!
+
+simultaneous button clicking results in more and more shifting of the map with more clones
+
