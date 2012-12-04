@@ -414,11 +414,12 @@ class Level(BaseLevel):
         self._clones = [self._player]
         self._crates = self._crates_orig.copy()
         self._emit_event(GameEvent('add-player-clone', source=self._player))
-
+        self._emit_event(GameEvent('end-of-event-sequence'))
 
     def perform_move(self, action):
         if self._do_action(action):
             self._do_end_of_turn()
+            self._emit_event(GameEvent('end-of-event-sequence'))
 
     def _time_paradox_event(self, msg):
         self._time_paradox = True
@@ -613,6 +614,7 @@ class Level(BaseLevel):
         self._player = PlayerClone(self.start_location.position, self._actions)
         self._clones.append(self._player)
         self._emit_event(GameEvent('add-player-clone', source=self._player))
+        self._emit_event(GameEvent('end-of-event-sequence'))
 
     def _reset_movables(self, clones=True):
         """Reset all movables to their start positions
