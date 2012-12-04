@@ -28,7 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from collections import deque
 import functools
-from itertools import imap, ifilter, chain, izip, takewhile
+from itertools import (imap, ifilter, chain, izip, takewhile, product,
+                       starmap)
 from operator import attrgetter
 import re
 
@@ -357,6 +358,7 @@ class Level(BaseLevel):
         self._clones = [] # clones (in order of appearance)
         self._actions = [] # actions done by current player (i.e. clone)
         self._crates_orig = {} # memory variables
+        self._sources = []
 
 
     @property
@@ -385,6 +387,9 @@ class Level(BaseLevel):
     def load_level(self, *args, **kwords):
         super(Level, self).load_level(*args, **kwords)
         self._crates_orig = self._crates.copy()
+        is_source = attrgetter("is_activation_source")
+        all_pos = starmap(Position, product(xrange(self._width), xrange(self._height)))
+        self._sources = list(ifilter(is_source, imap(self.get_field, all_pos)))
 
     def init_from_level(self, other, *args, **kwords):
         if not other.start_location:
@@ -393,6 +398,9 @@ class Level(BaseLevel):
             raise ValueError("Missing goal location")
         super(Level, self).init_from_level(other,*args, **kwords)
         self._crates_orig = self._crates.copy()
+        is_source = attrgetter("is_activation_source")
+        all_pos = starmap(Position, product(xrange(self._width), xrange(self._height)))
+        self._sources = list(ifilter(is_source, imap(self.get_field, all_pos)))
 
     def start(self):
         self._score = 0
@@ -515,7 +523,9 @@ class Level(BaseLevel):
         if entered or left:
             deactivated = left - entered - unchanged
             activated = entered - left - unchanged
-            self._changed_targets(activated, deactivated)
+            is_source = attrgetter("is_activation_source")
+            it = chain(deactivated, activated)
+            self._changed_targets(ifilter(is_source, imap(self.get_field, it)))
 
         try:
             for act in equeue:
@@ -610,13 +620,10 @@ class Level(BaseLevel):
         because it is the end of a time-jump with no time-paradoxes), the
         optional variable "clones" can be set to false.
         """
-        # De-activate fields with crates on them
-        r = list(self._crates)
-        if clones:
-            r.extend((c.position for c in self._clones))
-
-        self._changed_targets([], r)
+        # De-activate all sources
+        self._changed_targets(self._sources, reset=True)
         self._crates = self._crates_orig.copy()
+        # Move crates back to start...
         for p in self._crates:
             self._crates[p].position = p
             self._emit_event(GameEvent("jump-moveable", source=self._crates[p]))
@@ -681,22 +688,22 @@ class Level(BaseLevel):
     def iter_clones(self):
         return (c for c in self._clones)
 
-    def _changed_targets(self, activated, deactivated):
+    def _changed_targets(self, sources, reset=False):
         changed_targets = set()
-        is_source = attrgetter("is_activation_source")
-        it = chain(deactivated, activated)
+        change_func = lambda x: x.toggle_activation()
+        if reset:
+            change_func = lambda x: x.reset_to_init_state()
 
-        for f in ifilter(is_source, imap(self.get_field, it)):
+        for f in ifilter(change_func, sources):
             for t in f.iter_activation_targets():
                 if t in changed_targets:
                     changed_targets.discard(t)
                 else:
                     changed_targets.add(t)
-            f.toggle_activation()
-            if f in deactivated:
-                self._emit_event(GameEvent("field-deactivated", source=f))
-            else:
+            if f.activated:
                 self._emit_event(GameEvent("field-activated", source=f))
+            else:
+                self._emit_event(GameEvent("field-deactivated", source=f))
 
         for target in changed_targets:
             # targets have already been activated/deactivated at this point.
@@ -704,6 +711,7 @@ class Level(BaseLevel):
             if target.activated:
                 et = "field-activated"
             self._emit_event(GameEvent(et, source=target))
+
 
     def _move_clone(self, clone, dest_pos, action):
         clone.position = dest_pos
