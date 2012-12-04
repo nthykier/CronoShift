@@ -7,7 +7,7 @@
 ++G++
 +++++
 
-button (3, 2) -> gate (2, 4)
+button (1, 2) -> gate (2, 4)
 
 Description: Buttons can make campfires passable.
 Solution: 
