@@ -1,18 +1,18 @@
 2D SuperFun!
-+++++
-+S b+
-++-++
-+   +
-++_++
-+  G+
-+++++
+++++++
++Go- +
++-++ +
++ ++ +
++_S o+
++    +
+++++++
 
-button (3, 1) -> gate (2, 2)
-button (3, 1) -> gate (2, 4)
+button (2, 1) -> gate (3, 1)
+button (4, 4) -> gate (1, 2)
+button (4, 4) -> gate (1, 4)
 
-Description: You might want to move away from
- the button.
+Description: If you are stuck, return to start.
 Solution:
- EE HW HH HH HE HW WT
+ EE WW T
  .
- EH SS SS EW NN NN WT
+ WN NN EE ES SS WW T
