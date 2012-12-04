@@ -210,7 +210,6 @@ class GameWindow(gui.Widget):
 
     def _remove_special_field(self, evt):
         f = evt.source
-        print "RSF: %s at %s" % (str(f), str(f.position))
         _kill_sprite(self.animated_background_sprites, f.position)
 
     def _replace_tile(self, evt):
