@@ -205,12 +205,12 @@ class Button(Field):
         super(Button, self).__init__(*args, **kwords)
         self._is_source = True
 
-class OneShotButton(Button):
+class OneTimeButton(Button):
 
     def toggle_activation(self):
         if self.activated:
             return False
-        return super(OneShotButton, self).toggle_activation()
+        return super(OneTimeButton, self).toggle_activation()
 
     def reset_to_init_state(self):
         if self.activated:
@@ -236,6 +236,8 @@ def parse_field(symbol):
         return Field(symbol)
     if symbol == "b" or symbol == "B":
         return Button(symbol)
+    if symbol == "o":
+        return OneTimeButton(symbol)
     if symbol == "S":
         return StartLocation(symbol)
     if symbol == "G":

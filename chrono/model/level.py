@@ -36,7 +36,7 @@ import re
 from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
 from chrono.model.field import (parse_field, Position, Wall, Field, Gate, Button,
-                                StartLocation, GoalLocation)
+                                StartLocation, GoalLocation, OneTimeButton)
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -852,6 +852,7 @@ class EditableLevel(BaseLevel):
         'crate': functools.partial(Field, ' '),
         'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),
+        'onetimebutton': functools.partial(OneTimeButton, 'o'),
         'start': functools.partial(StartLocation, 'S'),
         'goal': functools.partial(GoalLocation, 'G'),
         }
