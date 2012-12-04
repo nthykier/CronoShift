@@ -4,18 +4,18 @@
 +++-++++
 +++-++++
 +++-+G++
-+b  _cb+
++b  _o++
 ++++++++
 
-button (5, 1) -> gate (3, 2)
-button (5, 1) -> gate (3, 4)
-button (6, 1) -> gate (3, 2)
-button (6, 1) -> gate (3, 3)
 button (1, 5) -> gate (3, 2)
 button (1, 5) -> gate (3, 3)
 button (1, 5) -> gate (3, 4)
 button (1, 5) -> gate (4, 5)
-button (6, 5) -> gate (4, 5)
+button (5, 1) -> gate (3, 2)
+button (5, 1) -> gate (3, 4)
+button (5, 5) -> gate (4, 5)
+button (6, 1) -> gate (3, 2)
+button (6, 1) -> gate (3, 3)
 
 Description: Move the mouse over an object to
  see what it connects to.
