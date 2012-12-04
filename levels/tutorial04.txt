@@ -1,20 +1,18 @@
 2D SuperFun!
-+++++
-+S b+
-++-++
-+  b+
-++-++
-+  G+
-+++++
+++++++
++Go- +
++-++ +
++ ++ +
++_S o+
++    +
+++++++
 
-button (3, 1) -> gate (2, 2)
-button (3, 3) -> gate (2, 4)
+button (2, 1) -> gate (3, 1)
+button (4, 4) -> gate (1, 2)
+button (4, 4) -> gate (1, 4)
 
-Description: Two of you, is one too few. Try not
- trap yourself.
+Description: If you are stuck, return to start.
 Solution:
- EE HH HH HH HH HH WW T
+ EE WW T
  .
- EH SS EH HH HH WN NW T
- .
- EH SS HS SE WN NN NW T
+ WN NN EE ES SS WW T

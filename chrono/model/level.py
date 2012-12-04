@@ -36,7 +36,7 @@ import re
 from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
 from chrono.model.field import (parse_field, Position, Wall, Field, Gate, Button,
-                                StartLocation, GoalLocation)
+                                StartLocation, GoalLocation, OneTimeButton)
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -327,7 +327,8 @@ class BaseLevel(object):
             fd.write("\n")
 
             for field in self.iter_fields():
-                if field.symbol != "b" and field.symbol != "B":
+                if (field.symbol != "b" and field.symbol != "B" and
+                    field.symbol != "o"):
                     continue
                 fieldname = "button"
                 tfieldname = "gate"
@@ -413,11 +414,12 @@ class Level(BaseLevel):
         self._clones = [self._player]
         self._crates = self._crates_orig.copy()
         self._emit_event(GameEvent('add-player-clone', source=self._player))
-
+        self._emit_event(GameEvent('end-of-event-sequence'))
 
     def perform_move(self, action):
         if self._do_action(action):
             self._do_end_of_turn()
+            self._emit_event(GameEvent('end-of-event-sequence'))
 
     def _time_paradox_event(self, msg):
         self._time_paradox = True
@@ -612,6 +614,7 @@ class Level(BaseLevel):
         self._player = PlayerClone(self.start_location.position, self._actions)
         self._clones.append(self._player)
         self._emit_event(GameEvent('add-player-clone', source=self._player))
+        self._emit_event(GameEvent('end-of-event-sequence'))
 
     def _reset_movables(self, clones=True):
         """Reset all movables to their start positions
@@ -817,6 +820,7 @@ class EditableLevel(BaseLevel):
             self._handle_set_state(position, *args)
         else:
             self._make_field(position, ctype)
+        self._emit_event(EditorEvent("end-of-event-sequence"))
 
     def _handle_set_state(self, position, new_state):
         field = self.get_field(position)
@@ -852,6 +856,7 @@ class EditableLevel(BaseLevel):
         'crate': functools.partial(Field, ' '),
         'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),
+        'onetimebutton': functools.partial(OneTimeButton, 'o'),
         'start': functools.partial(StartLocation, 'S'),
         'goal': functools.partial(GoalLocation, 'G'),
         }

@@ -1,21 +1,20 @@
 2D SuperFun!
-+++++++++
-+  S   ++
-+ ++++-++
-+ -c_  b+
-+b+-+++++
-+++G+++++
-+++++++++
++++++
++S b+
+++-++
++  b+
+++-++
++  G+
++++++
 
-button (1, 4) -> gate (2, 3)
-button (7, 3) -> gate (3, 4)
-button (7, 3) -> gate (4, 3)
-button (7, 3) -> gate (6, 2)
+button (3, 1) -> gate (2, 2)
+button (3, 3) -> gate (2, 4)
 
-Description: Crates can be pushed.
+Description: Two of you, is one too few. Try not
+ trap yourself.
 Solution:
- WW SS SH HH HH HH HH HN NN EE T
+ EE HH HH HH HH HH WW T
  .
- WW SS HE EE EE NN WW WT
+ EH SS EH HH HH WN NW T
  .
- WW SS HE EH HH SS NN WW NN EE T
+ EH SS HS SE WN NN NW T

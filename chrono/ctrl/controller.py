@@ -99,9 +99,6 @@ class PlayKeyController(KeyController):
     def event(self, e):
         if e.type != pg.KEYDOWN or not self.level:
             return False
-        if self.view.active_animation:
-            # Let the current animation finish first...
-            return e.key in self._controls
         action = self._controls.get(e.key, None)
         l = self.level
         if not action:

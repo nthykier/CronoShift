@@ -1,24 +1,18 @@
 2D SuperFun!
 ++++++++
-+b+++G++
-+_  c_b+
-+c+++ ++
-+ +S+c++
-+    _++
-++ ++b++
-+b b++++
-++b+++++
++G  b+++
++-+ c+++
++ S+_+++
+++   -b+
 ++++++++
 
-button (1, 1) -> gate (1, 2)
-button (6, 2) -> gate (5, 2)
-button (5, 6) -> gate (5, 5)
-button (1, 7) -> gate (1, 2)
-button (2, 8) -> gate (5, 2)
-button (3, 7) -> gate (5, 5)
+button (4, 1) -> gate (4, 3)
+button (4, 1) -> gate (5, 4)
+button (6, 4) -> gate (1, 2)
 
-Description: It is not a paradox if you resolve it simultaneously.
+Description: Your future self can move an obstacle
+ and you might enjoy walking into them.
 Solution:
- SW SS HW EH HS HH NH EW NN EN T
+ SE EH HH EE HH WW WW NT
  .
- SW WN NN EE EE NS SS SW WN T
+ SE EN NW NW WS SE T

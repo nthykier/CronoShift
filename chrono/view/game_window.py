@@ -83,8 +83,10 @@ class GameWindow(gui.Widget):
         self._clones = {}
         self._gates = {}
         self._crates = {}
+        self._done = True
         self.game_over = False
         self.active_animation = False
+        self._gevent_seq = []
         self._gevent_queue = Queue.Queue()
         self.level = None
         self._event_handler = {
@@ -118,8 +120,17 @@ class GameWindow(gui.Widget):
         if grid is not None:
             self.grid = grid
         self.level = level
-        level.add_event_listener(self._gevent_queue.put)
+        self._gevent_seq = []
+        self._gevent_queue = Queue.Queue()
+        level.add_event_listener(self._new_event)
         self._new_map()
+
+    def _new_event(self, e):
+        self._gevent_seq.append(e)
+        if e.event_type == "end-of-event-sequence":
+            # flush
+            self._gevent_queue.put(self._gevent_seq)
+            self._gevent_seq = []
 
     def _new_map(self, *args):
         self.shadows = pygame.sprite.RenderUpdates()
@@ -186,6 +197,8 @@ class GameWindow(gui.Widget):
                 ani_bg.state = GATE_CLOSED
         if field.symbol == 'b':
             ani_bg = Sprite(field.position, self.map_cache['stonebutton'])
+        if field.symbol == 'o':
+            ani_bg = Sprite(field.position, self.map_cache['onetimebutton'])
         if field.symbol == 'S':
             # Highlight the start location
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
@@ -208,7 +221,6 @@ class GameWindow(gui.Widget):
 
     def _remove_special_field(self, evt):
         f = evt.source
-        print "RSF: %s at %s" % (str(f), str(f.position))
         _kill_sprite(self.animated_background_sprites, f.position)
 
     def _replace_tile(self, evt):
@@ -258,7 +270,7 @@ class GameWindow(gui.Widget):
             if event.source.can_enter:
                 nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
-        if event.source.symbol == "b":
+        if event.source.symbol == "b" or event.source.symbol == "o":
             b = self.animated_background_sprites[src_pos]
             if b:
                 b.state = int(event.source.activated)
@@ -282,16 +294,17 @@ class GameWindow(gui.Widget):
         self.repaint()
 
     def process_game_events(self):
-        if self._gevent_queue.empty():
+        if not self._done or self._gevent_queue.empty():
             # if the game event queue is empty just skip the code below.
             return
         try:
-            while 1:
-                e = self._gevent_queue.get_nowait()
-                print "Event: %s" % e.event_type
+            seq = self._gevent_queue.get_nowait()
+            print "Event seq [%s]" % (", ".join(x.event_type for x in seq))
+            for e in seq:
                 if e.event_type not in self._event_handler:
                     continue
                 self._event_handler[e.event_type](e)
+            self._done = False
         except Queue.Empty:
             pass # expected
 
@@ -344,8 +357,12 @@ class GameWindow(gui.Widget):
         self.sprites.update()
         self.animated_background.update()
         has_animation = lambda x: self._clones[x][0].animation is not None
-        self.active_animation = any(itertools.ifilter(has_animation,
-                                                      self._clones))
+        active_animation = any(itertools.ifilter(has_animation,
+                                                 self._clones))
+        if not self._done and not active_animation:
+            self._done = True
+            self.active_animation = False
+
         self.shadows.update()
 
         # Don't add shadows to dirty rectangles, as they already fit inside

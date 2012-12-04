@@ -1,18 +1,23 @@
 2D SuperFun!
-++++++++
-+G  b+++
-+-+ c+++
-+ S+_+++
-++   -b+
-++++++++
++++++++++
++S__+++++
++++_+   +
+++b  bcb+
+++++++ ++
++G___  ++
++++++++++
 
-button (4, 1) -> gate (4, 3)
-button (4, 1) -> gate (5, 4)
-button (6, 4) -> gate (1, 2)
+button (2, 3) -> gate (2, 1)
+button (2, 3) -> gate (2, 5)
+button (5, 3) -> gate (3, 1)
+button (5, 3) -> gate (3, 5)
+button (7, 3) -> gate (3, 2)
+button (7, 3) -> gate (4, 5)
 
-Description: Your future self can move an obstacle
- and you might enjoy walking into them.
+Description: Crates are not always so easy to get
+ out of the way.
 Solution:
- SE EH HH EE HH WW WW NT
+ EE SS EH HH HH HH EW WN NW WT
  .
- SE EN NW NW WS SE T
+ EE SS EE NE ES WS SW WW WW EE EE EN NW WW NN WW T
+
