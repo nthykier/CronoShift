@@ -1,27 +1,21 @@
 2D SuperFun!
-++++++++
-+S  cbb+
-+++-++++
-+++-++++
-+++-+G++
-+b  _cb+
-++++++++
++++++++++
++  S   ++
++ ++++-++
++ -c_  b+
++b+-+++++
++++G+++++
++++++++++
 
-button (5, 1) -> gate (3, 2)
-button (5, 1) -> gate (3, 4)
-button (6, 1) -> gate (3, 2)
-button (6, 1) -> gate (3, 3)
-button (1, 5) -> gate (3, 2)
-button (1, 5) -> gate (3, 3)
-button (1, 5) -> gate (3, 4)
-button (1, 5) -> gate (4, 5)
-button (6, 5) -> gate (4, 5)
+button (1, 4) -> gate (2, 3)
+button (7, 3) -> gate (3, 4)
+button (7, 3) -> gate (4, 3)
+button (7, 3) -> gate (6, 2)
 
-Description: Move the mouse over an object to
- see what it connects to.
+Description: Crates can be pushed.
 Solution:
- EE EE WH EH HH HH HH HH HW WW WT
+ WW SS SH HH HH HH HH HN NN EE T
  .
- EE HH HS SS SW WH HH EE NN NN WW T
+ WW SS HE EE EE NN WW WT
  .
- EE HH HS SS SE EN SW WN NH NN WW T
+ WW SS HE EH HH SS NN WW NN EE T

@@ -1,18 +1,14 @@
 2D SuperFun!
 +++++
-++b++
-+ Sb+
-+  ++
++   +
++oS +
++   +
 ++-++
 ++G++
 +++++
 
-button (2, 1) -> gate (2, 4)
 button (3, 2) -> gate (2, 4)
 
-Description: Gray buttons can make campfires passable,
- but you might need more than one person.
+Description: Buttons can make campfires passable.
 Solution: 
- EH HH WT
- .
- SS SN NN T
+ WS ES SN NN T
