@@ -45,6 +45,7 @@ class Field(object):
         self._targets = set()
         self._sources = set()
         self._pos = position
+        self._init_state = False
 
     @property
     def position(self):
@@ -124,21 +125,36 @@ class Field(object):
     def is_wall(self):
         return False
 
-    def toggle_activation(self, newstate=None):
-        pass
+    def toggle_activation(self):
+        """Toggles the activation of this field
 
-    def on_enter(self, obj):
-        pass
+        returns True if the state of the field changes (some don't
+        change every time), or False otherwise.
 
-    def activate(self):
-        if not self._activated:
-            self._activated = True
-            self.toggle_activation(True)
+        For sources, it will (automatically) dispatch a toggle_activation
+        for each of its targets.  For targets the state is simply changed.
+        """
+        self._activated = not self._activated
+        if self.is_activation_source:
+            for t in self._targets:
+                t.toggle_activation()
+        return True
 
-    def deactivate(self):
-        if self._activated:
-            self._activated = False
-            self.toggle_activation(False)
+    def reset_to_init_state(self):
+        """[source-only] Called on time-jump or level/clone reset
+
+        This is called (instead of toggle_activation) when the time-jump
+        occurs and must reset the field to its original state.  If this
+        changes the state of the field, it must return True.  Otherwise
+        it must return False
+
+        Default will invoke toggle_activation if activated != init_state.
+        """
+
+        if self._activated != self._init_state:
+            self.toggle_activation()
+            return True
+        return False
 
     def copy(self):
         other = type(self)(self.symbol)
@@ -169,16 +185,15 @@ class Gate(Field):
         super(Gate, self).__init__(*args, **kwords)
         self._is_target = True
         if self.symbol == "-":
-            self._activated = True
+            self._init_state = self._activated = True
 
-    def toggle_activation(self, nstate=None):
-        if nstate is None:
-            # invert our state
-            self._activated = not self._activated
+    def toggle_activation(self):
+        self._activated = not self._activated
         if self._activated:
             self._symbol = '-'
         else:
             self._symbol = '_'
+        return True
 
     @property
     def can_enter(self):
@@ -190,35 +205,26 @@ class Button(Field):
         super(Button, self).__init__(*args, **kwords)
         self._is_source = True
 
-    def toggle_activation(self, newstate=None):
-        if newstate is None:
-            self._activated = not self._activated
-        for target in self._targets:
-            target.toggle_activation()
+class OneShotButton(Button):
+
+    def toggle_activation(self):
+        if self.activated:
+            return False
+        return super(OneShotButton, self).toggle_activation()
+
+    def reset_to_init_state(self):
+        if self.activated:
+            for target in self._targets:
+                target.toggle_activation()
+            self._activated = False
+            return True
+        return False
 
 class StartLocation(Field):
     pass
 
 class GoalLocation(Field):
     pass
-
-class Teleporter(Field):
-
-    def __init__(self, symbol):
-        super(Teleporter, self).__init__(symbol)
-        self.closed = True
-        self._is_target = True
-        self._is_source = True
-        if symbol == "d":
-            self.closed = False
-
-    def toggle_activation(self, _=True):
-        # invert our state
-        self.closed = not self.closed
-        if self.closed:
-            self._sym = 't'
-        else:
-            self._sym = 'd'
 
 def parse_field(symbol):
     if symbol == "+":

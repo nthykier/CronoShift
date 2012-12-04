@@ -119,7 +119,7 @@ class PlayKeyController(KeyController):
                 # the time machine
                 diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
                                          % self.level.turn[0])
-                diag.connect(gui.CHANGE, l.perform_move, action)
+                diag.connect(gui.CHANGE, self._action2handler[action], action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
             if not current_clone:

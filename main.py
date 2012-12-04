@@ -140,22 +140,6 @@ class NewLevelDialog(gui.Dialog):
         gui.Dialog.__init__(self,title,t)
 
 
-class Description(gui.Label):
-
-    def __init__(self):
-        super(Description, self).__init__()
-        self._description = None
-
-    @property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, ndescription):
-        if self._description != ndescription:
-            self._description = ndescription
-            self.set_text("Hint: %s" % ndescription)
-
 class ScoreTracker(gui.Label):
 
     def __init__(self):
@@ -278,6 +262,13 @@ def make_game_ctrls(app, width, height):
     c.add(reset_lvl, from_left, from_top)
     reset_lvl.rect.w, reset_lvl.rect.h = reset_lvl.resize()
 
+    from_left += reset_lvl.rect.w + spacer
+
+    hint = gui.Button("Show hint")
+    hint.connect(gui.CLICK, app.show_hint)
+    c.add(hint, from_left, from_top)
+    hint.rect.w, hint.rect.h = hint.resize()
+
     from_left = spacer
     from_top += reset_lvl.rect.h + spacer
 
@@ -328,7 +319,6 @@ class Application(gui.Desktop):
         self._mode = "play"
         self.fcounter = 0
         self.score = ScoreTracker()
-        self.description = Description()
         self.edit_level = None
         self.level = None
         self.auto_play = None
@@ -398,10 +388,6 @@ class Application(gui.Desktop):
         edit_mode.rect.w, edit_mode.rect.h = edit_mode.resize()
 
         from_top += play_mode.rect.h + spacer
-
-        c.add(self.description, spacer, from_top)
-        self.description.rect.w, self.description.rect.h = self.description.resize()
-        from_top += self.description.rect.h + spacer
 
         w = gui.ScrollArea(play_ctrls)
 
@@ -502,7 +488,6 @@ class Application(gui.Desktop):
         self.edit_mctrl.level = edit_level 
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
-        self.description.description = self.level.get_metadata_raw("description")
         lvl = self.edit_level
         grid = True
         if self.mode == "play":
@@ -558,6 +543,16 @@ class Application(gui.Desktop):
             self.edit_mctrl.field_tool = mode
         else:
             self.edit_mctrl.brush_mode = "none"
+
+    def show_hint(self):
+        if self.level:
+            h = self.level.get_metadata_raw("description")
+            if h is not None:
+                d = ErrorDialog(h, title="Hint")
+                d.open();
+            else:
+                d = ErrorDialog("No hint available", title="Sorry")
+                d.open();
 
     def write_level(self, *args):
         if not self.edit_level:
