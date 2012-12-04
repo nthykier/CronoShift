@@ -17,7 +17,7 @@ button (1, 7) -> gate (1, 2)
 button (2, 8) -> gate (5, 2)
 button (3, 7) -> gate (5, 5)
 
-Description: It's not a paradox if you resolve it simultaniously.
+Description: It is not a paradox if you resolve it simultaneously.
 Solution:
  SW SS HW EH HS HH NH EW NN EN T
  .

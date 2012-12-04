@@ -10,7 +10,8 @@ button (4, 1) -> gate (4, 3)
 button (4, 1) -> gate (5, 4)
 button (6, 4) -> gate (1, 2)
 
-Description: Your future self can move an obstacle and you might enjoy walking into them.
+Description: Your future self can move an obstacle
+ and you might enjoy walking into them.
 Solution:
  SE EH HH EE HH WW WW NT
  .

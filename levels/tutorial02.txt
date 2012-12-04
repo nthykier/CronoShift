@@ -10,7 +10,8 @@
 button (2, 1) -> gate (2, 4)
 button (3, 2) -> gate (2, 4)
 
-Description: Gray buttons can make campfires passable, but you might need more than one person.
+Description: Gray buttons can make campfires passable,
+ but you might need more than one person.
 Solution: 
  EH HH WT
  .
