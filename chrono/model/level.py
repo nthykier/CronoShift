@@ -820,6 +820,7 @@ class EditableLevel(BaseLevel):
             self._handle_set_state(position, *args)
         else:
             self._make_field(position, ctype)
+        self._emit_event(EditorEvent("end-of-event-sequence"))
 
     def _handle_set_state(self, position, new_state):
         field = self.get_field(position)
