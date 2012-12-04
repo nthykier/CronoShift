@@ -327,7 +327,8 @@ class BaseLevel(object):
             fd.write("\n")
 
             for field in self.iter_fields():
-                if field.symbol != "b" and field.symbol != "B":
+                if (field.symbol != "b" and field.symbol != "B" and
+                    field.symbol != "o"):
                     continue
                 fieldname = "button"
                 tfieldname = "gate"
