@@ -49,26 +49,30 @@ from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
 from chrono.ctrl.diag import ErrorDialog
 from chrono.view.game_window import GameWindow
+from chrono.view.tutorial import Tutorial
 
-class OpenLevelDialog(gui.Dialog):
-    def __init__(self,**params):
-        title = gui.Label("Open Level")
+class SelectLevelDialog(gui.Dialog):
+    def __init__(self, text, confirm_text, title, **params):
+        title = gui.Label(title)
 
         t = gui.Table()
 
         self.value = gui.Form()
         self.li = gui.Input(name="fname")
+        d = params.get('default_level', None)
+        if d is not None:
+            self.li.value = d
         bb = gui.Button("...")
         bb.connect(gui.CLICK, self.open_file_browser, None)
 
         t.tr()
-        t.td(gui.Label("Open: "))
+        t.td(gui.Label(text +": "))
         t.td(self.li,colspan=3)
         t.td(bb)
 
         t.tr()
-        e = gui.Button("Play")
-        e.connect(gui.CLICK,self.send,gui.CHANGE)
+        e = gui.Button(confirm_text)
+        e.connect(gui.CLICK,self.confirm)
         t.td(e,colspan=2)
 
         e = gui.Button("Cancel")
@@ -76,6 +80,10 @@ class OpenLevelDialog(gui.Dialog):
         t.td(e,colspan=2)
 
         gui.Dialog.__init__(self,title,t)
+
+    def confirm(self):
+        self.close()
+        self.send(gui.CHANGE)
 
     def open_file_browser(self, *arg):
         d = gui.FileDialog()
@@ -199,9 +207,9 @@ def make_edit_ctrls(app, width, height):
 
     from_left += play_lvl.rect.w + spacer
 
-    write_lvl = gui.Button("Write Level")
+    write_lvl = gui.Button("Save Level")
     c.add(write_lvl, from_left, from_top)
-    write_lvl.connect(gui.CLICK, app.write_level, None)
+    write_lvl.connect(gui.CLICK, app.save_level, None)
     write_lvl.rect.w, write_lvl.rect.h = write_lvl.resize()
 
     from_top += write_lvl.rect.h + spacer
@@ -337,10 +345,10 @@ class Application(gui.Desktop):
         self.ctrl_widget.key_ctrl = self.play_ctrl
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
-        self.open_lvl_d = OpenLevelDialog()
+        self.open_lvl_d = SelectLevelDialog("Open", "Play", "Open level")
         self.new_lvl_d = NewLevelDialog()
-        self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl, None)
-        self.new_lvl_d.connect(gui.CHANGE, self.new_map, None)
+        self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
+        self.new_lvl_d.connect(gui.CHANGE, self.new_map)
 
     def init(self, *args, **kwords):
         super(Application, self).init(*args, **kwords)
@@ -359,6 +367,7 @@ class Application(gui.Desktop):
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
                 ('File/Quit', self.quit, None),
+                ('Help/Tutorial', self.open_tutorial, None),
         ])
         c.add(menus, 0, from_top)
         menus.rect.w, menus.rect.h = menus.resize()
@@ -438,8 +447,7 @@ class Application(gui.Desktop):
         if self.level:
             self.level.perform_move('reset-level')
 
-    def action_open_lvl(self,value):
-        self.open_lvl_d.close()
+    def action_open_lvl(self):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
     def game_event(self, ge):
@@ -517,7 +525,7 @@ class Application(gui.Desktop):
         self.auto_play = solution2actions(sol)
         self.fcounter = 0
 
-    def new_map(self, *args):
+    def new_map(self):
         self.new_lvl_d.close()
         res = self.new_lvl_d.value
 
@@ -556,11 +564,19 @@ class Application(gui.Desktop):
                 d = ErrorDialog("No hint available", title="Sorry")
                 d.open();
 
-    def write_level(self, *args):
+    def save_level(self, *args):
         if not self.edit_level:
             return
+        d = self.edit_level.name
+        sld = SelectLevelDialog("Save", "Save", "Save level", default_level=d)
+        sld.connect(gui.CHANGE, self.write_level, sld)
+        sld.open()
+
+    def write_level(self, dialog):
         try:
-            self.edit_level.print_lvl("<stdout>", sys.stdout)
+            name = dialog.value['fname'].value
+            self.edit_level.print_lvl(name)
+            self.edit_level.name = name
         except IOError as e:
             self._show_error("Cannot save map", str(e))
 
@@ -581,6 +597,10 @@ class Application(gui.Desktop):
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
         self.level.start()
+
+    def open_tutorial(self, *args):
+        t = Tutorial()
+        t.open()
 
     def loop(self):
         self.game_window.process_game_events()

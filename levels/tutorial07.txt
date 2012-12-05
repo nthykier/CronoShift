@@ -1,6 +1,6 @@
 2D SuperFun!
 ++++++++
-+S  cbb+
++S   bb+
 +++-++++
 +++-++++
 +++-+G++
@@ -11,7 +11,7 @@ button (1, 5) -> gate (3, 2)
 button (1, 5) -> gate (3, 3)
 button (1, 5) -> gate (3, 4)
 button (1, 5) -> gate (4, 5)
-button (5, 1) -> gate (3, 2)
+button (5, 1) -> gate (3, 3)
 button (5, 1) -> gate (3, 4)
 button (5, 5) -> gate (4, 5)
 button (6, 1) -> gate (3, 2)
@@ -20,7 +20,7 @@ button (6, 1) -> gate (3, 3)
 Description: Move the mouse over an object to
  see what it connects to.
 Solution:
- EE EE WH EH HH HH HH HH HW WW WT
+ EE EE EH WH HH HH HH HH HE HH WW WW WT
  .
  EE HH HS SS SW WH HH EE NN NN WW T
  .

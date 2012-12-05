@@ -1,0 +1,21 @@
+Win -> click enter
+	Illegal move
+	The player is already inside the time machine.
+		Did you want to skip turn?
+			"Ok"
+	This does not make sense since you cant skip turns when you already won!
+
+start -> click enter
+	Are you certain?
+	Do you really want to end the current time-jump in turn 0?
+		"Confirm"		"Cancel"
+
+	
+	Confirm button does not work and Canlcel button is too far to the right
+
+GOTO time-machine -> click space
+	Are you certain?
+	Do you really want to skip your time on the time machine?
+		"Confirm"		"Cancel"
+
+	Confirm button does not work and Canlcel button is too far to the right

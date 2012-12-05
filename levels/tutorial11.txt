@@ -1,24 +1,24 @@
 2D SuperFun!
 +++++++++++++
-+++ -  +b+G++
-+++ c_  c cb+
++++ -  +++G++
++++ c_  o o++
 +++++-++_++++
 +++++     +++
 +++++ +++++++
-+++S  b+b++++
-+++++ ++c++++
++++S  b++++++
++++++ ++o++++
 +++++ ++_++++
 +bc_     - b+
 +++++++++++++
 
 button (1, 9) -> gate (3, 9)
 button (6, 6) -> gate (4, 1)
-button (8, 1) -> gate (5, 3)
-button (8, 1) -> gate (8, 3)
-button (8, 6) -> gate (8, 8)
-button (11, 2) -> gate (5, 2)
-button (11, 2) -> gate (5, 3)
-button (11, 2) -> gate (9, 9)
+button (8, 2) -> gate (5, 3)
+button (8, 2) -> gate (8, 3)
+button (8, 7) -> gate (8, 8)
+button (10, 2) -> gate (5, 2)
+button (10, 2) -> gate (5, 3)
+button (10, 2) -> gate (9, 9)
 button (11, 9) -> gate (5, 2)
 button (11, 9) -> gate (5, 3)
 

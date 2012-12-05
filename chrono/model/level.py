@@ -343,7 +343,12 @@ class BaseLevel(object):
                 fd.write("nothing\n")
             fd.write("\n")
             for key in sorted(self._metadata.iterkeys()):
-                fd.write("%s: %s\n" % (key, self._metadata[key]))
+                tcase = key[0].upper() + key[1:]
+                data = self._metadata[key]
+                if data[0] == "\n":
+                    fd.write("%s:%s\n" % (tcase, data))
+                else:
+                    fd.write("%s: %s\n" % (tcase, self._metadata[key]))
 
 class Level(BaseLevel):
 
@@ -768,6 +773,14 @@ class Level(BaseLevel):
             raise TimeParadoxError
 
 class EditableLevel(BaseLevel):
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, val):
+        self._name = val
 
     def load_level(self, *args, **kwords):
         super(EditableLevel, self).load_level(*args, **kwords)
