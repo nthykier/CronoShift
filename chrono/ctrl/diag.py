@@ -62,10 +62,8 @@ class ConfirmDialog(gui.Dialog):
         button_no.connect(gui.CLICK, self.close)
         button_ok.connect(gui.CLICK, self._confirm)
 
-        self.value = None
         super(ConfirmDialog, self).__init__(self.title, self.body)
 
     def _confirm(self, *args):
-        self.value = 1
         self.send(gui.CHANGE)
         self.close()

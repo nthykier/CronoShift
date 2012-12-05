@@ -116,7 +116,7 @@ class PlayKeyController(KeyController):
                 # the time machine
                 diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
                                          % self.level.turn[0])
-                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.connect(gui.CHANGE, l.perform_move, action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
             if not current_clone:
@@ -131,7 +131,7 @@ class PlayKeyController(KeyController):
             if (current_clone is not None and
                     current_clone.position == l.start_location.position):
                 diag = ConfirmDialog("Do you really want to skip your time on the time machine?")
-                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.connect(gui.CHANGE, l.perform_move, action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
 
