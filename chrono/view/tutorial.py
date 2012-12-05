@@ -49,6 +49,25 @@ Examples include:
 """)
     return _make_text_box(width, height, msg)
 
+def make_world_tutorial(width, height):
+    msg = dedent("""\
+Some fields (e.g. buttons) react to being "stepped on"
+and will trigger other fields (e.g. open/close a gate).
+
+Multiple buttons can control the same gate.  Every 2
+button will cancel out each other.  The same button
+can also control multiple gates.
+
+Crates can be pushed around like in Sokoban.  That is,
+you can push a crate by walking into it.  This will
+push it in the same direction as you walked.  The crate
+must be able to enter the field it is being pushed onto.
+
+Crates can be used to activate fields by pushing it onto
+the field.
+""")
+    return _make_text_box(width, height, msg)
+
 class Tutorial(gui.Dialog):
 
     def __init__(self, **params):
@@ -75,7 +94,16 @@ class Tutorial(gui.Dialog):
         c.add(rules_tool, from_left, from_top)
         rules_tool.rect.w, rules_tool.rect.h = rules_tool.resize()
 
-        from_top += spacer + rules_tool.rect.h
+        from_left += spacer + rules_tool.rect.w
+
+        world_tut = make_world_tutorial(width, height)
+        world_tool = gui.Tool(self.group, gui.Label("World"), "world")
+        tutorials['world'] = world_tut
+
+        c.add(world_tool, from_left, from_top)
+        world_tool.rect.w, world_tool.rect.h = world_tool.resize()
+
+        from_top += spacer + world_tool.rect.h
 
         w = gui.ScrollArea(ctrl_tut)
         c.add(w, spacer, from_top)
