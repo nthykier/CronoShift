@@ -631,8 +631,8 @@ class Application(gui.Desktop):
                 act = next(self.auto_play, None)
                 if not act:
                     self.auto_play = None
-                    return
-                self.level.perform_move(act)
+                else:
+                    self.level.perform_move(act)
         super(Application, self).loop()
 
 if __name__ == "__main__":
