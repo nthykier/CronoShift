@@ -199,6 +199,8 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, self.map_cache['stonebutton'])
         if field.symbol == 'o':
             ani_bg = Sprite(field.position, self.map_cache['onetimebutton'])
+        if field.symbol == 'p':
+            ani_bg = Sprite(field.position, self.map_cache['onetimepassage'])
         if field.symbol == 'S':
             # Highlight the start location
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
@@ -270,7 +272,7 @@ class GameWindow(gui.Widget):
             if event.source.can_enter:
                 nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
-        if event.source.symbol == "b" or event.source.symbol == "o":
+        if event.source.symbol == "b" or event.source.symbol == "o" or event.source.symbol == "p":
             b = self.animated_background_sprites[src_pos]
             if b:
                 b.state = int(event.source.activated)

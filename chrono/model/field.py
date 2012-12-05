@@ -164,6 +164,9 @@ class Field(object):
         other._pos = self._pos
         return other
 
+    def on_heartbeat(self):
+        return False
+
 class Wall(Field):
 
     @property
@@ -220,6 +223,38 @@ class OneTimeButton(Button):
             return True
         return False
 
+class OneTimePassage(Field):
+
+    stepped_on = False
+
+    def __init__(self, *args, **kwords):
+        super(OneTimePassage, self).__init__(*args, **kwords)
+        self._is_source = True
+
+    def toggle_activation(self):
+        self.stepped_on = True
+        return False
+
+    def reset_to_init_state(self):
+        self.stepped_on = False
+        if self.activated:
+            self._activated = False
+            return True
+        return False
+
+
+    def on_heartbeat(self):
+        if self.activated:
+            return False
+        if self.stepped_on:
+            self._activated = True
+            return True
+        return False
+
+    @property
+    def can_enter(self):
+        return not self.activated
+
 class StartLocation(Field):
     pass
 
@@ -238,6 +273,8 @@ def parse_field(symbol):
         return Button(symbol)
     if symbol == "o":
         return OneTimeButton(symbol)
+    if symbol == "p":
+        return OneTimePassage(symbol)
     if symbol == "S":
         return StartLocation(symbol)
     if symbol == "G":

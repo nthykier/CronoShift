@@ -36,7 +36,8 @@ import re
 from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
 from chrono.model.field import (parse_field, Position, Wall, Field, Gate, Button,
-                                StartLocation, GoalLocation, OneTimeButton)
+                                StartLocation, GoalLocation, OneTimeButton,
+                                OneTimePassage)
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -473,6 +474,13 @@ class Level(BaseLevel):
         def make_event(*a, **kw):
             equeue.append(functools.partial(self._emit_event, GameEvent(*a, **kw)))
 
+        for source in self._sources:
+            if source.on_heartbeat():
+                evt = "field-deactivated"
+                if source.activated:
+                    evt = "field-activated"
+                make_event(evt, source = source)
+
         for cno, clone in ifilter(lambda x: self._turn_no < len(x[1]), enumerate(self._clones)):
             action = clone[self._turn_no]
             if action == 'enter-time-machine':
@@ -857,6 +865,7 @@ class EditableLevel(BaseLevel):
         'gate': functools.partial(Gate, '_'),
         'button': functools.partial(Button, 'b'),
         'onetimebutton': functools.partial(OneTimeButton, 'o'),
+        'onetimepassage': functools.partial(OneTimePassage, 'p'),
         'start': functools.partial(StartLocation, 'S'),
         'goal': functools.partial(GoalLocation, 'G'),
         }
