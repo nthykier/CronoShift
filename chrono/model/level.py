@@ -621,7 +621,7 @@ class Level(BaseLevel):
         # We always reset by removing a clone (or all clones), so we
         # have insert a clone to replace the removed one (or insert
         # the new "first" clone).
-        self._active_player = True
+        self._player_active = True
         self._actions = []
 
         self._player = PlayerClone(self.start_location.position, self._actions)
