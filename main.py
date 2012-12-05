@@ -530,29 +530,38 @@ class Application(gui.Desktop):
         res = self.new_lvl_d.value
         edit_level = self.edit_level
         can_rel = True
+        trans = None
+
         if edit_level is None:
             can_rel = False
             edit_level = EditableLevel()
 
-        def _compute_value(s):
-            if s and (s[0] == "+" or s[0] == "-"):
+        def _compute_value(name, s):
+            res = 0
+            if s and (s[0] == "+" or s[0] == "-" or s == "0"):
+                # +x or -x or 0 is assumed to be relative (the latter being
+                # short for "+0")
                 if not can_rel:
-                    raise ValueError("Cannot do relative size based on non-existent map")
-                return edit_level.width + int(s)
-            return int(s.lstrip("="))
+                    raise ValueError("Cannot do relative size based on non-existent map: %s=%s" \
+                                         % (name, s))
+                if name == "width":
+                    return edit_level.width + int(s)
+                return edit_level.height + int(s)
+            else:
+                return int(s.lstrip("="))
 
         try:
-            width = _compute_value(res["width"].value)
-            height = _compute_value(res["height"].value)
+            width = _compute_value("width", res["width"].value)
+            height = _compute_value("height", res["height"].value)
             clear = res["clear"].value
-            trans = None
             if not clear:
                 trans = Position(int(res["trans-width"].value),
                                  int(res["trans-height"].value))
-            edit_level.new_map(width, height, translate=trans)
         except (TypeError, ValueError) as e:
             self._show_error("Cannot create map", str(e))
             return
+
+        edit_level.new_map(width, height, translate=trans)
 
         self.edit_level = edit_level
         self.edit_mctrl.level = edit_level

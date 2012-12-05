@@ -799,7 +799,8 @@ class EditableLevel(BaseLevel):
         crates = {}
         lvl = []
         def _new_field(npos, t):
-            if translate is not None:
+            if (translate is not None and 0 < npos.x < width - 1 and
+                    0 < npos.y < height - 1):
                 opos = npos - t
                 if (0 < opos.x < self.width - 1) and (0 < opos.y < self.height - 1):
                     ofield = self.get_field(opos)
