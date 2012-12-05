@@ -75,14 +75,15 @@ class Tutorial(gui.Dialog):
         self.group = gui.Group(name="page", value="ctrl")
         from_left = from_top = spacer = 8
         width, height = (300, 300)
-        c = gui.Container()
+        t = gui.Table()
+        t.tr()
         tutorials = {}
 
         ctrl_tut = make_ctrl_tutorial(width, height)
         ctrl_tool = gui.Tool(self.group, gui.Label("Controls"), "ctrl")
         tutorials['ctrl'] = ctrl_tut
 
-        c.add(ctrl_tool, from_left, from_top)
+        t.td(ctrl_tool)
         ctrl_tool.rect.w, ctrl_tool.rect.h = ctrl_tool.resize()
 
         from_left += spacer + ctrl_tool.rect.w
@@ -91,7 +92,7 @@ class Tutorial(gui.Dialog):
         rules_tool = gui.Tool(self.group, gui.Label("Rules"), "rules")
         tutorials['rules'] = rules_tut
 
-        c.add(rules_tool, from_left, from_top)
+        t.td(rules_tool)
         rules_tool.rect.w, rules_tool.rect.h = rules_tool.resize()
 
         from_left += spacer + rules_tool.rect.w
@@ -100,19 +101,25 @@ class Tutorial(gui.Dialog):
         world_tool = gui.Tool(self.group, gui.Label("World"), "world")
         tutorials['world'] = world_tut
 
-        c.add(world_tool, from_left, from_top)
+        t.td(world_tool)
         world_tool.rect.w, world_tool.rect.h = world_tool.resize()
 
         from_top += spacer + world_tool.rect.h
 
+        t.tr()
         w = gui.ScrollArea(ctrl_tut)
-        c.add(w, spacer, from_top)
+        t.td(w, colspan=len(tutorials))
 
         def switch_tutorial():
             w.widget = tutorials[self.group.value]
 
         self.group.connect(gui.CHANGE, switch_tutorial)
 
-        self.body = c
-        c.resize()
+        t.tr()
+        cl = gui.Button("Close")
+        t.td(cl, col=len(tutorials)-1)
+        cl.connect(gui.CLICK, self.close)
+
+        self.body = t
+        t.resize()
         super(Tutorial, self).__init__(self.title, self.body)
