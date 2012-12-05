@@ -84,7 +84,6 @@ class GameWindow(gui.Widget):
         self._gates = {}
         self._crates = {}
         self._done = True
-        self.game_over = False
         self.active_animation = False
         self._gevent_seq = []
         self._gevent_queue = Queue.Queue()
@@ -311,8 +310,6 @@ class GameWindow(gui.Widget):
             pass # expected
 
     def _time_paradox(self, e):
-        self.game_over = True
-        print "TIME PARADOX: %s" % (e.reason)
         self.repaint()
 
     def _jump_moveable(self, event):
@@ -328,9 +325,7 @@ class GameWindow(gui.Widget):
         self.repaint()
 
     def _game_complete(self, _):
-        self.game_over = True
         self.repaint()
-        print "Your score is: %d" % self.level.score
 
     def make_hilight(self, lpos, color="yellow"):
         hilight = pygame.Surface((MAP_TILE_WIDTH, MAP_TILE_HEIGHT))

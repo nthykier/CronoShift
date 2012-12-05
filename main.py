@@ -43,6 +43,7 @@ if 1:
 
 from pgu import gui
 
+from chrono.model.campaign import JikibanCampaign
 from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
@@ -327,6 +328,8 @@ class Application(gui.Desktop):
         self.widget = CTRLWidget(width=640,height=490)
 
         self._mode = "play"
+        self.campaign = JikibanCampaign()
+        self.campaign_lvl_no = -1
         self.fcounter = 0
         self.score = ScoreTracker()
         self.edit_level = None
@@ -345,8 +348,10 @@ class Application(gui.Desktop):
         self.ctrl_widget.key_ctrl = self.play_ctrl
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
+        self.open_campaign_d = SelectLevelDialog("Campaign file", "Start Campaign", "Start Campaign")
         self.open_lvl_d = SelectLevelDialog("Open", "Play", "Open level")
         self.new_lvl_d = NewLevelDialog()
+        self.open_campaign_d.connect(gui.CHANGE, self.load_campaign_action)
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
         self.new_lvl_d.connect(gui.CHANGE, self.new_map)
 
@@ -365,7 +370,8 @@ class Application(gui.Desktop):
         self.win_sound          = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
 
         menus = gui.Menus([
-                ('File/Load', self.open_lvl_d.open, None),
+                ('File/Load campaign', self.open_campaign_d.open, None),
+                ('File/Load level', self.open_lvl_d.open, None),
                 ('File/Quit', self.quit, None),
                 ('Help/Tutorial', self.open_tutorial, None),
         ])
@@ -450,17 +456,30 @@ class Application(gui.Desktop):
     def action_open_lvl(self):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
+    def next_level(self):
+        if self.campaign_lvl_no != -1:
+            self.campaign_lvl_no += 1
+            if self.campaign_lvl_no < len(self.campaign):
+                self.load_level(self.campaign[self.campaign_lvl_no])
+
     def game_event(self, ge):
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
 
+        # FIXME: If the player types fast (i.e. "enqueues a lot of
+        # moves", we will receive these events _waaaaay_ ahead of the
+        # animation.  Generally we are here before the animation triggering
+        # this event has even started (sort of okay for time-paradox)
         if ge.event_type == "game-complete":
+            print "Your score is: %d" % self.level.score
             self.win_sound.play()
             self.auto_play = None
+            self.next_level()
         elif ge.event_type == "time-paradox":
             self.time_paradox_sound.play()
             self.auto_play = None
+            self._show_error(ge.reason, "Time paradox or non-determinism")
 
         if not self.skip_till_time_jump.value:
             return
@@ -480,6 +499,26 @@ class Application(gui.Desktop):
             if self.level.turn[0] > 0 and not self.level.active_player:
                 self.fcounter = 0
                 self.auto_play = itertools.repeat("skip-turn")
+
+    def load_campaign_action(self):
+        return self.load_campaign(self.open_campaign_d.value['fname'].value)
+
+    def load_campaign(self, fname):
+        self.auto_play = None
+        campaign = JikibanCampaign()
+        try:
+            campaign.load_campaign(fname)
+        except IOError as e:
+            self._show_error(str(e), "Cannot load campaign")
+            return
+        if len(campaign) < 1:
+            self._show_error("The campaign does not have any levels in it",
+                             "Empty campaign")
+            return
+
+        self.campaign = campaign
+        self.campaign_lvl_no = 0
+        self.load_level(campaign[0])
 
     def load_level(self, fname):
         self.auto_play = None
@@ -639,14 +678,17 @@ if __name__ == "__main__":
     app = Application()
     parser = argparse.ArgumentParser(description="Play ChronoShift levels")
     parser.add_argument('--play-solution', action="store_true", dest="play_solution",
-                        default=False, help="Auto-play the solution")
+                        default=False, help="Auto-play the solution (level-only)")
     parser.add_argument('level', action="store", default=None, nargs="?",
-                        help="The level files to check")
+                        help="The level or campaign to play")
     args = parser.parse_args()
 
     if args.level:
         # Load the level - we have to wait for the init event before
-        app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
+        if args.level.endswith(".lsf"):
+            app.connect(gui.INIT, lambda *x: app.load_campaign(args.level))
+        else:
+            app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
         if args.play_solution:
             app.connect(gui.INIT, app.play_solution)
     if not args.play_solution:
