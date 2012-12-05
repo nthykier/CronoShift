@@ -617,10 +617,10 @@ class Application(gui.Desktop):
         if self.level:
             h = self.level.get_metadata_raw("description")
             if h is not None:
-                d = ErrorDialog(h, title="Hint")
+                d = MessageDialog(h, title="Hint")
                 d.open();
             else:
-                d = ErrorDialog("No hint available", title="Sorry")
+                d = MessageDialog("No hint available", title="Sorry")
                 d.open();
 
     def save_level(self, *args):
