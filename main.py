@@ -49,6 +49,7 @@ from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
 from chrono.ctrl.diag import ErrorDialog
 from chrono.view.game_window import GameWindow
+from chrono.view.tutorial import Tutorial
 
 class SelectLevelDialog(gui.Dialog):
     def __init__(self, text, confirm_text, title, **params):
@@ -365,6 +366,7 @@ class Application(gui.Desktop):
         menus = gui.Menus([
                 ('File/Load', self.open_lvl_d.open, None),
                 ('File/Quit', self.quit, None),
+                ('Help/Tutorial', self.open_tutorial, None),
         ])
         c.add(menus, 0, from_top)
         menus.rect.w, menus.rect.h = menus.resize()
@@ -594,6 +596,10 @@ class Application(gui.Desktop):
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
         self.level.start()
+
+    def open_tutorial(self, *args):
+        t = Tutorial()
+        t.open()
 
     def loop(self):
         self.game_window.process_game_events()
