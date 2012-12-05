@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pgu import gui
 
-class ErrorDialog(gui.Dialog):
-    def __init__(self, msg, title="Error!"):
+class MessageDialog(gui.Dialog):
+    def __init__(self, msg, title):
         self.title = gui.Label(title)
         self.body = gui.Table()
         button_ok = gui.Button("Ok")
@@ -42,7 +42,7 @@ class ErrorDialog(gui.Dialog):
         self.body.td(button_ok)
         button_ok.connect(gui.CLICK, self.close)
 
-        super(ErrorDialog, self).__init__(self.title, self.body)
+        super(MessageDialog, self).__init__(self.title, self.body)
 
 class ConfirmDialog(gui.Dialog):
 

@@ -47,7 +47,7 @@ from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
-from chrono.ctrl.diag import ErrorDialog
+from chrono.ctrl.diag import MessageDialog
 from chrono.view.game_window import GameWindow
 from chrono.view.tutorial import Tutorial
 
@@ -487,7 +487,7 @@ class Application(gui.Desktop):
         try:
             edit_level.load_level(fname)
         except IOError as e:
-            self._show_error("Cannot load map", str(e))
+            self._show_error(str(e), "Cannot load map")
             return
 
         self.edit_level = edit_level
@@ -507,8 +507,8 @@ class Application(gui.Desktop):
         self.level.add_event_listener(sc)
         self.level.start()
 
-    def _show_error(self, title_msg, body_msg):
-        ErrorDialog(body_msg, title_msg).open()
+    def _show_error(self, body_msg, title_msg):
+        MessageDialog(body_msg, title_msg).open()
 
     def play_solution(self, *args):
         if not self.level:
@@ -558,7 +558,7 @@ class Application(gui.Desktop):
                 trans = Position(int(res["trans-width"].value),
                                  int(res["trans-height"].value))
         except (TypeError, ValueError) as e:
-            self._show_error("Cannot create map", str(e))
+            self._show_error(str(e), "Cannot create map")
             return
 
         edit_level.new_map(width, height, translate=trans)
@@ -598,7 +598,7 @@ class Application(gui.Desktop):
             self.edit_level.print_lvl(name)
             self.edit_level.name = name
         except IOError as e:
-            self._show_error("Cannot save map", str(e))
+            self._show_error(str(e), "Cannot save map")
 
     def play_edit_level(self, *args):
         if not self.edit_level:
@@ -607,7 +607,7 @@ class Application(gui.Desktop):
         try:
             level.init_from_level(self.edit_level)
         except ValueError as e:
-            self._show_error("Cannot play map", str(e))
+            self._show_error(str(e), "Cannot play map")
             return
         self.mode = "play"
         self.level = level

@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import pygame.locals as pg
 from pgu import gui
 
-from chrono.ctrl.diag import ConfirmDialog, ErrorDialog
+from chrono.ctrl.diag import ConfirmDialog, MessageDialog
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -120,11 +120,11 @@ class PlayKeyController(KeyController):
                 diag.open()
                 return # Don't consume here or the dialog won't work
             if not current_clone:
-                ErrorDialog("The player is already inside the time machine.\n" +
+                MessageDialog("The player is already inside the time machine.\n" +
                             "Did you want to skip turn?", "Illegal move").open()
                 return # Don't consume here or the dialog won't work
             if current_clone.position != l.start_location.position:
-                ErrorDialog("The player must be on top of the time machine to enter it.",
+                MessageDialog("The player must be on top of the time machine to enter it.",
                             "Illegal move").open()
                 return # Don't consume here or the dialog won't work
         if self.confirm_eot_on_start and action == "skip-turn":
