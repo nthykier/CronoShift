@@ -528,17 +528,28 @@ class Application(gui.Desktop):
     def new_map(self):
         self.new_lvl_d.close()
         res = self.new_lvl_d.value
+        edit_level = self.edit_level
+        can_rel = True
+        if edit_level is None:
+            can_rel = False
+            edit_level = EditableLevel()
 
-        edit_level = self.edit_level or EditableLevel()
+        def _compute_value(s):
+            if s and (s[0] == "+" or s[0] == "-"):
+                if not can_rel:
+                    raise ValueError("Cannot do relative size based on non-existent map")
+                return edit_level.width + int(s)
+            return int(s.lstrip("="))
 
         try:
+            width = _compute_value(res["width"].value)
+            height = _compute_value(res["height"].value)
             clear = res["clear"].value
             trans = None
             if not clear:
                 trans = Position(int(res["trans-width"].value),
                                  int(res["trans-height"].value))
-            edit_level.new_map(int(res["width"].value), int(res["height"].value),
-                               translate=trans)
+            edit_level.new_map(width, height, translate=trans)
         except (TypeError, ValueError) as e:
             self._show_error("Cannot create map", str(e))
             return
