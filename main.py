@@ -518,7 +518,7 @@ class Application(gui.Desktop):
 
         sol = self.level.get_metadata_raw("solution")
         if not sol:
-            print "%s has no solution" % level.name
+            print "%s has no solution" % self.level.name
             return
         self.reset_level()
         print "Playing solution"
