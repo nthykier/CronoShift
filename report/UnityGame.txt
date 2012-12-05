@@ -58,6 +58,9 @@ box: c
 button: b
 open gate: "_"
 closed gate: "-"
+onetimebutton: "o"
+open onetimepassage: "p"
+closed onetimepassage: "P"
 
 ____________________________________________________
 
@@ -84,3 +87,7 @@ Shift feature with buttons
 Limited turn number per clone
 Ice block that functions like a crate but moves until it hits something
 Interesting levels with new mechanics
+Heavy blocks requiring more than one clone to push
+Heavy buttons requiring more than one clone to press
+Crate destroyer field
+
