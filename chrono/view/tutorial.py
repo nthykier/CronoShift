@@ -22,6 +22,11 @@ Actions:
  * "do nothing" (default: Space)
  * enter the time machine (default: Enter)
    - Can only be done on top of the time machine (start)
+
+When the mouse hovers over a field, it will hilight that
+field and fields that is "connected" to that field (if any).
+(e.g. when hovering over a gate, the button(s) activating
+the gate will be hilighted).
 """)
     return _make_text_box(width, height, msg)
 
