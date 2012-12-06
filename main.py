@@ -449,6 +449,7 @@ class Application(gui.Desktop):
         self.level = Level()
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
+        self.play_ctrl.edit_level = edit_level
         self.play_mctrl.level = self.level
         self.edit_mctrl.level = edit_level 
         sc = functools.partial(self.score.update_score, self.level)
@@ -520,6 +521,7 @@ class Application(gui.Desktop):
         edit_level.new_map(width, height, translate=trans)
 
         self.edit_level = edit_level
+        self.play_ctrl.edit_level = edit_level
         self.edit_mctrl.level = edit_level
         self.game_window.use_level(edit_level, grid=True)
 

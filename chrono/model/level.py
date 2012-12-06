@@ -782,6 +782,9 @@ class EditableLevel(BaseLevel):
     def name(self, val):
         self._name = val
 
+    def set_metadata_raw(self, field, val):
+        self._metadata[field] = val
+
     def load_level(self, *args, **kwords):
         super(EditableLevel, self).load_level(*args, **kwords)
         # Ensure self._lvl is mutable

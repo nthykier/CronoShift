@@ -31,7 +31,7 @@ from textwrap import dedent
 import pygame.locals as pg
 from pgu import gui
 
-from chrono.ctrl.diag import ConfirmDialog, MessageDialog
+from chrono.ctrl.diag import ConfirmDialog, MessageDialog, OptionsDialog
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -55,8 +55,8 @@ DEFAULT_PLAY_CONTROLS = {
 
 class KeyController(object):
 
-    def __init__(self, level=None, def_ctrl=None):
-        self.level = level
+    def __init__(self, def_ctrl=None):
+        self.level = None
         self.controls = def_ctrl
 
     def event(self, e):
@@ -81,10 +81,11 @@ class KeyController(object):
 
 class PlayKeyController(KeyController):
 
-    def __init__(self, level=None, view=None, def_ctrl=None):
+    def __init__(self, view=None, def_ctrl=None):
         if not def_ctrl:
             def_ctrl = DEFAULT_PLAY_CONTROLS
-        super(PlayKeyController, self).__init__(level, def_ctrl=def_ctrl)
+        super(PlayKeyController, self).__init__(def_ctrl=def_ctrl)
+        self.edit_level = None
         self.view = view
         self.confirm_eot_on_start = True
         self._action2handler = {
@@ -145,6 +146,39 @@ class PlayKeyController(KeyController):
         return True
 
     def _print_actions(self, _):
+        if self.level is None:
+            return
+
+        options = [
+            ("File", self._actions_save),
+            ("Solution", self._actions_solution),
+            (None, None),
+        ]
+        msg = dedent("""\
+            Store your actions in a file or set as solution for the current
+            level.
+""")
+
+        od = OptionsDialog(msg, "Store actions", options)
+        od.open()
+
+    def _actions_save(self):
+        MessageDialog("Not implemented yet", "Not implemented").open()
+
+    def _actions_solution(self):
+        # start with a line break
+        sol = "\n" + "\n .".join(self._gen_action_string())
+        self.edit_level.set_metadata_raw("solution", sol)
+        msg = dedent("""\
+              Solution updated/created in the editor.  If you want
+              to play the solution, please reload the map.  Remember
+              to save the level in the editor!
+                (reload level by "Edit-mode" -> "Play Level")
+""")
+        mdiag = MessageDialog(msg, "Solution set")
+        mdiag.open()
+
+    def _gen_action_string(self):
         def _action2sf(container):
             actions = {
                 'move-up': 'N',
@@ -155,14 +189,15 @@ class PlayKeyController(KeyController):
                 'enter-time-machine': 'T',
             }
             it = iter(container)
+
             while 1:
                 a = next(it)
                 b = next(it, None)
                 if b is None:
                     yield actions[a]
                     break
-                yield actions[a] + actions[b] + ' '
+                yield actions[a] + actions[b]
 
         for clone in self.level.iter_clones():
-            print " %s" % ("".join(_action2sf(clone)))
+            yield " ".join(_action2sf(clone))
 
