@@ -26,6 +26,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
+
 from pgu import gui
 
 class MessageDialog(gui.Dialog):
@@ -105,7 +107,14 @@ class SelectFileDialog(gui.Dialog):
         self.send(gui.CHANGE)
 
     def open_file_browser(self, *arg):
-        d = gui.FileDialog()
+        path = None
+        if self.li.value:
+            f = self.li.value
+            if os.path.isdir(f):
+                path =f
+            else:
+                path = os.path.dirname(f)
+        d = gui.FileDialog(path=path)
         d.connect(gui.CHANGE, self.handle_file_browser_closed, d)
         d.open()
 
