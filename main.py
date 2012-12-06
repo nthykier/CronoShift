@@ -475,7 +475,8 @@ class Application(gui.Desktop):
 
         sol = self.level.get_metadata_raw("solution")
         if not sol:
-            print "%s has no solution" % self.level.name
+            msg = "Solution for %s is not available" % self.level.name
+            self._show_error(msg, "No solution available!")
             return
         self.reset_level()
         print "Playing solution"
@@ -555,6 +556,7 @@ class Application(gui.Desktop):
             name = dialog.value['fname'].value
             self.edit_level.print_lvl(name)
             self.edit_level.name = name
+            MessageDialog("Saved level to %s" % name, "Level saved").open()
         except IOError as e:
             self._show_error(str(e), "Cannot save map")
 
