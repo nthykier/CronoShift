@@ -307,7 +307,7 @@ def make_game_ctrls(app, width, height):
         if app.muted:
             pygame.mixer.stop()
 
-    mcb.connect(gui.CHANGE, _toggle_mute)
+    mcb.connect(gui.CHANGE, _toggle_sounds)
     c.add(mcb, from_left, from_top)
     mcb.rect.w, mcb.rect.h = mcb.resize()
 
