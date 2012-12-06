@@ -328,6 +328,7 @@ class Application(gui.Desktop):
         self.widget = CTRLWidget(width=640,height=490)
 
         self._mode = "play"
+        self._game_state = "stopped"
         self.campaign = JikibanCampaign()
         self.campaign_lvl_no = -1
         self.fcounter = 0
@@ -472,14 +473,9 @@ class Application(gui.Desktop):
         # animation.  Generally we are here before the animation triggering
         # this event has even started (sort of okay for time-paradox)
         if ge.event_type == "game-complete":
-            print "Your score is: %d" % self.level.score
-            self.win_sound.play()
-            self.auto_play = None
-            self.next_level()
+            self._game_state = "complete"
         elif ge.event_type == "time-paradox":
-            self.time_paradox_sound.play()
-            self.auto_play = None
-            self._show_error(ge.reason, "Time paradox or non-determinism")
+            self._game_state = "time-paradox"
 
         if not self.skip_till_time_jump.value:
             return
@@ -529,6 +525,7 @@ class Application(gui.Desktop):
             self._show_error(str(e), "Cannot load map")
             return
 
+        self._game_state = "stopped"
         self.edit_level = edit_level
         self.level = Level()
         self.level.add_event_listener(self.game_event)
@@ -544,6 +541,7 @@ class Application(gui.Desktop):
             grid = False
         self.game_window.use_level(lvl, grid=grid)
         self.level.add_event_listener(sc)
+        self._game_state = "running"
         self.level.start()
 
     def _show_error(self, body_msg, title_msg):
@@ -649,12 +647,14 @@ class Application(gui.Desktop):
             self._show_error(str(e), "Cannot play map")
             return
         self.mode = "play"
+        self._game_state = "stopped"
         self.level = level
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
         self.game_window.use_level(self.level, grid=False)
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
+        self._game_state = "running"
         self.level.start()
 
     def open_tutorial(self, *args):
@@ -663,15 +663,32 @@ class Application(gui.Desktop):
 
     def loop(self):
         self.game_window.process_game_events()
-        self.fcounter = (self.fcounter + 1) % 15
-        if not self.fcounter:
-            # 15th frame
-            if self.auto_play and self.mode == "play":
-                act = next(self.auto_play, None)
-                if not act:
-                    self.auto_play = None
-                else:
-                    self.level.perform_move(act)
+        if not self.game_window.pending_animation:
+            # No pending animation - is the game finished?
+            if self._game_state == "complete":
+                self._game_state = "stopped" # do this only once!
+                print "Your score is: %d" % self.level.score
+                self.win_sound.play()
+                self.auto_play = None
+                self.next_level()
+            elif self._game_state == "time-paradox":
+                self._game_state = "stopped" # do this only once!
+                self.time_paradox_sound.play()
+                self.auto_play = None
+                self._show_error(ge.reason, "Time paradox or non-determinism")
+
+            # The fcounter is to give a slight delay to auto-playing
+            # (else every move happens as fast as possible...)
+            self.fcounter = (self.fcounter + 1) % 4
+            if not self.fcounter:
+                if self.auto_play and self.mode == "play":
+                    act = next(self.auto_play, None)
+                    if not act:
+                        self.auto_play = None
+                    else:
+                        self.level.perform_move(act)
+        else:
+            self.fcounter = 0
         super(Application, self).loop()
 
 if __name__ == "__main__":

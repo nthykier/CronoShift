@@ -113,6 +113,11 @@ class GameWindow(gui.Widget):
             'remove-crate': self._add_remove_crate,
         }
 
+    @property
+    def pending_animation(self):
+        return (self.active_animation or not self._done
+                or not self._gevent_queue.empty())
+
     def use_level(self, level, grid=None):
         """Set the level as the current one."""
 
