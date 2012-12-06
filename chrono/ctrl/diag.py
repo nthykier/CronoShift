@@ -70,7 +70,7 @@ class ConfirmDialog(gui.Dialog):
         self.send(gui.CHANGE)
         self.close()
 
-class SelectLevelDialog(gui.Dialog):
+class SelectFileDialog(gui.Dialog):
     def __init__(self, text, confirm_text, title, **params):
         title = gui.Label(title)
 
@@ -78,7 +78,7 @@ class SelectLevelDialog(gui.Dialog):
 
         self.value = gui.Form()
         self.li = gui.Input(name="fname")
-        d = params.get('default_level', None)
+        d = params.get('default_file', None)
         if d is not None:
             self.li.value = d
         bb = gui.Button("...")
