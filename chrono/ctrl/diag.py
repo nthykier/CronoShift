@@ -166,4 +166,72 @@ class NewLevelDialog(gui.Dialog):
 
         gui.Dialog.__init__(self,title,t)
 
+class OptionsDialog(gui.Dialog):
+    """A simple "options" dialog presenting the user with a set of options
 
+    Example:
+
+      options = [
+          # label,    action value
+          ("Pikachu", "pikachu"),
+          ("Charmander", "charmander"),
+          ("Squirtle", "squirtle"),
+          ("Bulbasaur", "bulbasaur"),
+      ]
+      msg = "Pick which pokemon you want to call in"
+      odiag = OptionsDialog(msg, "Choose a Pokemon", options, self._pokemon)
+      odiag.open()
+
+    If the action value is None, the button is assumed to be a
+    "Cancel" button.  In this case, the handler will /not/ be called
+    (the dialog will simply just close when the button is clicked).
+    All buttons must have a label (except if the action value is None,
+    then the label will default to "Cancel".
+
+    Buttons will added in the order they appear (from left to right).
+
+    If the handler is None, the actions are assumed to be callables and
+    will be invoked with no arguments (functools.partial may be useful
+    here).
+    """
+
+    def __init__(self, msg, title, options, handler=None, **params):
+        self.title = gui.Label(title)
+        self.body = gui.Table()
+        self.handler = handler
+
+        cols = max(len(options), 8)
+        col_no = 0
+        if len(options) < cols:
+            # Put buttons in the middle
+            #  (8 - 5) // 2 = 1 (use col 1, 2, .., 6)
+            col_no = (cols - len(options)) // 2
+
+        for line in msg.split("\n"):
+            self.body.tr()
+            self.body.td(gui.Label(line), colspan=cols)
+
+        self.body.tr()
+
+        for label, action in options:
+            l = label
+            if label is None and action is None:
+                label = "Cancel"
+            elif label is None:
+                raise TypeError("Label missing")
+            but = gui.Button(label)
+            if action is not None:
+                but.connect(gui.CLICK, self._click, action)
+            else:
+                but.connect(gui.CLICK, self.close)
+            self.body.td(but, col=col_no)
+            col_no += 1
+
+        super(OptionsDialog, self).__init__(self.title, self.body)
+
+    def _click(self, action):
+        if self.handler is None:
+            action()
+        else:
+            self.handler(action)
+        self.close()
