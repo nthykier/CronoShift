@@ -48,9 +48,13 @@ from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
-from chrono.ctrl.diag import MessageDialog, SelectFileDialog, NewLevelDialog
+from chrono.ctrl.diag import (MessageDialog, SelectFileDialog, NewLevelDialog,
+                              simple_file_filter)
 from chrono.view.game_window import GameWindow
 from chrono.view.tutorial import Tutorial
+
+LVL_FILTER = simple_file_filter(lambda x: x.endswith(".txt"))
+LSF_FILTER = simple_file_filter(lambda x: x.endswith(".lsf"))
 
 class ScoreTracker(gui.Label):
 
@@ -266,8 +270,10 @@ class Application(gui.Desktop):
         self.ctrl_widget.key_ctrl = self.play_ctrl
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
-        self.open_campaign_d = SelectFileDialog("Campaign file", "Start Campaign", "Start Campaign")
-        self.open_lvl_d = SelectFileDialog("Open", "Play", "Open level")
+        self.open_campaign_d = SelectFileDialog("Campaign file", "Start Campaign",
+                                                "Start Campaign", filter_func=LSF_FILTER)
+        self.open_lvl_d = SelectFileDialog("Open", "Play", "Open level",
+                                           filter_func=LVL_FILTER)
         self.new_lvl_d = NewLevelDialog()
         self.open_campaign_d.connect(gui.CHANGE, self.load_campaign_action)
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
@@ -547,7 +553,8 @@ class Application(gui.Desktop):
         if not self.edit_level:
             return
         d = self.edit_level.name
-        sld = SelectFileDialog("Save", "Save", "Save level", default_file=d)
+        sld = SelectFileDialog("Save", "Save", "Save level", default_file=d,
+                               filter_func=LVL_FILTER)
         sld.connect(gui.CHANGE, self.write_level, sld)
         sld.open()
 

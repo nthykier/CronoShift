@@ -26,9 +26,23 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import functools
 import os
 
 from pgu import gui
+
+from chrono.ctrl.pgu_diag import EnhancedFileDialog
+
+def simple_file_filter(f):
+    """Create a filter that only filters out files
+
+    Returns a new filter function that accepts all dirs and
+    any file that the given function accepts.
+    """
+    def filt(f, x):
+        return os.path.isdir(x) or f(x)
+
+    return functools.partial(filt, f)
 
 class MessageDialog(gui.Dialog):
     def __init__(self, msg, title):
@@ -73,11 +87,12 @@ class ConfirmDialog(gui.Dialog):
         self.close()
 
 class SelectFileDialog(gui.Dialog):
-    def __init__(self, text, confirm_text, title, **params):
+    def __init__(self, text, confirm_text, title, filter_func=None, **params):
         title = gui.Label(title)
 
         t = gui.Table()
 
+        self.filter_func = filter_func
         self.value = gui.Form()
         self.li = gui.Input(name="fname")
         d = params.get('default_file', None)
@@ -114,7 +129,7 @@ class SelectFileDialog(gui.Dialog):
                 path =f
             else:
                 path = os.path.dirname(f)
-        d = gui.FileDialog(path=path)
+        d = EnhancedFileDialog(path=path, filter_func=self.filter_func)
         d.connect(gui.CHANGE, self.handle_file_browser_closed, d)
         d.open()
 
