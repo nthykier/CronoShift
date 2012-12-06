@@ -26,6 +26,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from textwrap import dedent
+
 import pygame.locals as pg
 from pgu import gui
 
@@ -120,8 +122,11 @@ class PlayKeyController(KeyController):
                 diag.open()
                 return # Don't consume here or the dialog won't work
             if not current_clone:
-                MessageDialog("The player is already inside the time machine.\n" +
-                            "Did you want to skip turn?", "Illegal move").open()
+                msg = dedent("""\
+                      The player is already inside the time machine.
+                      Use skip turn (or check "auto finish time-jump").
+""")
+                MessageDialog(msg, "Illegal move").open()
                 return # Don't consume here or the dialog won't work
             if current_clone.position != l.start_location.position:
                 MessageDialog("The player must be on top of the time machine to enter it.",
