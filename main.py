@@ -293,6 +293,24 @@ def make_game_ctrls(app, width, height):
     c.add(cbox, from_left, from_top)
     cbox.rect.w, cbox.rect.h = cbox.resize()
 
+    from_left += cbox.rect.w + spacer
+
+    sl = gui.Label("Disable audio: ")
+    c.add(sl, from_left, from_top)
+    sl.rect.w, sl.rect.h = sl.resize()
+
+    from_left += sl.rect.w + spacer
+
+    mcb = gui.Switch(value=app.muted)
+    def _toggle_sounds():
+        app.muted = mcb.value
+        if app.muted:
+            pygame.mixer.stop()
+
+    mcb.connect(gui.CHANGE, _toggle_mute)
+    c.add(mcb, from_left, from_top)
+    mcb.rect.w, mcb.rect.h = mcb.resize()
+
     return c
 
 class CTRLWidget(gui.Container):
@@ -328,7 +346,7 @@ class Application(gui.Desktop):
         self.widget = CTRLWidget(width=640,height=490)
 
         self._audio = {}
-        self._muted = False
+        self.muted = False
 
         self._mode = "play"
         self._game_state = "stopped"
@@ -669,7 +687,7 @@ class Application(gui.Desktop):
             # Emit this even if we are muted (for error finding)
             print "W: Unknown sound %s" % sound
             return
-        if self._muted:
+        if self.muted:
             return
         self._audio[sound].play()
 
