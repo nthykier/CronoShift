@@ -31,7 +31,8 @@ from textwrap import dedent
 import pygame.locals as pg
 from pgu import gui
 
-from chrono.ctrl.diag import ConfirmDialog, MessageDialog, OptionsDialog
+from chrono.ctrl.diag import (ConfirmDialog, MessageDialog, OptionsDialog,
+                              SelectFileDialog)
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -163,7 +164,23 @@ class PlayKeyController(KeyController):
         od.open()
 
     def _actions_save(self):
-        MessageDialog("Not implemented yet", "Not implemented").open()
+        sfd = SelectFileDialog("Save to", "Save", "Save actions")
+        sfd.connect(gui.CHANGE, self._actions_save_file, sfd)
+        sfd.open()
+
+    def _actions_save_file(self, sfd):
+        fname = sfd.value["fname"].value
+        try:
+            with open(fname, "w") as fd:
+                lname = self.level.name
+                act = "\n .".join(self._gen_action_string())
+                fd.write("Level: %s\n" % lname)
+                fd.write("Actions:\n%s\n" % act)
+
+            msg = "Actions saved to %s" % fname
+            MessageDialog(msg, "Actions saved").open()
+        except IOError as e:
+            MessageDialog(str(e), "Could not save actions").open()
 
     def _actions_solution(self):
         # start with a line break

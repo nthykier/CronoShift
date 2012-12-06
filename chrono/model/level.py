@@ -205,6 +205,7 @@ class BaseLevel(object):
         self._handlers.remove(handler)
 
     def init_from_level(self, other):
+        self._name = other.name
         self._width = other.width
         self._height = other.height
         self._start_location = other.start_location
