@@ -4,8 +4,7 @@ from pgu import gui
 
 from chrono.view.text import ROTextArea
 
-def make_ctrl_tutorial(width, height):
-    msg = dedent("""\
+CTRL_TUTORIAL = dedent("""\
 Actions:
  * move around (default: the arrow keys or "wasd")
  * "do nothing" (default: Space)
@@ -17,10 +16,8 @@ field and fields that is "connected" to that field (if any).
 (e.g. when hovering over a gate, the button(s) activating
 the gate will be hilighted).
 """)
-    return ROTextArea(value=msg, width=width, height=height)
 
-def make_rules_tutorial(width, height):
-    msg = dedent("""\
+RULES_TUTORIAL = dedent("""\
 To win:
  * You must obtain the goal (gold coin).
  * You must always return to start.
@@ -36,10 +33,8 @@ Examples include:
  * Causing temporal paradoxes ("time-paradox").
 
 """)
-    return ROTextArea(value=msg, width=width, height=height)
 
-def make_world_tutorial(width, height):
-    msg = dedent("""\
+WORLD_TUTORIAL = dedent("""\
 Some fields (e.g. buttons) react to being "stepped on"
 and will trigger other fields (e.g. open/close a gate).
 
@@ -55,54 +50,41 @@ must be able to enter the field it is being pushed onto.
 Crates can be used to activate fields by pushing it onto
 the field.
 """)
-    return ROTextArea(value=msg, width=width, height=height)
 
 class Tutorial(gui.Dialog):
 
     def __init__(self, **params):
         self.title = gui.Label("Tutorial")
-        self.group = gui.Group(name="page", value="ctrl")
-        from_left = from_top = spacer = 8
+        self.group = gui.Group(name="page", value="")
         width, height = (500, 300)
         t = gui.Table()
         t.tr()
         tutorials = {}
+        tlist = [
+            ("Controls", "ctrl", CTRL_TUTORIAL),
+            ("Rules", "rules", RULES_TUTORIAL),
+            ("World", "world", WORLD_TUTORIAL),
+        ]
 
-        ctrl_tut = make_ctrl_tutorial(width, height)
-        ctrl_tool = gui.Tool(self.group, gui.Label("Controls"), "ctrl")
-        tutorials['ctrl'] = ctrl_tut
-
-        t.td(ctrl_tool)
-        ctrl_tool.rect.w, ctrl_tool.rect.h = ctrl_tool.resize()
-
-        from_left += spacer + ctrl_tool.rect.w
-
-        rules_tut = make_rules_tutorial(width, height)
-        rules_tool = gui.Tool(self.group, gui.Label("Rules"), "rules")
-        tutorials['rules'] = rules_tut
-
-        t.td(rules_tool)
-        rules_tool.rect.w, rules_tool.rect.h = rules_tool.resize()
-
-        from_left += spacer + rules_tool.rect.w
-
-        world_tut = make_world_tutorial(width, height)
-        world_tool = gui.Tool(self.group, gui.Label("World"), "world")
-        tutorials['world'] = world_tut
-
-        t.td(world_tool)
-        world_tool.rect.w, world_tool.rect.h = world_tool.resize()
-
-        from_top += spacer + world_tool.rect.h
+        for tlabel, key, text in tlist:
+            tut = ROTextArea(value=text, width=width, height=height)
+            tool = gui.Tool(self.group, gui.Label(tlabel), key)
+            tutorials[key] = tut
+            t.td(tool)
+            tool.rect.w, tool.rect.h = tool.resize()
 
         t.tr()
-        w = gui.ScrollArea(ctrl_tut)
+        # add scroll area with a dummy element (will be replaced)
+        # below
+        w = gui.ScrollArea(gui.Label("placeholder"))
         t.td(w, colspan=len(tutorials))
 
         def switch_tutorial():
             w.widget = tutorials[self.group.value]
 
         self.group.connect(gui.CHANGE, switch_tutorial)
+        # Set the first page as active...
+        self.group.value = tlist[0][1]
 
         t.tr()
         cl = gui.Button("Close")
@@ -112,3 +94,4 @@ class Tutorial(gui.Dialog):
         self.body = t
         t.resize()
         super(Tutorial, self).__init__(self.title, self.body)
+
