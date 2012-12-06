@@ -16,11 +16,15 @@ Instructions (Playing)
 
 To play a level you "simply" run:
 
- $ ./demo.py path/to/level
+ $ ./main.py [path/to/level-or-campaign]
 
 Example:
 
- $ ./demo.py levels/tutorial01.txt
+ $ ./main.py
+ - or -
+ $ ./main.py levels/tutorial01.txt
+ - or -
+ $ ./main.py levels/campaign.lsf
 
 (Default) Keymappings are:
 
@@ -79,22 +83,23 @@ to obtain the goal (or get in your way):
  * gate
    - A gate is either open (behaves like a field) or closed (behaves
      like a wall). Its state can be toggled by buttons.
-   - Represented by the blue circle.  The closed gate will have a
-     white center and an open gate will be all blue.
+   - Represented by the campfire circle.  It is passable if the fire
+     is out and impassable if there fire is present.
  * button
    - A button modifies the state of gates.  As long as a crate or 1+
      clones are on it, the button is "activated".  Otherwise it is
      deactivated.
-   - Represented by a green circle.
+   - Represented by a small circle that is either "gray" (normal) or
+     "teal" (one-time button)
  * crate
    - A pushable wall.  It is pushed by the same rules as Sokoban.
    - Represented by the crate.
  * time machine
    - The time machine is the start location.
-   - Represented by a bluish field tile.
+   - Represented by a purple-black tile.
  * goal
    - The field you have to obtain.
-   - Represented by a house (will disappear when obtained)
+   - Represented by a gold coin (will disappear when obtained)
 
 A couple of hints:
 
@@ -128,7 +133,6 @@ There is no real installation proceedure at this time.  The following dependenci
 are known:
 
  * python 2.7
-   - 2.5+ probably works, provided "argparse" is available
  * pygame
 
 The Debian/Ubuntu packages for these are:
@@ -141,11 +145,11 @@ The Debian/Ubuntu packages for these are:
 Note: Even if you have python2.7, your /usr/bin/python may point to python2.6.  If
 so, replace:
 
-  $ ./demo.py path/to/level
+  $ ./main.py [path/to/level-or-campaign]
 
 with
 
-  $ python2.7 ./demo.py path/to/level
+  $ python2.7 ./main.py [path/to/level-or-campaign]
 
 
 Level format
@@ -164,6 +168,7 @@ Writing a level can be done in a simple level enter.  The format is:
    * '_' is an open gate
    * 'b' is a button
    * 'B' is a button that can only be activated by a crate (not implemented atm)
+   * 'o' is a "one-time" button
    * 'c' is a field with a crate on top of it
    * 'S' is the start/time machine location
    * 'G' is the goal field
@@ -177,6 +182,7 @@ Writing a level can be done in a simple level enter.  The format is:
    * "button (x1, y1) -> gate (x2, y2)"
      - Connects a button at (x1, y1) with the gate on (x2, y2).  The
        top left corner of the representation is (0, 0).
+     - NB: "button" covers any "button" (e.g. "o" is considered a button)
 
  * The last section is the "level" metadata.  It uses the syntax for Debian control
    files (similar to mail-headers) and consists of at most one paragraph.  It can
