@@ -69,3 +69,101 @@ class ConfirmDialog(gui.Dialog):
     def _confirm(self, *args):
         self.send(gui.CHANGE)
         self.close()
+
+class SelectLevelDialog(gui.Dialog):
+    def __init__(self, text, confirm_text, title, **params):
+        title = gui.Label(title)
+
+        t = gui.Table()
+
+        self.value = gui.Form()
+        self.li = gui.Input(name="fname")
+        d = params.get('default_level', None)
+        if d is not None:
+            self.li.value = d
+        bb = gui.Button("...")
+        bb.connect(gui.CLICK, self.open_file_browser, None)
+
+        t.tr()
+        t.td(gui.Label(text +": "))
+        t.td(self.li,colspan=3)
+        t.td(bb)
+
+        t.tr()
+        e = gui.Button(confirm_text)
+        e.connect(gui.CLICK,self.confirm)
+        t.td(e,colspan=2)
+
+        e = gui.Button("Cancel")
+        e.connect(gui.CLICK,self.close,None)
+        t.td(e,colspan=2)
+
+        gui.Dialog.__init__(self,title,t)
+
+    def confirm(self):
+        self.close()
+        self.send(gui.CHANGE)
+
+    def open_file_browser(self, *arg):
+        d = gui.FileDialog()
+        d.connect(gui.CHANGE, self.handle_file_browser_closed, d)
+        d.open()
+
+    def handle_file_browser_closed(self, dlg):
+        if dlg.value:
+            self.li.value = dlg.value
+
+class NewLevelDialog(gui.Dialog):
+    def __init__(self,**params):
+        title = gui.Label("New/Resize Level")
+
+        t = gui.Table()
+
+        self.value = gui.Form()
+        self.input_width = gui.Input(name="width", value="10", size=3)
+        self.input_height = gui.Input(name="height", value="10", size=3)
+        self.input_clear = gui.Switch(value=True)
+        self.value.add(self.input_clear, name="clear", value=True)
+        self.input_trans_width = gui.Input(name="trans-width", value="0", size=3)
+        self.input_trans_height = gui.Input(name="trans-height", value="0", size=3)
+
+        t.tr()
+        t.td(gui.Label("Size: "))
+        t.td(self.input_width)
+        t.td(gui.Label("x"))
+        t.td(self.input_height)
+
+        t.tr()
+        t.td(gui.Label("Clear map: "))
+        t.td(self.input_clear)
+
+        t.tr()
+        t.td(gui.Label("Translation: "))
+        t.td(self.input_trans_width)
+        t.td(gui.Label("x"))
+        t.td(self.input_trans_height)
+
+        t.tr()
+        t.td(gui.Label("(relative to top left corner)"))
+
+        t.tr()
+
+        crlabel = gui.Label("Create")
+        e = gui.Button(crlabel)
+        e.connect(gui.CLICK,self.send,gui.CHANGE)
+        def _rename():
+            if self.input_clear.value:
+                crlabel.set_text("Create")
+            else:
+                crlabel.set_text("Resize")
+
+        self.input_clear.connect(gui.CHANGE, _rename)
+        t.td(e, colspan=2)
+
+        e = gui.Button("Cancel")
+        e.connect(gui.CLICK,self.close,None)
+        t.td(e, colspan=2)
+
+        gui.Dialog.__init__(self,title,t)
+
+
