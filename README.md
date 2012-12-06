@@ -134,6 +134,7 @@ are known:
 
  * python 2.7
  * pygame
+ * pgu-0.18 (embedded)
 
 The Debian/Ubuntu packages for these are:
 
