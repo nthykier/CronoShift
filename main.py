@@ -327,8 +327,12 @@ class Application(gui.Desktop):
 
         self.widget = CTRLWidget(width=640,height=490)
 
+        self._audio = {}
+        self._muted = False
+
         self._mode = "play"
         self._game_state = "stopped"
+        self._finish_event = None
         self.campaign = JikibanCampaign()
         self.campaign_lvl_no = -1
         self.fcounter = 0
@@ -367,8 +371,8 @@ class Application(gui.Desktop):
         from_left = spacer
 
         pygame.mixer.init()
-        self.time_paradox_sound = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
-        self.win_sound          = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
+        self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
+        self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
 
         menus = gui.Menus([
                 ('File/Load campaign', self.open_campaign_d.open, None),
@@ -474,8 +478,10 @@ class Application(gui.Desktop):
         # this event has even started (sort of okay for time-paradox)
         if ge.event_type == "game-complete":
             self._game_state = "complete"
+            self._finish_event = ge
         elif ge.event_type == "time-paradox":
             self._game_state = "time-paradox"
+            self._finish_event = ge
 
         if not self.skip_till_time_jump.value:
             return
@@ -648,6 +654,7 @@ class Application(gui.Desktop):
             return
         self.mode = "play"
         self._game_state = "stopped"
+        self._finish_event = None
         self.level = level
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
@@ -656,6 +663,15 @@ class Application(gui.Desktop):
         self.level.add_event_listener(sc)
         self._game_state = "running"
         self.level.start()
+
+    def play_sound(self, sound):
+        if sound not in self._audio:
+            # Emit this even if we are muted (for error finding)
+            print "W: Unknown sound %s" % sound
+            return
+        if self._muted:
+            return
+        self._audio[sound].play()
 
     def open_tutorial(self, *args):
         t = Tutorial()
@@ -667,13 +683,17 @@ class Application(gui.Desktop):
             # No pending animation - is the game finished?
             if self._game_state == "complete":
                 self._game_state = "stopped" # do this only once!
+                self._finish_event = None
                 print "Your score is: %d" % self.level.score
-                self.win_sound.play()
+                self.play_sound("game-complete")
                 self.auto_play = None
+                self._finish_event = None
                 self.next_level()
             elif self._game_state == "time-paradox":
+                ge = self._finish_event
+                self._finish_event = None
                 self._game_state = "stopped" # do this only once!
-                self.time_paradox_sound.play()
+                self.play_sound("time-paradox")
                 self.auto_play = None
                 self._show_error(ge.reason, "Time paradox or non-determinism")
 
