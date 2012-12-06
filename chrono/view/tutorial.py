@@ -2,18 +2,13 @@ from textwrap import dedent
 
 from pgu import gui
 
-def _make_text_box(width, height, text):
-    c = gui.Container(width=width, height=height)
-    spacer = 8
-    from_top = spacer
+class ROTextArea(gui.TextArea):
+    """Read-only TextArea"""
 
-    for line in text.split("\n"):
-        ll = gui.Label(line)
-        c.add(ll, spacer, from_top)
-        ll.rect.w, ll.rect.h = ll.resize()
-        from_top += ll.rect.h
-
-    return c
+    def event(self, e):
+        if e.type == gui.KEYDOWN:
+            return False
+        return super(ROTextArea, self).event(e)
 
 def make_ctrl_tutorial(width, height):
     msg = dedent("""\
@@ -28,7 +23,7 @@ field and fields that is "connected" to that field (if any).
 (e.g. when hovering over a gate, the button(s) activating
 the gate will be hilighted).
 """)
-    return _make_text_box(width, height, msg)
+    return ROTextArea(value=msg, width=width, height=height)
 
 def make_rules_tutorial(width, height):
     msg = dedent("""\
@@ -47,7 +42,7 @@ Examples include:
  * Causing temporal paradoxes ("time-paradox").
 
 """)
-    return _make_text_box(width, height, msg)
+    return ROTextArea(value=msg, width=width, height=height)
 
 def make_world_tutorial(width, height):
     msg = dedent("""\
@@ -66,7 +61,7 @@ must be able to enter the field it is being pushed onto.
 Crates can be used to activate fields by pushing it onto
 the field.
 """)
-    return _make_text_box(width, height, msg)
+    return ROTextArea(value=msg, width=width, height=height)
 
 class Tutorial(gui.Dialog):
 
@@ -74,7 +69,7 @@ class Tutorial(gui.Dialog):
         self.title = gui.Label("Tutorial")
         self.group = gui.Group(name="page", value="ctrl")
         from_left = from_top = spacer = 8
-        width, height = (300, 300)
+        width, height = (500, 300)
         t = gui.Table()
         t.tr()
         tutorials = {}
