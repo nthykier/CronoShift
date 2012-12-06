@@ -53,12 +53,14 @@ class ConfirmDialog(gui.Dialog):
         button_no = gui.Button("Cancel")
         # Handle multiple messages (works only because the text is
         # not changed)
+        # - colspan + col is used to set the buttons (approximately)
+        #   in the middle
         for line in msg.split("\n"):
             self.body.tr()
-            self.body.td(gui.Label(line))
+            self.body.td(gui.Label(line), colspan=8)
         self.body.tr()
-        self.body.td(button_ok)
-        self.body.td(button_no)
+        self.body.td(button_ok, col=3)
+        self.body.td(button_no, col=4)
         button_no.connect(gui.CLICK, self.close)
         button_ok.connect(gui.CLICK, self._confirm)
 
