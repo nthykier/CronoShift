@@ -40,6 +40,8 @@ if 1:
     dver = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
     if os.path.exists(dvcs):
         print "Using embedded pgu-vcs"
+        if "DISABLE_PGU_WORKAROUNDS" not in os.environ:
+            os.environ["DISABLE_PGU_WORKAROUNDS"] = "1"
         sys.path.insert(0, dvcs)
     elif os.path.exists(dver):
         print "Using embedded pgu (%s)" % (os.path.basename(dver))
@@ -275,9 +277,9 @@ class Application(gui.Desktop):
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
         self.open_campaign_d = SelectFileDialog("Campaign file", "Start Campaign",
-                                                "Start Campaign", filter_func=LSF_FILTER)
+                                                "Start Campaign", path_filter=LSF_FILTER)
         self.open_lvl_d = SelectFileDialog("Open", "Play", "Open level",
-                                           filter_func=LVL_FILTER)
+                                           path_filter=LVL_FILTER)
         self.new_lvl_d = NewLevelDialog()
         self.open_campaign_d.connect(gui.CHANGE, self.load_campaign_action)
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
@@ -558,7 +560,7 @@ class Application(gui.Desktop):
             return
         d = self.edit_level.name
         sld = SelectFileDialog("Save", "Save", "Save level", default_file=d,
-                               filter_func=LVL_FILTER)
+                               path_filter=LVL_FILTER)
         sld.connect(gui.CHANGE, self.write_level, sld)
         sld.open()
 

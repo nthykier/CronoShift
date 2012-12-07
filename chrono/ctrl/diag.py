@@ -87,12 +87,12 @@ class ConfirmDialog(gui.Dialog):
         self.close()
 
 class SelectFileDialog(gui.Dialog):
-    def __init__(self, text, confirm_text, title, filter_func=None, **params):
+    def __init__(self, text, confirm_text, title, path_filter=None, **params):
         title = gui.Label(title)
 
         t = gui.Table()
 
-        self.filter_func = filter_func
+        self.path_filter = path_filter
         self.value = gui.Form()
         self.li = gui.Input(name="fname")
         d = params.get('default_file', None)
@@ -129,7 +129,7 @@ class SelectFileDialog(gui.Dialog):
                 path =f
             else:
                 path = os.path.dirname(f)
-        d = EnhancedFileDialog(path=path, filter_func=self.filter_func)
+        d = EnhancedFileDialog(path=path, path_filter=self.path_filter)
         d.connect(gui.CHANGE, self.handle_file_browser_closed, d)
         d.open()
 
