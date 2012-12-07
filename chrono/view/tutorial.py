@@ -58,10 +58,11 @@ EDITOR_TUTORIAL = dedent("""\
 It is possible to create your own levels by accessing the
 editor.  Choose "Edit-mode" to enter the editor.
 
-"New/Resize Map" can be used to create a new "empty" map or
-resize the current one.  Resizing can be done with "relative"
-sizes by prefixing them with "+" or "-".  A size of "0" is
-also assumed to be relative (and means "keep current size").
+"New/Resize Map" can be used to create a new "empty" map
+or resize the current one.  Resizing can be done with
+"relative" sizes by prefixing them with "+" or "-".  A
+size of "0" is also assumed to be relative (and means
+"keep current size").
 
 "Play level" can be used to play the level in its current
 state.  It is useful for play testing and can also be used
@@ -125,10 +126,8 @@ class Tutorial(gui.Dialog):
         t.td(w, colspan=len(tutorials))
 
         def switch_tutorial():
-            w.clear()
             w.widget = tutorials[self.group.value]
             w.set_vertical_scroll(0)
-            w.resize()
 
         self.group.connect(gui.CHANGE, switch_tutorial)
 
