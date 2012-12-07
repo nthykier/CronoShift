@@ -35,11 +35,15 @@ import pygame
 import sys
 
 if 1:
-    # If pgu-0.16 is there, make it available
-    d = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
-    if os.path.exists(d):
-        print "Using embedded pgu"
-        sys.path.insert(0, d)
+    # If an embedded variant of pgu is there, make it available
+    dvcs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-vcs")
+    dver = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
+    if os.path.exists(dvcs):
+        print "Using embedded pgu-vcs"
+        sys.path.insert(0, dvcs)
+    elif os.path.exists(dver):
+        print "Using embedded pgu (%s)" % (os.path.basename(dver))
+        sys.path.insert(0, dver)
 
 from pgu import gui
 
