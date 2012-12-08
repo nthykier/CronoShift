@@ -34,10 +34,11 @@ import os
 import pygame
 import sys
 
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 if 1:
     # If an embedded variant of pgu is there, make it available
-    dvcs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-vcs")
-    dver = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
+    dvcs = os.path.join(ROOT_DIR, "pgu-vcs")
+    dver = os.path.join(ROOT_DIR, "pgu-0.18")
     if os.path.exists(dvcs):
         print "Using embedded pgu-vcs"
         if "DISABLE_PGU_WORKAROUNDS" not in os.environ:
@@ -265,7 +266,7 @@ class Application(gui.Desktop):
         self.auto_play = None
         self.skip_till_time_jump = gui.Switch(value=False)
         self.skip_till_time_jump.connect(gui.CHANGE, self.toggle_auto_finish)
-        self.game_window = GameWindow()
+        self.game_window = GameWindow(resource_dirs=[ROOT_DIR])
         self.ctrl_widget = self.widget
         self.ctrl_widget.game_window = self.game_window
         self.play_ctrl = PlayKeyController(view=self.game_window)

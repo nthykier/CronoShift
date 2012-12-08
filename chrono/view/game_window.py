@@ -62,7 +62,7 @@ def _kill_sprite(container, key):
 class GameWindow(gui.Widget):
     """The main game object."""
 
-    def __init__(self, **params):
+    def __init__(self, resource_dirs=None, **params):
         params['width'] = 450
         params['height'] = 300
         params['focusable'] = False
@@ -78,8 +78,9 @@ class GameWindow(gui.Widget):
         self.animated_background = pygame.sprite.RenderUpdates()
         self.animated_background_sprites = {}
         self._tileset = "tileset"
-        self._sprite_cache = TileCache(32, 32)
-        self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT)
+        self._sprite_cache = TileCache(32, 32, resource_dirs=resource_dirs)
+        self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
+                                   resource_dirs=resource_dirs)
         self._clones = {}
         self._gates = {}
         self._crates = {}

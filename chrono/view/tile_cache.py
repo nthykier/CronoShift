@@ -34,12 +34,16 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 import pygame
 
 class TileCache(object):
     """Load the tilesets lazily into global cache"""
 
-    def __init__(self,  width=32, height=None):
+    def __init__(self,  width=32, height=None, resource_dirs=None):
+        self.resource_dirs = resource_dirs
+        if resource_dirs is None:
+            self.resource_dirs = [os.getcwd()]
         self.width = width
         self.height = height or width
         self.cache = {}
@@ -51,10 +55,12 @@ class TileCache(object):
         try:
             return self.cache[key]
         except KeyError:
-            tile_table = self._load_tile_table("images/%s.png" % filename,
-                                               self.width, self.height)
-            self.cache[key] = tile_table
-            return tile_table
+            for res_dir in self.resource_dirs:
+                path = os.path.join(res_dir, "images", "%s.png" % filename)
+                tile_table = self._load_tile_table(path, self.width, self.height)
+                self.cache[key] = tile_table
+                return tile_table
+            raise KeyError("Unknown animation/resource: %s" % key)
 
     def _load_tile_table(self, filename, width, height):
         """Load an image and split it into tiles."""
