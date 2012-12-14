@@ -10,5 +10,5 @@
 button (1, 2) -> gate (2, 4)
 
 Description: Buttons can make campfires passable.
-Solution: 
+Solution:
  WS ES SN NN T

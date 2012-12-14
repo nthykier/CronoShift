@@ -26,6 +26,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import os
 from textwrap import dedent
 
 import pygame.locals as pg
@@ -177,7 +178,7 @@ class PlayKeyController(KeyController):
                 fd.write("Level: %s\n" % lname)
                 fd.write("Actions:\n%s\n" % act)
 
-            msg = "Actions saved to %s" % fname
+            msg = "Actions saved to %s" % os.path.basename(fname)
             MessageDialog(msg, "Actions saved").open()
         except IOError as e:
             MessageDialog(str(e), "Could not save actions").open()

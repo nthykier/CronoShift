@@ -575,7 +575,8 @@ class Application(gui.Desktop):
             name = dialog.value['fname'].value
             self.edit_level.print_lvl(name)
             self.edit_level.name = name
-            MessageDialog("Saved level to %s" % name, "Level saved").open()
+            MessageDialog("Saved level to %s" % os.path.basename(name),
+                          "Level saved").open()
         except IOError as e:
             self._show_error(str(e), "Cannot save map")
 
