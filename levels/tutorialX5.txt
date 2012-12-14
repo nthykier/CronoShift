@@ -1,0 +1,15 @@
+2D SuperFun!
+++++++++++
++  b p++++
++ +++p++++
++ p p-p-++
++ popcpoG+
++S+++p++++
++   pp++++
+++++++++++
+
+button (3, 1) -> gate (5, 3)
+button (3, 4) -> gate (7, 3)
+button (7, 4) -> gate (5, 3)
+
+Description: No help here, and no solution

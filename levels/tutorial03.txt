@@ -12,4 +12,4 @@ button (2, 1) -> gate (2, 4)
 Description: You may need something to keep
  the button pressed...
 Solution:
- ES SE NE NW SS WS SN NN WN T
+ EE ES WS WN SS SN NN WN T
