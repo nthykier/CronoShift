@@ -23,12 +23,12 @@ they have special game semantics, which will be covered in the
 game rules.
 
 There are two movable elements, namely the player and crates.  The
-former are directly controlled by the player and the latter can be
+former is directly controlled by the player and the latter can be
 pushed by the player.
 
 The game is a single player game, but due to the ``time machine''
 there can be more than one ``player self'' present on the game board.
-All ``selves'' are identically in terms of play rules (e.g. any of
+All ``selves'' are identical in terms of play rules (e.g. any of
 them can pick up the goal).  Particularly, all ``selves'' must
 eventually enter the time machine.  The only difference is that the
 player actively controls the ``current self''.
@@ -86,8 +86,8 @@ them can pick up the goal).  Particularly, all ``selves'' must
 eventually enter the time machine.  The only difference is that the
 player actively controls the ``current self''.
 
-Time jumping allows the player to do things that would not otherwise
-be possible by playing ``ping-poing'' with his/her ``past selves'',
+Time jumping allows the player to do things that would otherwise not
+be possible by playing ``ping-pong'' with his/her ``past selves'',
 though at the risk of introducing temporal paradoxes (see
 \nameref{temporal-paradox}).
 
@@ -195,8 +195,8 @@ best (i.e. most efficient).  The scoring rules are:
 \subsection{Desired features}
 
 \subsection{Technical challenges}
-We had some major technical challenges.  Most of them turned out to be
-easier to solve in practise than we thought originally.
+There were some major technical challenges.  Most of them turned out to be
+easier to solve in practise than what was originally expected.
 
 The primary technical challenge was actually levels.  Finding a(n
 optimal) solution to a Sokoban level is already known to be NP-Hard.
@@ -205,12 +205,16 @@ unlikely to make it any easier to find an optimal solution.
 
 We did not have any mechanically way of finding the solution to any of
 our levels.  But more importantly, we had no way of verifying that the
-solution we found is indeed the optimal one.  Especially, we have no
-way of checking if our solution is (still) optimal if we change the
-scoring rules.
+solution we found was indeed the optimal one.  Especially, we had no
+way of checking if our solution was (still) optimal if the scoring rules
+were changed.
 
 Another perceived issue was detecting the losing criteria.  While it
 turned out to be fairly easy in practise, we did spent quite some time
 figuring out all the cases that could introduce non-determinism and
 how to detect them.
+
+In particular the issue of detecting a trapped player, who can still
+move. Because there is an infinite number of valid moves, which can
+still be made, there is no simple way to check if the player is stuck.
 
