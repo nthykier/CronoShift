@@ -212,6 +212,8 @@ def make_game_ctrls(app, width, height):
         app.muted = mcb.value
         if app.muted:
             pygame.mixer.stop()
+        else:
+            app.play_sound("background", loops = -1)
 
     mcb.connect(gui.CHANGE, _toggle_sounds)
     c.add(mcb, from_left, from_top)
@@ -299,6 +301,9 @@ class Application(gui.Desktop):
         pygame.mixer.init()
         self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
         self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
+        self._audio["background"] = pygame.mixer.Sound("sound/POL-sand-and-water-short_repeat.wav")
+
+        self.play_sound("background", loops = -1)
 
         menus = gui.Menus([
                 ('File/Load campaign', self.open_campaign_d.open, None),
@@ -464,7 +469,7 @@ class Application(gui.Desktop):
         self.play_ctrl.level = self.level
         self.play_ctrl.edit_level = edit_level
         self.play_mctrl.level = self.level
-        self.edit_mctrl.level = edit_level 
+        self.edit_mctrl.level = edit_level
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
         lvl = self.edit_level
@@ -595,14 +600,14 @@ class Application(gui.Desktop):
         self._game_state = "running"
         self.level.start()
 
-    def play_sound(self, sound):
+    def play_sound(self, sound, loops = 1):
         if sound not in self._audio:
             # Emit this even if we are muted (for error finding)
             print "W: Unknown sound %s" % sound
             return
         if self.muted:
             return
-        self._audio[sound].play()
+        self._audio[sound].play(loops)
 
     def open_tutorial(self, *args):
         t = Tutorial()
