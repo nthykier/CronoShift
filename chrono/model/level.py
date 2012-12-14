@@ -26,7 +26,6 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from collections import deque
 import functools
 from itertools import (imap, ifilter, chain, izip, takewhile, product,
                        starmap)
@@ -205,6 +204,7 @@ class BaseLevel(object):
         self._handlers.remove(handler)
 
     def init_from_level(self, other):
+        self._name = other.name
         self._width = other.width
         self._height = other.height
         self._start_location = other.start_location
@@ -621,7 +621,7 @@ class Level(BaseLevel):
         # We always reset by removing a clone (or all clones), so we
         # have insert a clone to replace the removed one (or insert
         # the new "first" clone).
-        self._active_player = True
+        self._player_active = True
         self._actions = []
 
         self._player = PlayerClone(self.start_location.position, self._actions)
@@ -782,6 +782,9 @@ class EditableLevel(BaseLevel):
     def name(self, val):
         self._name = val
 
+    def set_metadata_raw(self, field, val):
+        self._metadata[field] = val
+
     def load_level(self, *args, **kwords):
         super(EditableLevel, self).load_level(*args, **kwords)
         # Ensure self._lvl is mutable
@@ -799,7 +802,8 @@ class EditableLevel(BaseLevel):
         crates = {}
         lvl = []
         def _new_field(npos, t):
-            if translate is not None:
+            if (translate is not None and 0 < npos.x < width - 1 and
+                    0 < npos.y < height - 1):
                 opos = npos - t
                 if (0 < opos.x < self.width - 1) and (0 < opos.y < self.height - 1):
                     ofield = self.get_field(opos)

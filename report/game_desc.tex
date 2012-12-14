@@ -9,10 +9,12 @@ The game world is represented as a grid.  Each tile is basically
 either a:
 
 \begin{itemize}
-\item field - passable, stateless
-\item wall - impassable, stateless
-\item button - passable, source (activator)
-\item gate - passible/impassable, target (activatable)
+\item Field - passable
+\item Wall - impassable
+\item Pressure plate (button) - passable
+\item ``One-time button'' - passable
+\item Gate - state-dependent
+\item ``One-time pass'' - state-dependent
 \end{itemize}
 
 There are two special singleton fields, the ``time machine'' and
@@ -20,9 +22,26 @@ the ``goal''.  Both fields are passable like a normal field, but
 they have special game semantics, which will be covered in the
 game rules.
 
-There are two movable elements, namely the player(s) and crates.  The
+There are two movable elements, namely the player and crates.  The
 former are directly controlled by the player and the latter can be
 pushed by the player.
+
+The game is a single player game, but due to the ``time machine''
+there can be more than one ``player self'' present on the game board.
+All ``selves'' are identically in terms of play rules (e.g. any of
+them can pick up the goal).  Particularly, all ``selves'' must
+eventually enter the time machine.  The only difference is that the
+player actively controls the ``current self''.
+
+Originially, these ``selves'' were referred to as ``time clones'' (or
+simply just ``clones'').  Particularly, in the source code they are
+still called ``clones'' and we may use the terms interchangeably.
+
+The action that causes a new ``player self'' to appear is called a
+``time jump'' and is explained in detail in \nameref{time-jumping}.
+
+Some fields have multiple states and behaviours.  Please refer to
+\nameref{field-states} for more information.
 
 A screenshot of graphical representation of the elements is available
 in figure~\ref{fig:IconExplanation}.
@@ -34,6 +53,7 @@ To complete a given level, the player must obtain the goal (``gold coin''),
 return to the time machine and enter it.
 
 \subsection{Player actions}
+\label{player-actions}
 Each turn, the player can do one of the following moves:
 
 \begin{itemize}
@@ -47,9 +67,13 @@ destination for the crate is available.  It is not possible to
 ``pull'' crates and the player can push at most one crate.  These
 are basically the same rules used in Sokoban for moving crates.
 
+Any number of ``player selves'' are allowed to occupy the same
+tile.
+
 \paragraph{Time jumping}
+\label{time-jumping}
 The player has the ability to go back in time to the first turn.  As
-the player goes back in time, the world will reset it self to its
+the player goes back in time, the world will reset itself to its
 initial state, but with one crucial difference.
 
 There is now an extra ``player'' in the level; namely the ``current
@@ -67,21 +91,48 @@ be possible by playing ``ping-poing'' with his/her ``past selves'',
 though at the risk of introducing temporal paradoxes (see
 \nameref{temporal-paradox}).
 
-Any number of ``player selves'' are allowed to occupy the same
-tile.
+\subsubsection{Field states and manipulation}
+\label{field-states}
+Certain fields in the game world have multiple states with different
+behaviour.  State changes are generally triggered by the actions of
+the player.  The following fields can change during the play:
 
-\subsubsection{Buttons and gates}
-The player can also manipulate the game world via buttons (an
-``activator''), which then triggers a gate (an ``activatable'').
+\begin{itemize}
+\item Pressure plate (button)
+\item ``One-time button''
+\item Gate
+\item ``One-time pass''
+\end{itemize}
 
-Buttons are ``on'' when either a create or at least one ``player
-self'' is on top.  While the button is ``on'' it will keep its
-``activatables'' active.  As an example, consider the little game
-world in figure~\ref{fig:button-gate-ex}.
+The gates start as either ``open'' (passable) or ``closed''
+(impassable).  They alter state when a button activate them.  If
+multiple buttons activate the same gate, then its resulting state
+depends on the number of gates.  If the number is 0 or ``even'', the
+gate is in its starting state and if the number is odd it is in the
+``opposite'' state\footnote{Basically a ``boolean xor'' for those
+  familiar with that term}.
 
-\figurepng{button-gate-ex}{A small example game with a button and a closed gate}
+All buttons are activated when a player or crate is on top of them.
+The difference between a ``one-time button'' and a pressure plate is
+that an activated pressure plate will deactivate when nothing is on
+top of it (like a ``dead man's switch'').  A ``one-time button'' can,
+once pressed, never be ``unpressed''.
+
+A ``one-time pass'' (short for ``one-time passage'') is a field that
+(as the name suggests) can only be passed once.  The passage will
+``collapse'' on the turn after a player or crate enters it.  From a
+semantic point of view, the field turns into a wall.  The net effect
+is that a player cannot linger on the field and crates cannot be pushed
+on to the field\footnote{Because there is no way to push it off the field
+and it is not allowed to stay on the field either}.
+
+As the keen reader may already have guessed (or noticed), ``one-time''
+is defined as ``once per time jump'' and not ``once per level''.  When
+performing a time jump, these fields are still reset to their initial
+state.  (See \nameref{time-jumping})
 
 
+\figurepng{button-gate-ex}{A small example game with a pressure plate and a closed gate}
 
 \subsubsection{Losing}
 
@@ -144,4 +195,22 @@ best (i.e. most efficient).  The scoring rules are:
 \subsection{Desired features}
 
 \subsection{Technical challenges}
+We had some major technical challenges.  Most of them turned out to be
+easier to solve in practise than we thought originally.
+
+The primary technical challenge was actually levels.  Finding a(n
+optimal) solution to a Sokoban level is already known to be NP-Hard.
+Adding a time machine and extra game mechanics on top of that is
+unlikely to make it any easier to find an optimal solution.
+
+We did not have any mechanically way of finding the solution to any of
+our levels.  But more importantly, we had no way of verifying that the
+solution we found is indeed the optimal one.  Especially, we have no
+way of checking if our solution is (still) optimal if we change the
+scoring rules.
+
+Another perceived issue was detecting the losing criteria.  While it
+turned out to be fairly easy in practise, we did spent quite some time
+figuring out all the cases that could introduce non-determinism and
+how to detect them.
 

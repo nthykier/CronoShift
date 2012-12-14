@@ -26,10 +26,13 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+from textwrap import dedent
+
 import pygame.locals as pg
 from pgu import gui
 
-from chrono.ctrl.diag import ConfirmDialog, ErrorDialog
+from chrono.ctrl.diag import (ConfirmDialog, MessageDialog, OptionsDialog,
+                              SelectFileDialog)
 
 DEFAULT_PLAY_CONTROLS = {
     pg.K_UP: 'move-up',
@@ -53,8 +56,8 @@ DEFAULT_PLAY_CONTROLS = {
 
 class KeyController(object):
 
-    def __init__(self, level=None, def_ctrl=None):
-        self.level = level
+    def __init__(self, def_ctrl=None):
+        self.level = None
         self.controls = def_ctrl
 
     def event(self, e):
@@ -79,10 +82,11 @@ class KeyController(object):
 
 class PlayKeyController(KeyController):
 
-    def __init__(self, level=None, view=None, def_ctrl=None):
+    def __init__(self, view=None, def_ctrl=None):
         if not def_ctrl:
             def_ctrl = DEFAULT_PLAY_CONTROLS
-        super(PlayKeyController, self).__init__(level, def_ctrl=def_ctrl)
+        super(PlayKeyController, self).__init__(def_ctrl=def_ctrl)
+        self.edit_level = None
         self.view = view
         self.confirm_eot_on_start = True
         self._action2handler = {
@@ -116,22 +120,25 @@ class PlayKeyController(KeyController):
                 # the time machine
                 diag = ConfirmDialog("Do you really want to end the current time-jump in turn %d?" \
                                          % self.level.turn[0])
-                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.connect(gui.CHANGE, l.perform_move, action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
             if not current_clone:
-                ErrorDialog("The player is already inside the time machine.\n" +
-                            "Did you want to skip turn?", "Illegal move").open()
+                msg = dedent("""\
+                      The player is already inside the time machine.
+                      Use skip turn (or check "auto finish time-jump").
+""")
+                MessageDialog(msg, "Illegal move").open()
                 return # Don't consume here or the dialog won't work
             if current_clone.position != l.start_location.position:
-                ErrorDialog("The player must be on top of the time machine to enter it.",
+                MessageDialog("The player must be on top of the time machine to enter it.",
                             "Illegal move").open()
                 return # Don't consume here or the dialog won't work
         if self.confirm_eot_on_start and action == "skip-turn":
             if (current_clone is not None and
                     current_clone.position == l.start_location.position):
                 diag = ConfirmDialog("Do you really want to skip your time on the time machine?")
-                diag.connect(gui.CHANGE, self._action2handler[action], action)
+                diag.connect(gui.CHANGE, l.perform_move, action)
                 diag.open()
                 return # Don't consume here or the dialog won't work
 
@@ -140,6 +147,55 @@ class PlayKeyController(KeyController):
         return True
 
     def _print_actions(self, _):
+        if self.level is None:
+            return
+
+        options = [
+            ("File", self._actions_save),
+            ("Solution", self._actions_solution),
+            (None, None),
+        ]
+        msg = dedent("""\
+            Store your actions in a file or set as solution for the current
+            level.
+""")
+
+        od = OptionsDialog(msg, "Store actions", options)
+        od.open()
+
+    def _actions_save(self):
+        sfd = SelectFileDialog("Save to", "Save", "Save actions")
+        sfd.connect(gui.CHANGE, self._actions_save_file, sfd)
+        sfd.open()
+
+    def _actions_save_file(self, sfd):
+        fname = sfd.value["fname"].value
+        try:
+            with open(fname, "w") as fd:
+                lname = self.level.name
+                act = "\n .".join(self._gen_action_string())
+                fd.write("Level: %s\n" % lname)
+                fd.write("Actions:\n%s\n" % act)
+
+            msg = "Actions saved to %s" % fname
+            MessageDialog(msg, "Actions saved").open()
+        except IOError as e:
+            MessageDialog(str(e), "Could not save actions").open()
+
+    def _actions_solution(self):
+        # start with a line break
+        sol = "\n" + "\n .".join(self._gen_action_string())
+        self.edit_level.set_metadata_raw("solution", sol)
+        msg = dedent("""\
+              Solution updated/created in the editor.  If you want
+              to play the solution, please reload the map.  Remember
+              to save the level in the editor!
+                (reload level by "Edit-mode" -> "Play Level")
+""")
+        mdiag = MessageDialog(msg, "Solution set")
+        mdiag.open()
+
+    def _gen_action_string(self):
         def _action2sf(container):
             actions = {
                 'move-up': 'N',
@@ -150,14 +206,15 @@ class PlayKeyController(KeyController):
                 'enter-time-machine': 'T',
             }
             it = iter(container)
+
             while 1:
                 a = next(it)
                 b = next(it, None)
                 if b is None:
                     yield actions[a]
                     break
-                yield actions[a] + actions[b] + ' '
+                yield actions[a] + actions[b]
 
         for clone in self.level.iter_clones():
-            print " %s" % ("".join(_action2sf(clone)))
+            yield " ".join(_action2sf(clone))
 

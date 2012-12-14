@@ -34,119 +34,34 @@ import os
 import pygame
 import sys
 
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 if 1:
-    # If pgu-0.16 is there, make it available
-    d = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pgu-0.18")
-    if os.path.exists(d):
-        print "Using embedded pgu"
-        sys.path.insert(0, d)
+    # If an embedded variant of pgu is there, make it available
+    dvcs = os.path.join(ROOT_DIR, "pgu-vcs")
+    dver = os.path.join(ROOT_DIR, "pgu-0.18")
+    if os.path.exists(dvcs):
+        print "Using embedded pgu-vcs"
+        if "DISABLE_PGU_WORKAROUNDS" not in os.environ:
+            os.environ["DISABLE_PGU_WORKAROUNDS"] = "1"
+        sys.path.insert(0, dvcs)
+    elif os.path.exists(dver):
+        print "Using embedded pgu (%s)" % (os.path.basename(dver))
+        sys.path.insert(0, dver)
 
 from pgu import gui
 
+from chrono.model.campaign import JikibanCampaign
 from chrono.model.field import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
-from chrono.ctrl.diag import ErrorDialog
+from chrono.ctrl.diag import (MessageDialog, SelectFileDialog, NewLevelDialog,
+                              simple_file_filter)
 from chrono.view.game_window import GameWindow
 from chrono.view.tutorial import Tutorial
 
-class SelectLevelDialog(gui.Dialog):
-    def __init__(self, text, confirm_text, title, **params):
-        title = gui.Label(title)
-
-        t = gui.Table()
-
-        self.value = gui.Form()
-        self.li = gui.Input(name="fname")
-        d = params.get('default_level', None)
-        if d is not None:
-            self.li.value = d
-        bb = gui.Button("...")
-        bb.connect(gui.CLICK, self.open_file_browser, None)
-
-        t.tr()
-        t.td(gui.Label(text +": "))
-        t.td(self.li,colspan=3)
-        t.td(bb)
-
-        t.tr()
-        e = gui.Button(confirm_text)
-        e.connect(gui.CLICK,self.confirm)
-        t.td(e,colspan=2)
-
-        e = gui.Button("Cancel")
-        e.connect(gui.CLICK,self.close,None)
-        t.td(e,colspan=2)
-
-        gui.Dialog.__init__(self,title,t)
-
-    def confirm(self):
-        self.close()
-        self.send(gui.CHANGE)
-
-    def open_file_browser(self, *arg):
-        d = gui.FileDialog()
-        d.connect(gui.CHANGE, self.handle_file_browser_closed, d)
-        d.open()
-
-    def handle_file_browser_closed(self, dlg):
-        if dlg.value:
-            self.li.value = dlg.value
-
-class NewLevelDialog(gui.Dialog):
-    def __init__(self,**params):
-        title = gui.Label("New/Resize Level")
-
-        t = gui.Table()
-
-        self.value = gui.Form()
-        self.input_width = gui.Input(name="width", value="10", size=3)
-        self.input_height = gui.Input(name="height", value="10", size=3)
-        self.input_clear = gui.Switch(value=True)
-        self.value.add(self.input_clear, name="clear", value=True)
-        self.input_trans_width = gui.Input(name="trans-width", value="0", size=3)
-        self.input_trans_height = gui.Input(name="trans-height", value="0", size=3)
-
-        t.tr()
-        t.td(gui.Label("Size: "))
-        t.td(self.input_width)
-        t.td(gui.Label("x"))
-        t.td(self.input_height)
-
-        t.tr()
-        t.td(gui.Label("Clear map: "))
-        t.td(self.input_clear)
-
-        t.tr()
-        t.td(gui.Label("Translation: "))
-        t.td(self.input_trans_width)
-        t.td(gui.Label("x"))
-        t.td(self.input_trans_height)
-
-        t.tr()
-        t.td(gui.Label("(relative to top left corner)"))
-
-        t.tr()
-
-        crlabel = gui.Label("Create")
-        e = gui.Button(crlabel)
-        e.connect(gui.CLICK,self.send,gui.CHANGE)
-        def _rename():
-            if self.input_clear.value:
-                crlabel.set_text("Create")
-            else:
-                crlabel.set_text("Resize")
-
-        self.input_clear.connect(gui.CHANGE, _rename)
-        t.td(e, colspan=2)
-
-        e = gui.Button("Cancel")
-        e.connect(gui.CLICK,self.close,None)
-        t.td(e, colspan=2)
-
-        gui.Dialog.__init__(self,title,t)
-
+LVL_FILTER = simple_file_filter(lambda x: x.endswith(".txt"))
+LSF_FILTER = simple_file_filter(lambda x: x.endswith(".lsf"))
 
 class ScoreTracker(gui.Label):
 
@@ -245,21 +160,6 @@ def make_game_ctrls(app, width, height):
     from_top = spacer
     from_left = spacer
 
-    enter_tm = gui.Button("Enter time machine")
-    enter_tm.connect(gui.CLICK, app.play_ctrl.perform_move,
-                     "enter-time-machine")
-    c.add(enter_tm, from_left, from_top)
-    enter_tm.rect.w, enter_tm.rect.h = enter_tm.resize()
-
-    from_left += enter_tm.rect.w + spacer
-
-    play_s = gui.Button("Play Solution")
-    play_s.connect(gui.CLICK, app.play_solution, None)
-    c.add(play_s, from_left, from_top)
-    play_s.rect.w, play_s.rect.h = play_s.resize()
-
-    from_left += play_s.rect.w + spacer
-
     reset_tj = gui.Button("Reset clone")
     reset_tj.connect(gui.CLICK, app.reset_clone, None)
     c.add(reset_tj, from_left, from_top)
@@ -279,8 +179,15 @@ def make_game_ctrls(app, width, height):
     c.add(hint, from_left, from_top)
     hint.rect.w, hint.rect.h = hint.resize()
 
+    from_left += hint.rect.w + spacer
+
+    play_s = gui.Button("Play Solution")
+    play_s.connect(gui.CLICK, app.play_solution, None)
+    c.add(play_s, from_left, from_top)
+    play_s.rect.w, play_s.rect.h = play_s.resize()
+
     from_left = spacer
-    from_top += reset_lvl.rect.h + spacer
+    from_top += play_s.rect.h + spacer
 
     l = gui.Label("Auto finish time-jump: ")
     c.add(l, from_left, from_top)
@@ -291,6 +198,26 @@ def make_game_ctrls(app, width, height):
     cbox = app.skip_till_time_jump
     c.add(cbox, from_left, from_top)
     cbox.rect.w, cbox.rect.h = cbox.resize()
+
+    from_left += cbox.rect.w + spacer
+
+    sl = gui.Label("Disable audio: ")
+    c.add(sl, from_left, from_top)
+    sl.rect.w, sl.rect.h = sl.resize()
+
+    from_left += sl.rect.w + spacer
+
+    mcb = gui.Switch(value=app.muted)
+    def _toggle_sounds():
+        app.muted = mcb.value
+        if app.muted:
+            pygame.mixer.stop()
+        else:
+            app.play_sound("background", loops = -1)
+
+    mcb.connect(gui.CHANGE, _toggle_sounds)
+    c.add(mcb, from_left, from_top)
+    mcb.rect.w, mcb.rect.h = mcb.resize()
 
     return c
 
@@ -326,7 +253,14 @@ class Application(gui.Desktop):
 
         self.widget = CTRLWidget(width=640,height=490)
 
+        self._audio = {}
+        self.muted = False
+
         self._mode = "play"
+        self._game_state = "stopped"
+        self._finish_event = None
+        self.campaign = JikibanCampaign()
+        self.campaign_lvl_no = -1
         self.fcounter = 0
         self.score = ScoreTracker()
         self.edit_level = None
@@ -334,7 +268,7 @@ class Application(gui.Desktop):
         self.auto_play = None
         self.skip_till_time_jump = gui.Switch(value=False)
         self.skip_till_time_jump.connect(gui.CHANGE, self.toggle_auto_finish)
-        self.game_window = GameWindow()
+        self.game_window = GameWindow(resource_dirs=[ROOT_DIR])
         self.ctrl_widget = self.widget
         self.ctrl_widget.game_window = self.game_window
         self.play_ctrl = PlayKeyController(view=self.game_window)
@@ -345,8 +279,12 @@ class Application(gui.Desktop):
         self.ctrl_widget.key_ctrl = self.play_ctrl
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
-        self.open_lvl_d = SelectLevelDialog("Open", "Play", "Open level")
+        self.open_campaign_d = SelectFileDialog("Campaign file", "Start Campaign",
+                                                "Start Campaign", path_filter=LSF_FILTER)
+        self.open_lvl_d = SelectFileDialog("Open", "Play", "Open level",
+                                           path_filter=LVL_FILTER)
         self.new_lvl_d = NewLevelDialog()
+        self.open_campaign_d.connect(gui.CHANGE, self.load_campaign_action)
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
         self.new_lvl_d.connect(gui.CHANGE, self.new_map)
 
@@ -361,11 +299,15 @@ class Application(gui.Desktop):
         from_left = spacer
 
         pygame.mixer.init()
-        self.time_paradox_sound = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
-        self.win_sound          = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
+        self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
+        self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
+        self._audio["background"] = pygame.mixer.Sound("sound/POL-sand-and-water-short_repeat.wav")
+
+        self.play_sound("background", loops = -1)
 
         menus = gui.Menus([
-                ('File/Load', self.open_lvl_d.open, None),
+                ('File/Load campaign', self.open_campaign_d.open, None),
+                ('File/Load level', self.open_lvl_d.open, None),
                 ('File/Quit', self.quit, None),
                 ('Help/Tutorial', self.open_tutorial, None),
         ])
@@ -450,17 +392,27 @@ class Application(gui.Desktop):
     def action_open_lvl(self):
         self.load_level(self.open_lvl_d.value['fname'].value)
 
+    def next_level(self):
+        if self.campaign_lvl_no != -1:
+            self.campaign_lvl_no += 1
+            if self.campaign_lvl_no < len(self.campaign):
+                self.load_level(self.campaign[self.campaign_lvl_no])
+
     def game_event(self, ge):
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return
 
+        # FIXME: If the player types fast (i.e. "enqueues a lot of
+        # moves", we will receive these events _waaaaay_ ahead of the
+        # animation.  Generally we are here before the animation triggering
+        # this event has even started (sort of okay for time-paradox)
         if ge.event_type == "game-complete":
-            self.win_sound.play()
-            self.auto_play = None
+            self._game_state = "complete"
+            self._finish_event = ge
         elif ge.event_type == "time-paradox":
-            self.time_paradox_sound.play()
-            self.auto_play = None
+            self._game_state = "time-paradox"
+            self._finish_event = ge
 
         if not self.skip_till_time_jump.value:
             return
@@ -481,21 +433,43 @@ class Application(gui.Desktop):
                 self.fcounter = 0
                 self.auto_play = itertools.repeat("skip-turn")
 
+    def load_campaign_action(self):
+        return self.load_campaign(self.open_campaign_d.value['fname'].value)
+
+    def load_campaign(self, fname):
+        self.auto_play = None
+        campaign = JikibanCampaign()
+        try:
+            campaign.load_campaign(fname)
+        except IOError as e:
+            self._show_error(str(e), "Cannot load campaign")
+            return
+        if len(campaign) < 1:
+            self._show_error("The campaign does not have any levels in it",
+                             "Empty campaign")
+            return
+
+        self.campaign = campaign
+        self.campaign_lvl_no = 0
+        self.load_level(campaign[0])
+
     def load_level(self, fname):
         self.auto_play = None
         edit_level = EditableLevel()
         try:
             edit_level.load_level(fname)
         except IOError as e:
-            self._show_error("Cannot load map", str(e))
+            self._show_error(str(e), "Cannot load map")
             return
 
+        self._game_state = "stopped"
         self.edit_level = edit_level
         self.level = Level()
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
+        self.play_ctrl.edit_level = edit_level
         self.play_mctrl.level = self.level
-        self.edit_mctrl.level = edit_level 
+        self.edit_mctrl.level = edit_level
         sc = functools.partial(self.score.update_score, self.level)
         self.level.init_from_level(self.edit_level)
         lvl = self.edit_level
@@ -505,10 +479,11 @@ class Application(gui.Desktop):
             grid = False
         self.game_window.use_level(lvl, grid=grid)
         self.level.add_event_listener(sc)
+        self._game_state = "running"
         self.level.start()
 
-    def _show_error(self, title_msg, body_msg):
-        ErrorDialog(body_msg, title_msg).open()
+    def _show_error(self, body_msg, title_msg):
+        MessageDialog(body_msg, title_msg).open()
 
     def play_solution(self, *args):
         if not self.level:
@@ -518,7 +493,8 @@ class Application(gui.Desktop):
 
         sol = self.level.get_metadata_raw("solution")
         if not sol:
-            print "%s has no solution" % level.name
+            msg = "Solution for %s is not available" % self.level.name
+            self._show_error(msg, "No solution available!")
             return
         self.reset_level()
         print "Playing solution"
@@ -528,22 +504,43 @@ class Application(gui.Desktop):
     def new_map(self):
         self.new_lvl_d.close()
         res = self.new_lvl_d.value
+        edit_level = self.edit_level
+        can_rel = True
+        trans = None
 
-        edit_level = self.edit_level or EditableLevel()
+        if edit_level is None:
+            can_rel = False
+            edit_level = EditableLevel()
+
+        def _compute_value(name, s):
+            res = 0
+            if s and (s[0] == "+" or s[0] == "-" or s == "0"):
+                # +x or -x or 0 is assumed to be relative (the latter being
+                # short for "+0")
+                if not can_rel:
+                    raise ValueError("Cannot do relative size based on non-existent map: %s=%s" \
+                                         % (name, s))
+                if name == "width":
+                    return edit_level.width + int(s)
+                return edit_level.height + int(s)
+            else:
+                return int(s.lstrip("="))
 
         try:
+            width = _compute_value("width", res["width"].value)
+            height = _compute_value("height", res["height"].value)
             clear = res["clear"].value
-            trans = None
             if not clear:
                 trans = Position(int(res["trans-width"].value),
                                  int(res["trans-height"].value))
-            edit_level.new_map(int(res["width"].value), int(res["height"].value),
-                               translate=trans)
         except (TypeError, ValueError) as e:
-            self._show_error("Cannot create map", str(e))
+            self._show_error(str(e), "Cannot create map")
             return
 
+        edit_level.new_map(width, height, translate=trans)
+
         self.edit_level = edit_level
+        self.play_ctrl.edit_level = edit_level
         self.edit_mctrl.level = edit_level
         self.game_window.use_level(edit_level, grid=True)
 
@@ -558,17 +555,18 @@ class Application(gui.Desktop):
         if self.level:
             h = self.level.get_metadata_raw("description")
             if h is not None:
-                d = ErrorDialog(h, title="Hint")
+                d = MessageDialog(h, title="Hint")
                 d.open();
             else:
-                d = ErrorDialog("No hint available", title="Sorry")
+                d = MessageDialog("No hint available", title="Sorry")
                 d.open();
 
     def save_level(self, *args):
         if not self.edit_level:
             return
         d = self.edit_level.name
-        sld = SelectLevelDialog("Save", "Save", "Save level", default_level=d)
+        sld = SelectFileDialog("Save", "Save", "Save level", default_file=d,
+                               path_filter=LVL_FILTER)
         sld.connect(gui.CHANGE, self.write_level, sld)
         sld.open()
 
@@ -577,8 +575,9 @@ class Application(gui.Desktop):
             name = dialog.value['fname'].value
             self.edit_level.print_lvl(name)
             self.edit_level.name = name
+            MessageDialog("Saved level to %s" % name, "Level saved").open()
         except IOError as e:
-            self._show_error("Cannot save map", str(e))
+            self._show_error(str(e), "Cannot save map")
 
     def play_edit_level(self, *args):
         if not self.edit_level:
@@ -587,16 +586,28 @@ class Application(gui.Desktop):
         try:
             level.init_from_level(self.edit_level)
         except ValueError as e:
-            self._show_error("Cannot play map", str(e))
+            self._show_error(str(e), "Cannot play map")
             return
         self.mode = "play"
+        self._game_state = "stopped"
+        self._finish_event = None
         self.level = level
         self.level.add_event_listener(self.game_event)
         self.play_ctrl.level = self.level
         self.game_window.use_level(self.level, grid=False)
         sc = functools.partial(self.score.update_score, self.level)
         self.level.add_event_listener(sc)
+        self._game_state = "running"
         self.level.start()
+
+    def play_sound(self, sound, loops = 1):
+        if sound not in self._audio:
+            # Emit this even if we are muted (for error finding)
+            print "W: Unknown sound %s" % sound
+            return
+        if self.muted:
+            return
+        self._audio[sound].play(loops)
 
     def open_tutorial(self, *args):
         t = Tutorial()
@@ -604,29 +615,53 @@ class Application(gui.Desktop):
 
     def loop(self):
         self.game_window.process_game_events()
-        self.fcounter = (self.fcounter + 1) % 15
-        if not self.fcounter:
-            # 15th frame
-            if self.auto_play and self.mode == "play":
-                act = next(self.auto_play, None)
-                if not act:
-                    self.auto_play = None
-                    return
-                self.level.perform_move(act)
+        if not self.game_window.pending_animation:
+            # No pending animation - is the game finished?
+            if self._game_state == "complete":
+                self._game_state = "stopped" # do this only once!
+                self._finish_event = None
+                print "Your score is: %d" % self.level.score
+                self.play_sound("game-complete")
+                self.auto_play = None
+                self._finish_event = None
+                self.next_level()
+            elif self._game_state == "time-paradox":
+                ge = self._finish_event
+                self._finish_event = None
+                self._game_state = "stopped" # do this only once!
+                self.play_sound("time-paradox")
+                self.auto_play = None
+                self._show_error(ge.reason, "Time paradox or non-determinism")
+
+            # The fcounter is to give a slight delay to auto-playing
+            # (else every move happens as fast as possible...)
+            self.fcounter = (self.fcounter + 1) % 4
+            if not self.fcounter:
+                if self.auto_play and self.mode == "play":
+                    act = next(self.auto_play, None)
+                    if not act:
+                        self.auto_play = None
+                    else:
+                        self.level.perform_move(act)
+        else:
+            self.fcounter = 0
         super(Application, self).loop()
 
 if __name__ == "__main__":
     app = Application()
     parser = argparse.ArgumentParser(description="Play ChronoShift levels")
     parser.add_argument('--play-solution', action="store_true", dest="play_solution",
-                        default=False, help="Auto-play the solution")
+                        default=False, help="Auto-play the solution (level-only)")
     parser.add_argument('level', action="store", default=None, nargs="?",
-                        help="The level files to check")
+                        help="The level or campaign to play")
     args = parser.parse_args()
 
     if args.level:
         # Load the level - we have to wait for the init event before
-        app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
+        if args.level.endswith(".lsf"):
+            app.connect(gui.INIT, lambda *x: app.load_campaign(args.level))
+        else:
+            app.connect(gui.INIT, lambda *x: app.load_level(args.level), None)
         if args.play_solution:
             app.connect(gui.INIT, app.play_solution)
     if not args.play_solution:
