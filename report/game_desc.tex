@@ -9,12 +9,12 @@ The game world is represented as a grid.  Each tile is basically
 either a:
 
 \begin{itemize}
-\item field - passable, stateless
-\item wall - impassable, stateless
-\item button - passable, source
-\item one time button - passable, source (one-time change)
-\item gate - passible/impassable, target
-\item one time pass - passable/impassable, self-target (one-time change)
+\item Field - passable
+\item Wall - impassable
+\item Pressure plate (button) - passable
+\item ``One-time button'' - passable
+\item Gate - state-dependent
+\item ``One-time pass'' - state-dependent
 \end{itemize}
 
 There are two special singleton fields, the ``time machine'' and
@@ -22,9 +22,23 @@ the ``goal''.  Both fields are passable like a normal field, but
 they have special game semantics, which will be covered in the
 game rules.
 
-There are two movable elements, namely the player(s) and crates.  The
+There are two movable elements, namely the player and crates.  The
 former are directly controlled by the player and the latter can be
 pushed by the player.
+
+The game is a single player game, but due to the ``time machine''
+there can be more than one ``player self'' present on the game board.
+All ``selves'' are identically in terms of play rules (e.g. any of
+them can pick up the goal).  Particularly, all ``selves'' must
+eventually enter the time machine.  The only difference is that the
+player actively controls the ``current self''.
+
+Originially, these ``selves'' were referred to as ``time clones'' (or
+simply just ``clones'').  Particularly, in the source code they are
+still called ``clones'' and we may use the terms interchangeably.
+
+The action that causes a new ``player self'' to appear is called a
+``time jump'' and is explained in detail in \nameref{time-jumping}.
 
 Some fields have multiple states and behaviours.  Please refer to
 \nameref{field-states} for more information.
@@ -39,6 +53,7 @@ To complete a given level, the player must obtain the goal (``gold coin''),
 return to the time machine and enter it.
 
 \subsection{Player actions}
+\label{player-actions}
 Each turn, the player can do one of the following moves:
 
 \begin{itemize}
@@ -52,9 +67,13 @@ destination for the crate is available.  It is not possible to
 ``pull'' crates and the player can push at most one crate.  These
 are basically the same rules used in Sokoban for moving crates.
 
+Any number of ``player selves'' are allowed to occupy the same
+tile.
+
 \paragraph{Time jumping}
+\label{time-jumping}
 The player has the ability to go back in time to the first turn.  As
-the player goes back in time, the world will reset it self to its
+the player goes back in time, the world will reset itself to its
 initial state, but with one crucial difference.
 
 There is now an extra ``player'' in the level; namely the ``current
@@ -72,49 +91,48 @@ be possible by playing ``ping-poing'' with his/her ``past selves'',
 though at the risk of introducing temporal paradoxes (see
 \nameref{temporal-paradox}).
 
-Any number of ``player selves'' are allowed to occupy the same
-tile.
-
 \subsubsection{Field states and manipulation}
 \label{field-states}
 Certain fields in the game world have multiple states with different
 behaviour.  State changes are generally triggered by the actions of
-the player.  A field can be one of the following:
+the player.  The following fields can change during the play:
 
 \begin{itemize}
-\item stateless - The field has exactly one state can that will not change.
-\item source - When the field is activated, it will trigger other fields.
-\item target - The field is triggered via a ``source'' field.
-\item self-target - The field is a source field and targets itself.
+\item Pressure plate (button)
+\item ``One-time button''
+\item Gate
+\item ``One-time pass''
 \end{itemize}
 
-\paragraph{source}  Source fields are activated by a player or crate
-moving onto the field.  Sources are usually connected to one or more
-``targets'', which will then be triggered.  A source field can
-generally not target itself (but see ``self-target'' below).  A button
-is an example of a source field.
+The gates start as either ``open'' (passable) or ``closed''
+(impassable).  They alter state when a button activate them.  If
+multiple buttons activate the same gate, then its resulting state
+depends on the number of gates.  If the number is 0 or ``even'', the
+gate is in its starting state and if the number is odd it is in the
+``opposite'' state\footnote{Basically a ``boolean xor'' for those
+  familiar with that term}.
 
-\paragraph{target}  Target fields are fields that are not triggered
-by the player (or a crate) entering the field.  Instead it is
-connected to one (or more) sources, which can activate or deactivate
-it.  A gate is an example of a target field.
+All buttons are activated when a player or crate is on top of them.
+The difference between a ``one-time button'' and a pressure plate is
+that an activated pressure plate will deactivate when nothing is on
+top of it (like a ``dead man's switch'').  A ``one-time button'' can,
+once pressed, never be ``unpressed''.
 
-\paragraph{self-target}  A self-targetting field is a field that behaves
-like a source, but has itself as target (if any target at all).  The
-currently only case of this, is the ``one time pass'' field, which is
-passable only up to and including the first turn something enters it.
-On the very next turn, the ``one time pass'' will become impassable.
-If a player (or crate) is on the field at the end of the turn where
-the ``one time pass'' becomes impassable the game ends in a loss.
+A ``one-time pass'' (short for ``one-time passage'') is a field that
+(as the name suggests) can only be passed once.  The passage will
+``collapse'' on the turn after a player or crate enters it.  From a
+semantic point of view, the field turns into a wall.  The net effect
+is that a player cannot linger on the field and crates cannot be pushed
+on to the field\footnote{Because there is no way to push it off the field
+and it is not allowed to stay on the field either}.
 
-\paragraph{one-time change}  Fields can also have a ``one-time change''
-label, which means it can only be triggered ``once'' per time jump.
-These will be reset to their initial state at the start of each time
-jump.
+As the keen reader may already have guessed (or noticed), ``one-time''
+is defined as ``once per time jump'' and not ``once per level''.  When
+performing a time jump, these fields are still reset to their initial
+state.  (See \nameref{time-jumping})
 
-\ref{fig:button-gate-ex}.
 
-\figurepng{button-gate-ex}{A small example game with a button and a closed gate}
+\figurepng{button-gate-ex}{A small example game with a pressure plate and a closed gate}
 
 \subsubsection{Losing}
 
