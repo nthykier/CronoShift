@@ -79,7 +79,7 @@ class ScoreTracker(gui.Label):
         if self._score != nscore:
             self._score = nscore
 
-            self.set_text("Score: %04d, Turn %d/%d, Clone: %d" % nscore)
+            self.set_text("Score: %.3f, Turn %d/%d, Clone: %d" % nscore)
 
     def reset_score(self):
         self.score = (0, 1, 1, 1)
@@ -87,13 +87,21 @@ class ScoreTracker(gui.Label):
     def update_score(self, lvl, *args):
         # turn is 0-index'ed, but it is better presented as 1-index'ed.
         t = lvl.turn
-        result = 0;
-        start_score = 100;
-        if start_score-lvl.score >= 1:
-            result = start_score-lvl.score
+        start_score = 100
+        cost = lvl.score
+        if cost > 449:
+            result = 1.0/(cost - 449)
+        elif cost:
+                           #     x
+                           # ---------, x in [0, 1.5k]
+                           #     2k
+            p = cost/500.0
+            drop = (2 - p)/5.0
+            result = start_score - cost * drop
         else:
-            result = 1.0/(lvl.score-start_score+2)
-        self.score = (result*100, t[0] + 1, t[1] + 1, lvl.number_of_clones)
+            result = start_score
+
+        self.score = (result, t[0] + 1, t[1] + 1, lvl.number_of_clones)
 
 class TileIcon(gui.Widget):
 

@@ -1,4 +1,4 @@
-Introduction
+Introduction [done]
 - a short overview of the game, relation to existing games 
  
 Detailed Description of the Game
@@ -8,7 +8,7 @@ Detailed Description of the Game
 		teleporters
 		shift mechanic
 		"Dance evolution" pile (show movements of other clones)
-- technical challenges
+- technical challenges (NT, need review)
 	synchronization
 	non-determanism
 	time paradoxes
@@ -34,7 +34,7 @@ Implementation (Alex)
 	sound?
 
 
-Analysis
+Analysis (Thor, Lørdag aften)
 - discuss the playability of the game (prototype? or theoritical game?). (TBN) 
 - give a summary of feedback from having a few friends play the game. (TBN)
  
@@ -44,7 +44,7 @@ Discussion
 - what would you do differently if you knew at the start what you know now. 
 
 Conclusion
- 
+
 Future work
 - what would be your next steps if you were to continue working on the game.
 	ditch pygame and PGU?

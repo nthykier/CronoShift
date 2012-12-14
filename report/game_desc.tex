@@ -180,17 +180,46 @@ crate.
 
 \subsubsection{Scoring}
 The player is scored on the number of moves performed and the number
-of time jumps used.  For comparsion, the lowest score is considered
-best (i.e. most efficient).  The scoring rules are:
+of time jumps used.  Internally, the game uses an absolute counter,
+where ``lowest'' is considered best best (i.e. most efficient).
+This counter is changed according to the rules below:
 
 \begin{itemize}
-\item 1 point per move or skipped turn by the ``current self''.
+\item +1 per move or skipped turn by the ``current self''.
   Entering the time machine counts as a move.
-\item 1 point per skipped turn while the ``current self'' is outside
-  the time machine.  0 points if the ``current self'' is inside the
+\item +1 per skipped turn while the ``current self'' is outside
+  the time machine.  Though, 0 if the ``current self'' is inside the
   time machine.
-\item 1 point for every time jump performed.
+\item +1 for every time jump performed.
 \end{itemize}
+
+As our play testers generally ignored it, we tried to represent it
+differently.  We deviced a ``two-step'' formular to do this.  If $x$
+is the counter defined above, then the score is present as:
+
+\[
+f(x) =
+\begin{cases}
+100 - x \cdot \frac{2 - \frac{x}{500}}{5}, & \mbox{if } 0 \leq x < 450\\
+\frac{1}{x - 449}, & \mbox{if } x \geq 450
+\end{cases}
+\]
+
+The formula was the result of some trial and error around the following
+criteria:
+
+\begin{itemize}
+\item The score should decline monotonously.
+\item The score should not become negative.
+\item Two (reasonable) solutions should be trivially distinguishable by score.
+\item Improving a good solution with 1 step should give more points
+  than improving a poor one with 1 step.
+\end{itemize}
+
+The function (almost) satisfies all of the above points.  The fourth
+is slightly violated around 450 turns, when the defintion cases
+changes.  When x goes from 450 to 451, the score drops by a half,
+which is the highest drop in its entire definition.
 
 \subsection{Desired features}
 
