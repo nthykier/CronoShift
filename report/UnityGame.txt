@@ -60,7 +60,6 @@ open gate: "_"
 closed gate: "-"
 onetimebutton: "o"
 open onetimepassage: "p"
-closed onetimepassage: "P"
 
 ____________________________________________________
 
@@ -79,15 +78,16 @@ Move to next level upon completion
 UI arrows to indicate action
 Paradox game over screen with sounds
 
-Optional
-Gates with multiple buttons
+Future work
+Bonfire Gates with multiple buttons
 Narrow passage that collapses
 Teleporters with activators
-Shift feature with buttons
+Shift feature with buttons (how f**k does this work anyway)
 Limited turn number per clone
 Ice block that functions like a crate but moves until it hits something
 Interesting levels with new mechanics
 Heavy blocks requiring more than one clone to push
 Heavy buttons requiring more than one clone to press
 Crate destroyer field
-
+Pallet requiring crate to activate
+Crate holder that locks crates in place (can optinally be be activatable)

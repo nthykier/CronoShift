@@ -1,0 +1,18 @@
+2D SuperFun!
++++++++++
++++++++++
+++--b   +
+++p+c+G++
+++po + ++
+++p+p+p++
++S c    +
++++++++++
+
+button (3, 4) -> gate (2, 2)
+button (4, 2) -> gate (3, 2)
+
+Description: More than one can stand on a tempory passage
+Solution:
+ EE EW WN NE EN SS SE EW WW WW T
+ .
+ EH HH HN NN NH EE EE SS SS WW WW WT

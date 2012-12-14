@@ -1,0 +1,23 @@
+2D SuperFun!
++++++++++
++pbc  b++
++b+p+ +++
++ pSp +++
++c+p+-+G+
++  __ -o+
++b+++++++
++++++++++
+
+button (1, 2) -> gate (6, 5)
+button (1, 6) -> gate (3, 5)
+button (2, 1) -> gate (4, 5)
+button (2, 1) -> gate (5, 4)
+button (6, 1) -> gate (5, 4)
+button (7, 5) -> gate (3, 5)
+button (7, 5) -> gate (4, 5)
+
+Description: Not all buttons are necessary.
+Solution:
+ WW NH HH HN EH ES ST
+ .
+ SS EE EE NS WW HN WT

@@ -1,0 +1,23 @@
+2D SuperFun!
++++++++++
++++++++++
+++opopop+
++ppopo+p+
++Soppppp+
++p+++-+++
++-----+++
++++++G+++
++++++++++
+
+button (2, 2) -> gate (2, 6)
+button (2, 4) -> gate (3, 6)
+button (3, 3) -> gate (4, 6)
+button (4, 2) -> gate (5, 6)
+button (5, 3) -> gate (1, 6)
+button (6, 2) -> gate (5, 5)
+
+Description: Keep running, but stay in sync
+Solution:
+ EN NE EE SS WW WW WW T
+ .
+ EN EN EE SH HH HS SS SN WW WW NN T
