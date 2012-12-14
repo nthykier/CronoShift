@@ -184,7 +184,7 @@ class PlayKeyController(KeyController):
 
     def _actions_solution(self):
         # start with a line break
-        sol = "\n" + "\n .".join(self._gen_action_string())
+        sol = "\n " + "\n .".join(self._gen_action_string())
         self.edit_level.set_metadata_raw("solution", sol)
         msg = dedent("""\
               Solution updated/created in the editor.  If you want
