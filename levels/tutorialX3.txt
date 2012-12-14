@@ -18,6 +18,6 @@ button (7, 5) -> gate (4, 5)
 
 Description: Not all buttons are necessary.
 Solution:
- WW NH HH HN EH ES ST
+ WW NH HH HH HN EH ES ST
  .
- SS EE EE NS WW HN WT
+ SS EE EE NS WW HN NW WT

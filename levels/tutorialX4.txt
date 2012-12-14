@@ -18,6 +18,6 @@ button (6, 2) -> gate (5, 5)
 
 Description: Keep running, but stay in sync
 Solution:
- EN NE EE SS WW WW WW T
+ EN NE EE EE SS WW WW WW T
  .
- EN EN EE SH HH HS SS SN WW WW NN T
+ EN EE EH HH HH HS SS SN WW WW NN T
