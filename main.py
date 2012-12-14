@@ -78,8 +78,8 @@ class ScoreTracker(gui.Label):
     def score(self, nscore):
         if self._score != nscore:
             self._score = nscore
-            self.set_text("Score: %d, Turn %d/%d, Clone: %d" % nscore)
 
+            self.set_text("Score: %04d, Turn %d/%d, Clone: %d" % nscore)
 
     def reset_score(self):
         self.score = (0, 1, 1, 1)
@@ -87,7 +87,13 @@ class ScoreTracker(gui.Label):
     def update_score(self, lvl, *args):
         # turn is 0-index'ed, but it is better presented as 1-index'ed.
         t = lvl.turn
-        self.score = (lvl.score, t[0] + 1, t[1] + 1, lvl.number_of_clones)
+        result = 0;
+        start_score = 100;
+        if start_score-lvl.score >= 1:
+            result = start_score-lvl.score
+        else:
+            result = 1.0/(lvl.score-start_score+2)
+        self.score = (result*100, t[0] + 1, t[1] + 1, lvl.number_of_clones)
 
 class TileIcon(gui.Widget):
 
@@ -213,7 +219,7 @@ def make_game_ctrls(app, width, height):
         if app.muted:
             pygame.mixer.stop()
         else:
-            app.play_sound("background", loops = -1)
+            app.play_sound("background", loops = -1, volume = 1.0/3)
 
     mcb.connect(gui.CHANGE, _toggle_sounds)
     c.add(mcb, from_left, from_top)
@@ -303,7 +309,7 @@ class Application(gui.Desktop):
         self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
         self._audio["background"] = pygame.mixer.Sound("sound/POL-sand-and-water-short_repeat.wav")
 
-        self.play_sound("background", loops = -1)
+        self.play_sound("background", loops = -1, volume = 1.0/3)
 
         menus = gui.Menus([
                 ('File/Load campaign', self.open_campaign_d.open, None),
@@ -601,13 +607,14 @@ class Application(gui.Desktop):
         self._game_state = "running"
         self.level.start()
 
-    def play_sound(self, sound, loops = 1):
+    def play_sound(self, sound, loops = 0, volume = 1):
         if sound not in self._audio:
             # Emit this even if we are muted (for error finding)
             print "W: Unknown sound %s" % sound
             return
         if self.muted:
             return
+        self._audio[sound].set_volume(volume)
         self._audio[sound].play(loops)
 
     def open_tutorial(self, *args):
@@ -653,10 +660,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Play ChronoShift levels")
     parser.add_argument('--play-solution', action="store_true", dest="play_solution",
                         default=False, help="Auto-play the solution (level-only)")
+    parser.add_argument('--muted', action="store_true", default=False,
+                        help="Disable sounds")
     parser.add_argument('level', action="store", default=None, nargs="?",
                         help="The level or campaign to play")
     args = parser.parse_args()
 
+    app.muted = args.muted
     if args.level:
         # Load the level - we have to wait for the init event before
         if args.level.endswith(".lsf"):

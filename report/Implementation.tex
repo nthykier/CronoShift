@@ -16,19 +16,20 @@ The first step was to get a movable player, which was done by importing the thir
 
 \begin{table}
 \caption{Game object representation}
-\begin{tabular}{c c}
+\begin{tabular}{|c|c|}
 \hline
-Char & Game object
+Char & Game object\\
 \hline
 + & Wall\\
-" " & empty tile\\
-b & button\\
-_ & open gate\\
-- & close gate\\
-S & start\\
-G & goal\\
-c & crate\\
-o & one time button\\
+`` '' & Field\\
+b & Pressure plate\\
+$\_$ & Gate (open)\\
+- & Gate (closed)\\
+S & Start/Time machine\\
+G & Goal\\
+c & Crate\\
+o & One-time button\\
+p & One-time pass\\
 \hline
 \end{tabular}
 \end{table}
@@ -54,9 +55,22 @@ Solution:
  EE HW HH HH HE HW WT
  .
  EH SS SS EW NN NN WT
-\end{Verbatim}
+\end{verbatim}
 
 The first line is simply a magic word (the game didn't have a title at this point). After that is the level layout and the mapping between the interactive game obejcts. The decription is currently unused. The solution is a series of commands that enables the computer to play through the level on its own. The solution was not a planned feature at this point in the development, but it is a part of the final file format.
 
 \paragraph{Unity problems}
-While it is farily simple to restrict unity to a top-down 2D view, it is not so trivial to restrict it to a turnbased format. The update fuction was used to move the player and his past selves, but they need to move at the exact same time and exactly one tile. With one player the controls can be locked, so that no movement commands are accepted, before he has moved to the middle of the next tile. When there is more than one player, the computer has to move the remaining player character. But now locking the controls doesn't solve the problem, because the active player is not the only one, who needs to finish moving. If the player moves before all his past selves and crates have been moved, the game becomes desynchronized and the game rules can be broken. This can partly be solved by making sure that all clones have finished, by having all of them notify the turn controller. This make the turncontoller and the player script tightly coupled however.  
+While it is farily simple to restrict unity to a top-down 2D view, it
+is not so trivial to restrict it to a turnbased format. The update
+fuction was used to move the player and his past selves, but they need
+to move at the exact same time and exactly one tile. With one player
+the controls can be locked, so that no movement commands are accepted,
+before he has moved to the middle of the next tile. When there is more
+than one player, the computer has to move the remaining player
+character. But now locking the controls doesn't solve the problem,
+because the active player is not the only one, who needs to finish
+moving. If the player moves before all his past selves and crates have
+been moved, the game becomes desynchronized and the game rules can be
+broken. This can partly be solved by making sure that all clones have
+finished, by having all of them notify the turn controller. This make
+the turncontoller and the player script tightly coupled however.
