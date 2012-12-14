@@ -195,4 +195,22 @@ best (i.e. most efficient).  The scoring rules are:
 \subsection{Desired features}
 
 \subsection{Technical challenges}
+We had some major technical challenges.  Most of them turned out to be
+easier to solve in practise than we thought originally.
+
+The primary technical challenge was actually levels.  Finding a(n
+optimal) solution to a Sokoban level is already known to be NP-Hard.
+Adding a time machine and extra game mechanics on top of that is
+unlikely to make it any easier to find an optimal solution.
+
+We did not have any mechanically way of finding the solution to any of
+our levels.  But more importantly, we had no way of verifying that the
+solution we found is indeed the optimal one.  Especially, we have no
+way of checking if our solution is (still) optimal if we change the
+scoring rules.
+
+Another perceived issue was detecting the losing criteria.  While it
+turned out to be fairly easy in practise, we did spent quite some time
+figuring out all the cases that could introduce non-determinism and
+how to detect them.
 
