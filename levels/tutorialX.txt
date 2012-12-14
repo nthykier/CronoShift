@@ -5,6 +5,8 @@
 +pGp+
 +++++
 
+nothing
+
 Description: Like a true Indiana Jones.
 Solution:
  WS SE EN NW T
