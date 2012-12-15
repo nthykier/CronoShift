@@ -223,6 +223,59 @@ changes.  When x goes from 450 to 451, the score drops by a half,
 which is the highest drop in its entire definition.
 
 \subsection{Desired features}
+We wanted quite a few features; most of these are fields or game
+mechanics and are listed below.
+
+\begin{itemize}
+\item[+] Time machine allowing the player to do time-jumps.
+\item[+] Two different buttons (pressure plates)
+\item[+] XOR gates.
+\item[+] Pushable crates.
+\item[+] One-time passable fields.
+\item[-] Activatable Teleporter (field).  A field that can be
+  activated/disactivated.  When activated it would teleport anything
+  entering it to another field.  When deactivated, it would behave
+  like a regular field.
+\item[-] Crate destroying field.  It would ``remove'' any crate pushed
+  on top of it.  The crates would only re-appear if the player did a
+  time-jump (as usual).
+\item[*] Gates requiring more than one button to be activated/deactivated.
+ (Emulation: Multiple gates)
+\item[*] Gates that remain activated as long as at least one button activates
+ it.  (Emulation: Multiple gates)
+\item[-] One-way fields.  Idea is that the field forces the player to go
+ in a certain direction.  Possibly activateable to have it rotate either
+ clockwise or counter-clockwise.
+\item[-] Buttons (pressure plates) only activateable by crates.
+\item[-] Limit on the number of moves per clone or/and number of time-jumps.
+\item[+] Group levels in ``campaigns''.
+\item[-] Limit the number of moves/time-jumps acroess all levels in a campaign.
+\end{itemize}
+
+Beyond that we also have a list of features that improves the game
+experience without affecting the game rules.
+
+\begin{itemize}
+\item[+] Sounds and music (that can be muted).
+\item[+] Fully functional level editor.
+\item[+] Instructions (``How to play'') available from the game.
+\item[+] Snow theme.
+\item[+] Reset level to start.
+\item[+] Reset (undo) current clone
+\item[+] Recorded (and replayable) solution to levels.
+\item[-] Undo last move.
+\item[-] Undo more than one clone.
+\item[-] Displaying the actions of each clone (e.g. as arrows/small icons)
+\item[-] Hilighting the ``current self'' (e.g. with an arrow).
+\end{itemize}
+
+\paragraph{Legend}
+\begin{itemize}
+\item[-] Not implemented
+\item[+] Implemented
+\item[*] Not implemented, but can be emulated ``trivially'' from existing
+ features.
+\end{itemize}
 
 \subsection{Technical challenges}
 There were some major technical challenges.  Most of them turned out to be
