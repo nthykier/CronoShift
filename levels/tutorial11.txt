@@ -1,18 +1,18 @@
 2D SuperFun!
 +++++++++++++
-+++ -  +++G++
-+++ c_  o o++
++++    +++G++
++++-c_  o o++
 +++++-++_++++
 +++++     +++
 +++++ +++++++
-+++S  b++++++
++++S  o++++++
 +++++ ++o++++
 +++++ ++_++++
 +bc_     - b+
 +++++++++++++
 
 button (1, 9) -> gate (3, 9)
-button (6, 6) -> gate (4, 1)
+button (6, 6) -> gate (3, 2)
 button (8, 2) -> gate (5, 3)
 button (8, 2) -> gate (8, 3)
 button (8, 7) -> gate (8, 8)
@@ -24,10 +24,8 @@ button (11, 9) -> gate (5, 3)
 
 Description: You cannot push more than one box at a time.
 Solution:
- EE EH HH HH HH HH HH HH HH WW WT
- .
  EE NN EE EN NW WN WW WS EN ES SS SS SS NN WW T
  .
- EE SS SE EE HH HE EE HH HH HH HH HH WW WW WW WE NN NW WT
+ EE EW SS SE EE HE EE HH HH HH HH HW WH WW WW WE NN NW WT
  .
  EE NN EE EN NE EN SW WW WN WS SS SS WW T
