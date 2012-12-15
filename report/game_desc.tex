@@ -17,10 +17,10 @@ either a:
 \item ``One-time pass'' - state-dependent
 \end{itemize}
 
-There are two special singleton fields, the ``time machine'' and
-the ``goal''.  Both fields are passable like a normal field, but
-they have special game semantics, which will be covered in the
-game rules.
+There are two special singleton fields, the ``time machine'' and the
+``goal''.  Both fields are passable like a normal field.  However,
+they have special game semantics, which will be covered in the game
+rules.
 
 There are two movable elements, namely the player and crates.  The
 former is directly controlled by the player and the latter can be
@@ -33,7 +33,7 @@ them can pick up the goal).  Particularly, all ``selves'' must
 eventually enter the time machine.  The only difference is that the
 player actively controls the ``current self''.
 
-Originially, these ``selves'' were referred to as ``time clones'' (or
+Originally, these ``selves'' were referred to as ``time clones'' (or
 simply just ``clones'').  Particularly, in the source code they are
 still called ``clones'' and we may use the terms interchangeably.
 
@@ -46,7 +46,7 @@ Some fields have multiple states and behaviours.  Please refer to
 A screenshot of graphical representation of the elements is available
 in figure~\ref{fig:IconExplanation}.
 
-\figurepng{IconExplanation}{A visual representation of the game}
+\figurepng{IconExplanation}{A visual representation of the game elements}
 
 \paragraph{Game objective}
 To complete a given level, the player must obtain the goal (``gold coin''),
@@ -64,8 +64,8 @@ Each turn, the player can do one of the following moves:
 
 The player can push a crate by moving ``into'' it provided that the
 destination for the crate is available.  It is not possible to
-``pull'' crates and the player can push at most one crate.  These
-are basically the same rules used in Sokoban for moving crates.
+``pull'' crates and the player can push at most one crate at a time.
+These are basically the same rules used in Sokoban for moving crates.
 
 Any number of ``player selves'' are allowed to occupy the same
 tile.
@@ -81,10 +81,11 @@ self'' that performed the time jump and the ``past self/selves''.  The
 latter will carry out their actions (as the player did in that time
 jump) and eventually enter the time machine.
 
-All ``selves'' are identically in terms of play rules (e.g. any of
-them can pick up the goal).  Particularly, all ``selves'' must
-eventually enter the time machine.  The only difference is that the
-player actively controls the ``current self''.
+As mentioned earlier, all ``selves'' are identically in terms of play
+rules (e.g. any of them can pick up the goal), except that only the
+``current self'' is controllable by the player.  The ``past selves''
+carry out the actions the player did when that ``self'' was the
+``current'' one.
 
 Time jumping allows the player to do things that would otherwise not
 be possible by playing ``ping-pong'' with his/her ``past selves'',
@@ -94,31 +95,32 @@ though at the risk of introducing temporal paradoxes (see
 \subsubsection{Field states and manipulation}
 \label{field-states}
 Certain fields in the game world have multiple states with different
-behaviour.  State changes are generally triggered by the actions of
-the player.  The following fields can change during the play:
+behaviour.  State changes are generally triggered as a result of the
+player actions.  The following fields can change during the play:
 
 \begin{itemize}
-\item Pressure plate (button)
-\item ``One-time pressure plate''
+\item (Regular) pressure plate (button)
+\item One-time pressure plate (button)
 \item Gate
-\item ``One-time pass''
+\item One-time pass
 \end{itemize}
 
 The gates start as either ``open'' (passable) or ``closed''
 (impassable).  They alter state when a button activate them.  If
 multiple buttons activate the same gate, then its resulting state
-depends on the number of gates.  If the number is 0 or ``even'', the
+depends on the number of gates.  If the number is ``even'', the
 gate is in its starting state and if the number is odd it is in the
 ``opposite'' state\footnote{Basically a ``boolean xor'' for those
   familiar with that term}.
 
 All buttons are activated when a player or crate is on top of them.
-The difference between a ``one-time pressure plate'' and a pressure plate is
-that an activated pressure plate will deactivate when nothing is on
-top of it (like a ``dead man's switch'').  A ``one-time pressure plate'' can,
-once pressed, never be ``unpressed'' in the future.
+The difference between a one-time pressure plate and a regular
+pressure plate is that a regular activated pressure plate will
+deactivate when nothing is on top of it (like a ``dead man's
+switch'').  A one-time pressure plate can, once pressed, never be
+``unpressed'' in the future.
 
-A ``one-time pass'' (short for ``one-time passage'') is a field that
+A one-time pass (short for ``one-time passage'') is a field that
 (as the name suggests) can only be passed once.  The passage will
 ``collapse'' on the turn after a player or crate enters it.  From a
 semantic point of view, the field turns into a wall.  The net effect
@@ -153,7 +155,8 @@ restarts/gives up.
 \label{temporal-paradox}
 As the name suggests, a temporal paradox (``time paradox'') is a bad
 thing.  What happens if your current self prevent your past self from
-becoming the current self?  In this game, you simply lose.
+becoming the current self\footnote{This problem is known as the
+  ``Grandfather paradox''}?  In this game, you simply lose.
 
 \paragraph{Non-Determinism}
 All valid actions are carried out ``simultaneously''.  If one (or
