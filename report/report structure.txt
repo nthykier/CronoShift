@@ -45,7 +45,7 @@ Discussion (NT, needs review)
 
 Conclusion
 
-Future work
+Future work (NT, needs review)
 - what would be your next steps if you were to continue working on the game.
 	ditch pygame and PGU?
 	implement more desired features
