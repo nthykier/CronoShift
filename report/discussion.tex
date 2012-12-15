@@ -2,7 +2,7 @@
 
 \subsection{Evolution}
 The original pitch started as ``Mix the time-jump feature from
-Chronotron, with the Shift feature from shift''.  The game ended up as
+Chronotron with the Shift feature from shift''.  The game ended up as
 something more like ``Take the time-jump feature from Chronotron and
 add some Sokoban crates''.  In this section we will describe how and why
 we changed the pitch over time.\\
@@ -13,32 +13,35 @@ keep things simple, we decided to reduce the game to a turn-based
 variant (both Chronotron and Shift are real-time games).
 
 Using a grid world as basis, we could fairly trivially reason about
-the time machine mechanics.  During the initial design, we realised
-that without some manipulatable obstacles the time machine would be
+the time machine mechanics.  In this initial design, we realised that
+without some manipulatable obstacles the time machine would be
 redundant.  We created the ``gate'' and the ``pressure plate'' for
 this purpose.
 
 But we could never really agree on how to the ``Shift'' feature should
-work.  After a few weeks we ended up shelving it as we felt it was
-just getting in our way.  We decided to add the pushable crates from
-Sokoban as a replacement.
+work in this game world.  After a few weeks we ended up shelving it as
+we felt it was just getting in our way.  We decided to add the
+pushable crates from Sokoban as a replacement.  These crates turned out
+to be very hard to use in the design of levels
 
-It was very hard to use crates in the level design.  In Sokoban,
-crates have to end at specific nodes (``goal locations'').  But in
-JikiBan, they do not directly have a use to the player.  Due to rules
-behind how to push crates, the player could usually just walk around
-the crate.  Also, with a time-machine the player can always create a
-time-clone to replace the crate.
+In Sokoban, crates have to end at specific nodes (``goal locations'').
+But in JikiBan, the player is by default not required to do anything
+with a crate.  Due to rules behind how to push crates, the player
+could usually just walk around the crate.  Also, with a time-machine
+the player can always create a time-clone to replace the crate when
+working with a regular pressure plate.
 
 We thought about doing a pressure plate that could only be triggered
-by a crate.  However, implementing that field, we deviced a way to use
-crates to create a ``one-way'' path in the game.  This also lead to
-the ``suicide''-construction in the level called ``tutorial10.txt''
-(see figure \ref{fig:sucide-lvl}).
+by a crate.  However, before implementing that field, we deviced a way
+to use crates to emulate a one-time pressure plate in the game.  This
+also lead to a one-way passage and the ``suicide''-construction in the
+level called ``tutorial10.txt'' (see figure \ref{fig:sucide-lvl}).
 
-After a while, the ``one-way'' emulation got annoying to write and we
-implemented an actual ``one-time pressure plate''.  We also added the
-``one-time passage'' to compliment it.
+After a while, the one-time pressure plate emulation got annoying to
+redo and we implemented the actual one-time pressure plate. We also
+added the ``one-time passage'' to compliment it.  It also simplified a
+number of levels as a one-time pressure plate was now a single field
+(instead of a 3-4 fields surrounds by gates and walls).
 
 \figurepng{suicide-lvl}{Level ``tutorial10.txt'': If you push any of
   those crates ``out of the way'', they will activate the gate below
