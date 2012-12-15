@@ -119,6 +119,16 @@ class GameWindow(gui.Widget):
         return (self.active_animation or not self._done
                 or not self._gevent_queue.empty())
 
+    @property
+    def tileset(self):
+        return self._tileset
+
+    @tileset.setter
+    def tileset(self, ntile):
+        self._make_background(tileset=ntile)
+        self._tileset = ntile
+        self.repaint()
+
     def use_level(self, level, grid=None):
         """Set the level as the current one."""
 
@@ -137,10 +147,26 @@ class GameWindow(gui.Widget):
             self._gevent_queue.put(self._gevent_seq)
             self._gevent_seq = []
 
+    def _make_background(self, tileset=None):
+        self.overlays = pygame.sprite.RenderUpdates()
+
+        # Render the level map
+        if tileset is None:
+            tileset = self._tileset
+
+        background, overlays = make_background(self.level,
+                                               map_cache=self.map_cache,
+                                               tileset=tileset,
+                                               grid=self.grid)
+
+        self.surface.fill((0, 0, 0))
+        self.surface.blit(background, (0,0))
+
+        self._add_overlay(overlays)
+
     def _new_map(self, *args):
         self.shadows = pygame.sprite.RenderUpdates()
         self.sprites = SortedUpdates()
-        self.overlays = pygame.sprite.RenderUpdates()
         self.animated_background = pygame.sprite.RenderUpdates()
         self.overlays_sprites = {}
         self.animated_background_sprites = {}
@@ -151,12 +177,7 @@ class GameWindow(gui.Widget):
         level = self.level
 
         # Render the level map
-        background, overlays = make_background(level,
-                                               map_cache=self.map_cache,
-                                               tileset=self._tileset,
-                                               grid=self.grid)
-        self.surface.fill((0, 0, 0))
-        self.surface.blit(background, (0,0))
+        self._make_background()
 
         for field in level.iter_fields():
             # Crates looks best in 32x32, gates and buttons in 24x16
@@ -167,8 +188,6 @@ class GameWindow(gui.Widget):
             if crate:
                 self._add_crate(crate)
             self._init_field(field)
-
-        self._add_overlay(overlays)
 
         try:
             iter_clones = level.iter_clones
