@@ -2,13 +2,13 @@ Introduction [done]
 - a short overview of the game, relation to existing games 
  
 Detailed Description of the Game
-- game rules (NT, needs review)
+- game rules [done]
 - desired features (NT)
 	game elements
 		teleporters
 		shift mechanic
 		"Dance evolution" pile (show movements of other clones)
-- technical challenges (NT, needs review)
+- technical challenges [done]
 	synchronization
 	non-determanism
 	time paradoxes
@@ -17,7 +17,7 @@ Detailed Description of the Game
 		is the level solveable and are there trivial/brute force solutions?
 			the optimal solution?
 			simply fix by scoring games
--emotional engagement of player (TBN)
+-emotional engagement of player
 	off by one error?!
 	primaryly should invoke joy from solving problem and finding a new way of thinking
  
@@ -45,7 +45,7 @@ Discussion (NT, needs review)
 
 Conclusion
 
-Future work (NT, needs review)
+Future work [done]
 - what would be your next steps if you were to continue working on the game.
 	ditch pygame and PGU?
 	implement more desired features
