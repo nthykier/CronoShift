@@ -174,7 +174,7 @@ class PlayKeyController(KeyController):
         try:
             with open(fname, "w") as fd:
                 lname = self.level.name
-                act = "\n .".join(self._gen_action_string())
+                act = "\n .\n ".join(self._gen_action_string())
                 fd.write("Level: %s\n" % lname)
                 fd.write("Actions:\n%s\n" % act)
 
@@ -185,7 +185,7 @@ class PlayKeyController(KeyController):
 
     def _actions_solution(self):
         # start with a line break
-        sol = "\n " + "\n .".join(self._gen_action_string())
+        sol = "\n " + "\n .\n ".join(self._gen_action_string())
         self.edit_level.set_metadata_raw("solution", sol)
         msg = dedent("""\
               Solution updated/created in the editor.  If you want
