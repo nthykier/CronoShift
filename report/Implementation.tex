@@ -57,20 +57,48 @@ Solution:
  EH SS SS EW NN NN WT
 \end{verbatim}
 
-The first line is simply a magic word (the game didn't have a title at this point). After that is the level layout and the mapping between the interactive game obejcts. The decription is currently unused. The solution is a series of commands that enables the computer to play through the level on its own. The solution was not a planned feature at this point in the development, but it is a part of the final file format.
+The first line is simply a magic word (the game didn't have a title at this point).
+After that is the level layout and the mapping between the interactive game
+obejcts. The decription gives a hint about hot to solve the level. The solution
+is a series of commands that enables the computer to play through the level
+on its own. The solution was not a planned feature at this point in the
+development, but it is a part of the final file format.
 
 \paragraph{Unity problems}
 While it is farily simple to restrict unity to a top-down 2D view, it
 is not so trivial to restrict it to a turnbased format. The update
-fuction was used to move the player and his past selves, but they need
-to move at the exact same time and exactly one tile. With one player
-the controls can be locked, so that no movement commands are accepted,
-before he has moved to the middle of the next tile. When there is more
-than one player, the computer has to move the remaining player
-character. But now locking the controls doesn't solve the problem,
+fuction was used to move the player and the ``past selves", but they need
+to move at the exact same time and exactly one tile.
+
+With one player the controls can be locked, so that no movement commands
+are accepted, before he has moved to the middle of the next tile. When
+there is more than one player, the computer has to move the remaining player
+characters. But now locking the controls doesn't solve the problem,
 because the active player is not the only one, who needs to finish
 moving. If the player moves before all his past selves and crates have
 been moved, the game becomes desynchronized and the game rules can be
 broken. This can partly be solved by making sure that all clones have
 finished, by having all of them notify the turn controller. This make
 the turncontoller and the player script tightly coupled however.
+
+\subsection{Pygame implementation}
+After the file format was established, the need arose to check whether
+a level file was syntatically correct. This required a lot of logic including
+implementation of all the game rules. But if the rules were already there
+it was fairly simple to remake what had already been made in unity.
+
+Pygame and PGU was used as a basis for the GUI, the actual icons were
+also burrowed from this framework, though the majority is self made as
+described in the LICENSES.IMAGES file.
+
+Pygame had the advantage that it was much easier to restrict to a
+turnbased format, because of the lack of an update function. The
+animations where later improved to run in real time while the inputs could 
+be accepted and processed as fast as the user could type. The game state
+would update after each input, while the animation evatually caught up.
+
+With the logic in place, the game could be extended to play itself, given
+a sequence of directions. While this might sound unuseful for a single-
+player game, it enabled us to check a solution by having the computer
+repeat it. This also means that a user can get the correct solution in game
+if they give up.
