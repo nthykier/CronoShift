@@ -12,7 +12,7 @@ either a:
 \item Field - passable
 \item Wall - impassable
 \item Pressure plate (button) - passable
-\item ``One-time button'' - passable
+\item ``One-time pressure plate'' (button) - passable
 \item Gate - state-dependent
 \item ``One-time pass'' - state-dependent
 \end{itemize}
@@ -99,7 +99,7 @@ the player.  The following fields can change during the play:
 
 \begin{itemize}
 \item Pressure plate (button)
-\item ``One-time button''
+\item ``One-time pressure plate''
 \item Gate
 \item ``One-time pass''
 \end{itemize}
@@ -113,10 +113,10 @@ gate is in its starting state and if the number is odd it is in the
   familiar with that term}.
 
 All buttons are activated when a player or crate is on top of them.
-The difference between a ``one-time button'' and a pressure plate is
+The difference between a ``one-time pressure plate'' and a pressure plate is
 that an activated pressure plate will deactivate when nothing is on
-top of it (like a ``dead man's switch'').  A ``one-time button'' can,
-once pressed, never be ``unpressed''.
+top of it (like a ``dead man's switch'').  A ``one-time pressure plate'' can,
+once pressed, never be ``unpressed'' in the future.
 
 A ``one-time pass'' (short for ``one-time passage'') is a field that
 (as the name suggests) can only be passed once.  The passage will
@@ -129,7 +129,7 @@ and it is not allowed to stay on the field either}.
 As the keen reader may already have guessed (or noticed), ``one-time''
 is defined as ``once per time jump'' and not ``once per level''.  When
 performing a time jump, these fields are still reset to their initial
-state.  (See \nameref{time-jumping})
+state (See \nameref{time-jumping}).
 
 
 \figurepng{button-gate-ex}{A small example game with a pressure plate and a closed gate}
@@ -144,9 +144,10 @@ If a ``player self'' gets stuck and is unable to return to start, it
 is not possible to win.  If the player gets stuck in a closed gate or
 a crate, the game will automatically mark the game as lost.
 
-If the player simply manages to ``lock himself/herself into a corner''
-with no path back to start, the game will still continue (despite being
-unsolvable) until the player restarts/gives up.
+If the current ``player self'' simply manages to ``lock
+himself/herself into a corner'' with no path back to start, the game
+will still continue (despite being unsolvable) until the player
+restarts/gives up.
 
 \paragraph{Temporal paradox}
 \label{temporal-paradox}
