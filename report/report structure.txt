@@ -2,13 +2,13 @@ Introduction [done]
 - a short overview of the game, relation to existing games 
  
 Detailed Description of the Game
-- game rules (NT)
+- game rules (NT, needs review)
 - desired features (NT)
 	game elements
 		teleporters
 		shift mechanic
 		"Dance evolution" pile (show movements of other clones)
-- technical challenges (NT, need review)
+- technical challenges (NT, needs review)
 	synchronization
 	non-determanism
 	time paradoxes
@@ -38,8 +38,8 @@ Analysis (Thor, Lørdag aften)
 - discuss the playability of the game (prototype? or theoritical game?). (TBN) 
 - give a summary of feedback from having a few friends play the game. (TBN)
  
-Discussion
-- discuss the evolution of your game concept from your original pitch to the final version. (TBN)
+Discussion (NT, needs review)
+- discuss the evolution of your game concept from your original pitch to the final version.
 	started with shift + chronotron, ended up with sokuban + chronotron
 - what would you do differently if you knew at the start what you know now. 
 
