@@ -105,9 +105,34 @@ and only updates when the models sends an event, usualy as a result
  of some request from the controller. Unity does not seperate view
  and controller, which caused problems for us.
 
-\paragraph{Extensions}
-could be made, now that everything was working. With the logic in place,
+\paragraph{Adding solutions}
+to the levels was one of our desired features. With the logic in place,
 the game could be extended to play itself, given a sequence of directions.
 While this might not sound very useful for a single-player game, it enabled
-us to check a solution by having the computer repeat it. This also means
-that a user can get the correct solution ingame if they give up.
+us to check a solution by having the computer repeat it. This also meant,
+that a user could get the correct solution ingame, if they gave up.
+
+\paragraph{The editor} is one of the major components of the game.
+Because the level is just a text file that the program interprets, new
+levels can easily be introduced or changed. The editor provides an
+environment for people who doesn't know the code to make their own
+levels.
+
+The editor works by loading all fields the game includes into the buttom
+bar, where one can be selected and placed. If the placed field is the
+time-machine or the goal, the program automatically removes any
+previous instance of this field from the level, to ensure the level is
+syntatically correct.
+
+But a level also includes a mapping section between buttons and gates,
+which are the only fields requiring a mapping to another field. This proved
+a bit more difficult to make then simply placing fields. The solution is a
+``none" button, indicating that nothing is selected. This enabled the
+user to click on existing fields without overriding them, and select another
+field to map it to.
+
+The last part, the solution, is added by simply playing the level to the end
+and saving it to the level in the editor with F2. The final result can be saved
+in the editor. There is currently no way to add a hint from the editor.
+
+
