@@ -4,12 +4,12 @@ The game has initially been developed in unity, which is the default development
 Initially the game was supposed to be a fusion between the two games Chronotron and Shift. Shift is a 2D platform game seen from the side where the world is black and white, which can be inverted at the touch of a button. Our game is seen from the top, so this feature is not trivial to implement, and was therefore posponed until the other core mechanics where in place.
 The mechanics were divided into four scripts:\\
 
-\begin{lstlisting}
-Manager: responsible for loading and running the game.
-Turn controller: which moves all the clones each turn and checks for possible paradoxes.
-Player: the script controlling the movement of the player character as well as reading user inputs.
-Past self: which remembers and replays the players previous movements and animates it.
-\end{lstlisting}
+\begin{itemize}
+\item Manager: responsible for loading and running the game.
+\item Turn controller: which moves all the clones each turn and checks for possible paradoxes.
+\item Player: the script controlling the movement of the player character as well as reading user inputs.
+\item Past self: which remembers and replays the players previous movements and animates it.
+\end{itemize}
 
 The first step was to get a movable player, which was done by importing the thirdperson controller script from unity. The player could now be moved around the plane but could not be rotated and more importantly the movement was in real time. If the game was going to be turnbased the player needed to move the same distance each time, so the user could predict the outcome of the movement. A few attempts were made to addapt the thirdperson controller, but in the end it was completely rewritten, since most of it was not needed anyway. \\
 \paragraph {Level generation} At this point the world was still a flat plane, so work began on the manager whose responsibility included loading an actual level. The level is made up of empty tiles walls and interactive objects. To simplify creation of new levels a simple text file format was chosen, which the manager interprets and make a graphical representation of. This way the levels do not need to be hard coded a all and anyone can potentially make new challenges. The following format was chosen for the file.
@@ -92,13 +92,22 @@ also burrowed from this framework, though the majority is self made as
 described in the LICENSES.IMAGES file.
 
 Pygame had the advantage that it was much easier to restrict to a
-turnbased format, because of the lack of an update function. The
+turnbased format, because of an less hardcoded update function. The
 animations where later improved to run in real time while the inputs could 
 be accepted and processed as fast as the user could type. The game state
 would update after each input, while the animation evatually caught up.
 
-With the logic in place, the game could be extended to play itself, given
-a sequence of directions. While this might sound unuseful for a single-
-player game, it enabled us to check a solution by having the computer
-repeat it. This also means that a user can get the correct solution in game
-if they give up.
+We used the model-view-controller structure to seperate the three
+components. This meant that we had more control over when the view
+updated, so it could run independent of the controller. The controller
+handles all the inputs and updates the model. The view is quite passive
+and only updates when the models sends an event, usualy as a result
+ of some request from the controller. Unity does not seperate view
+ and controller, which caused problems for us.
+
+\paragraph{Extensions}
+could be made, now that everything was working. With the logic in place,
+the game could be extended to play itself, given a sequence of directions.
+While this might not sound very useful for a single-player game, it enabled
+us to check a solution by having the computer repeat it. This also means
+that a user can get the correct solution ingame if they give up.
