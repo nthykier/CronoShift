@@ -281,10 +281,9 @@ experience without affecting the game rules.
 \end{itemize}
 
 \subsection{Technical challenges}
-There were some major technical challenges.  Most of them turned out to be
-easier to solve in practise than what was originally expected.
+There were some major technical challenges.
 
-The primary technical challenge was actually levels.  Finding a(n
+The primary technical challenge was actually the levels.  Finding a(n
 optimal) solution to a Sokoban level is already known to be NP-Hard.
 Adding a time machine and extra game mechanics on top of that is
 unlikely to make it any easier to find an optimal solution.
@@ -300,7 +299,14 @@ turned out to be fairly easy in practise, we did spent quite some time
 figuring out all the cases that could introduce non-determinism and
 how to detect them.
 
-In particular the issue of detecting a trapped player, who can still
-move. Because there is an infinite number of valid moves, which can
-still be made, there is no simple way to check if the player is stuck.
+There was also the issue of detecting if the ``current self'' was
+stuck.  While there are some trivial cases that would be ``easy'' to
+detect, in general it will probably be just as hard as solving the
+level.
+
+Argument: Consider a hypothetical level where the ``current self'' can
+make it back to start.  But to do so, the player have to move a number
+of crates on top of regular pressure plates to open just as many
+gates.  This is basically solving a Sokoban level and thus just as
+hard as doing so.
 
