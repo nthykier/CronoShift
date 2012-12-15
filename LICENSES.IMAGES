@@ -8,7 +8,7 @@ Comment: This file describes the license/copyright information for the images
  Images may have been modified (incl. but not limited to resizing, cropping etc.).
 
 Files: image/campfiregate.png images/timemachine.png images/watergate.png images/onetimepassage.png
- images/onetimebutton.png images/coingoal images/stonebutton images/teleporter
+ images/onetimebutton.png images/coingoal.png images/stonebutton.png images/teleporter.png
 Comment: All images are merges between images/tileset.png (see below) and our custom images
 Copyright: 2012, Alexander Bang <bang.alexander@gmail.com>
 License: BSD-2
