@@ -11,11 +11,11 @@ The mechanics were divided into four scripts:\\
 \item Past self: which remembers and replays the players previous movements and animates it.
 \end{itemize}
 
-The first step was to get a movable player, which was done by importing the thirdperson controller script from unity. The player could now be moved around the plane but could not be rotated and more importantly the movement was in real time. If the game was going to be turnbased the player needed to move the same distance each time, so the user could predict the outcome of the movement. A few attempts were made to addapt the thirdperson controller, but in the end it was completely rewritten, since most of it was not needed anyway. \\
-\paragraph {Level generation} At this point the world was still a flat plane, so work began on the manager whose responsibility included loading an actual level. The level is made up of empty tiles walls and interactive objects. To simplify creation of new levels a simple text file format was chosen, which the manager interprets and make a graphical representation of. This way the levels do not need to be hard coded a all and anyone can potentially make new challenges. The following format was chosen for the file.
+The first step was to get a movable player, which was done by importing the thirdperson controller script from unity. The player could now be moved around the plane but could not be rotated and more importantly the movement was in real time. If the game was going to be turnbased the player needed to move the same distance each time, so the user could predict the outcome of the movement. A few attempts were made to addapt the thirdperson controller, but in the end it was completely rewritten, since most of it was not needed anyway.
+
+\paragraph {Level generation} At this point the world was still a flat plane, so work began on the manager whose responsibility included loading an actual level. The level is made up of empty tiles walls and interactive objects. To simplify creation of new levels a simple text file format was chosen, which the manager interprets and make a graphical representation of. This way the levels do not need to be hard coded a all and anyone can potentially make new challenges. This format was chosen for the file \ref{tab:game-object-representation}.
 
 \begin{table}
-\caption{Game object representation}
 \begin{tabular}{|c|c|}
 \hline
 Char & Game object\\
@@ -32,37 +32,40 @@ o & One-time button\\
 p & One-time pass\\
 \hline
 \end{tabular}
+\label{game-object-representation}
+\caption{Game object representation}
 \end{table}
 
-Example of a level file
-
+\begin{table}
 \begin{verbatim}
 2D SuperFun!
-+++++
-+S b+
-++-++
-+   +
-++_++
-+  G+
-+++++
+++++++
++Go- +
++-++ +
++ ++ +
++_S o+
+++++++
 
-button (3, 1) -> gate (2, 2)
-button (3, 1) -> gate (2, 4)
+button (2, 1) -> gate (3, 1)
+button (4, 4) -> gate (1, 2)
+button (4, 4) -> gate (1, 4)
 
-Description: Show that a button can affect more than one gate
- and it is not always enough to just "keep it pressed!".
+Description: If you are stuck, return to start.
 Solution:
- EE HW HH HH HE HW WT
+ EE WW T
  .
- EH SS SS EW NN NN WT
+ WN NN EE ES SS WW T
 \end{verbatim}
+\label{example-level-file}
+\caption{Example level file}
+\end{table}
 
-The first line is simply a magic word (the game didn't have a title at this point).
-After that is the level layout and the mapping between the interactive game
-obejcts. The decription gives a hint about hot to solve the level. The solution
-is a series of commands that enables the computer to play through the level
-on its own. The solution was not a planned feature at this point in the
-development, but it is a part of the final file format.
+In the level format \ref{tab:example-level-file}, the first line is simply a magic word (the game didn't have
+a title at this point). After that is the level layout and the mapping between
+the interactive game obejcts. The decription gives a hint about hot to solve
+the level. The solution is a series of commands that enables the computer to
+play through the level on its own. The solution was not a planned feature at
+this point in the development, but it is a part of the final file format.
 
 \paragraph{Unity problems}
 While it is farily simple to restrict unity to a top-down 2D view, it
@@ -112,11 +115,12 @@ While this might not sound very useful for a single-player game, it enabled
 us to check a solution by having the computer repeat it. This also meant,
 that a user could get the correct solution ingame, if they gave up.
 
+\figurepng{Editor}{The in-game editor}
 \paragraph{The editor} is one of the major components of the game.
 Because the level is just a text file that the program interprets, new
 levels can easily be introduced or changed. The editor provides an
 environment for people who doesn't know the code to make their own
-levels.
+levels.The editor can be seen in figure\ref{fig:Editor}.
 
 The editor works by loading all fields the game includes into the buttom
 bar, where one can be selected and placed. If the placed field is the
@@ -135,4 +139,15 @@ The last part, the solution, is added by simply playing the level to the end
 and saving it to the level in the editor with F2. The final result can be saved
 in the editor. There is currently no way to add a hint from the editor.
 
+\paragraph{Providing help} to the users has driven a lot of the development.
+The first playtests\ref{sec:Play-tests} showed that the game was to difficult,
+or at least hard to understand. Therefore a hint button was added to give
+hint for how to solve the level, but that didn't really explain the game
+rules or the controls. Remaking all levels improved this, though only to a
+certain degree. A help menu was added as a seperate window explaining
+how to use every aspect of the game. Users rarely read the manual, but if
+all else fails they should at least have the oppotunity. The help window is
+shown in figure\ref{fig:HelpMenu}.
+
+\figurepng{HelpMenu}{Help menu}
 
