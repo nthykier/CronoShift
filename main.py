@@ -682,13 +682,14 @@ class Application(gui.Desktop):
         self.game_window.tileset = theme
 
 if __name__ == "__main__":
+    def_campaign = os.path.join(ROOT_DIR, "levels", "campaign.lsf")
     app = Application()
     parser = argparse.ArgumentParser(description="Play ChronoShift levels")
     parser.add_argument('--play-solution', action="store_true", dest="play_solution",
                         default=False, help="Auto-play the solution (level-only)")
     parser.add_argument('--muted', action="store_true", default=False,
                         help="Disable sounds")
-    parser.add_argument('level', action="store", default=None, nargs="?",
+    parser.add_argument('level', action="store", default=def_campaign, nargs="?",
                         help="The level or campaign to play")
     args = parser.parse_args()
 
