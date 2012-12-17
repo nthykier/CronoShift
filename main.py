@@ -349,8 +349,6 @@ class Application(gui.Desktop):
 
         self.group = gui.Group(name='ctrl-mode', value=self._mode)
 
-        print "Mode: %s" % self._mode
-
         play_mode = gui.Tool(self.group, gui.Label("Play-mode"), "play")
         edit_mode = gui.Tool(self.group, gui.Label("Edit-mode"), "edit")
 
