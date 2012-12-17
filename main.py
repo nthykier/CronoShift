@@ -79,7 +79,7 @@ class ScoreTracker(gui.Label):
         if self._score != nscore:
             self._score = nscore
 
-            self.set_text("Score: %.3f, Turn %d/%d, Clone: %d" % nscore)
+            self.set_text("Score: %.3f, Turn %d/%d, Time-line: %d" % nscore)
 
     def reset_score(self):
         self.score = (0, 1, 1, 1)

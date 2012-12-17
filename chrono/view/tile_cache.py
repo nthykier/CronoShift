@@ -40,12 +40,14 @@ import pygame
 class TileCache(object):
     """Load the tilesets lazily into global cache"""
 
-    def __init__(self,  width=32, height=None, resource_dirs=None):
+    def __init__(self,  width=32, height=None, resource_dirs=None,
+                 convert_alpha=True):
         self.resource_dirs = resource_dirs
         if resource_dirs is None:
             self.resource_dirs = [os.getcwd()]
         self.width = width
         self.height = height or width
+        self.convert_alpha = convert_alpha
         self.cache = {}
 
     def __getitem__(self, filename):
@@ -65,7 +67,11 @@ class TileCache(object):
     def _load_tile_table(self, filename, width, height):
         """Load an image and split it into tiles."""
 
-        image = pygame.image.load(filename).convert_alpha()
+        temp = pygame.image.load(filename)
+        if self.convert_alpha:
+            image = temp.convert_alpha()
+        else:
+            image = temp.convert()
         image_width, image_height = image.get_size()
         tile_table = []
         for tile_x in range(0, image_width/width):
