@@ -431,6 +431,11 @@ class Application(gui.Desktop):
                 self.load_level(self.campaign[self.campaign_lvl_no])
 
     def game_event(self, ge):
+        event_text = self.level.get_metadata_raw("tutorial-%s" % ge.event_type)
+        if event_text:
+            title, msg = event_text.split("\n .\n", 1)
+            msg = msg.replace("\n .\n", "\n\n")
+            MessageDialog(msg, title).open()
         if (ge.event_type != "time-jump" and ge.event_type != "end-of-turn" and
               ge.event_type != "game-complete" and ge.event_type != "time-paradox"):
             return

@@ -9,5 +9,10 @@ nothing
 
 Description: Get the coin, and get back in the
  time machine.
+Tutorial-Goal-Obtained: Goal obtained.
+ .
+ Return to the time-machine (start) and enter it.
+ .
+ The default key to enter the time machine is "enter".
 Solution:
  EE SS WW NN T
