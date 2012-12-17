@@ -74,7 +74,7 @@ class Shadow(pygame.sprite.Sprite):
 
     def __init__(self, owner, sprite, pos=None):
         pygame.sprite.Sprite.__init__(self)
-        self.image = sprite
+        self.image = sprite.copy()
         self.image.set_alpha(64)
         self.rect = self.image.get_rect()
         self.owner = owner

@@ -81,6 +81,10 @@ class GameWindow(gui.Widget):
         self._sprite_cache = TileCache(32, 32, resource_dirs=resource_dirs)
         self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
                                    resource_dirs=resource_dirs)
+        # Separate cache for shadows, as convert_alpha() ruins their
+        # transparency.
+        self._shadow_cache = TileCache(32, 32, resource_dirs=resource_dirs,
+                                       convert_alpha=False)
         self._time_sprite = None
         self._clones = {}
         self._gates = {}
@@ -310,7 +314,7 @@ class GameWindow(gui.Widget):
 
     def _new_clone(self, clone):
         sprite = PlayerSprite(clone, self._sprite_cache['player'])
-        shadow = Shadow(sprite, self._sprite_cache["shadow"][0][0])
+        shadow = Shadow(sprite, self._shadow_cache["shadow"][0][0])
         self._clones[clone] = (sprite, shadow)
         self.sprites.add(sprite)
         self.shadows.add(shadow)
