@@ -1,8 +1,15 @@
 \section{Implementation}
 \subsection{Unity implementation}
-The game has initially been developed in unity, which is the default development tool for the course, but for technical reasons it was rewritten in python. This section decribes the inital steps of the development cycle before this change.
-Initially the game was supposed to be a fusion between the two games Chronotron and Shift. Shift is a 2D platform game seen from the side where the world is black and white, which can be inverted at the touch of a button. Our game is seen from the top, so this feature is not trivial to implement, and was therefore posponed until the other core mechanics where in place.
-The mechanics were divided into four scripts:\\
+The game has initially been developed in unity, which is the default development
+tool for the course, but for technical reasons it was rewritten in python. This
+subsection decribes the inital steps of the development cycle before this change.
+
+Initially the game was supposed to be a fusion between the two games
+Chronotron and Shift. Shift is a 2D platform game seen from the side where
+the world is black and white, which can be inverted at the touch of a button.
+Our game is seen from the top, so this feature is not trivial to implement, and
+has therefore been postponed until the other core mechanics have been created.
+The mechanics are divided into four scripts:\\
 
 \begin{itemize}
 \item Manager: responsible for loading and running the game.
@@ -11,9 +18,22 @@ The mechanics were divided into four scripts:\\
 \item Past self: which remembers and replays the players previous movements and animates it.
 \end{itemize}
 
-The first step was to get a movable player, which was done by importing the thirdperson controller script from unity. The player could now be moved around the plane but could not be rotated and more importantly the movement was in real time. If the game was going to be turnbased the player needed to move the same distance each time, so the user could predict the outcome of the movement. A few attempts were made to addapt the thirdperson controller, but in the end it was completely rewritten, since most of it was not needed anyway.
+The first step has been to get a movable player, which have been done by importing the
+thirdperson controller script from unity. The player could now be moved around
+the plane but could not be rotated and more importantly the movement was in
+real time. If the game was going to be turnbased the player needed to move
+the same distance each time, so the user could predict the outcome of the
+movement. A few attempts were made to addapt the thirdperson controller,
+but in the end it was completely rewritten, since most of it was unnecessary.
 
-\paragraph {Level generation} At this point the world was still a flat plane, so work began on the manager whose responsibility included loading an actual level. The level is made up of empty tiles walls and interactive objects. To simplify creation of new levels a simple text file format was chosen, which the manager interprets and make a graphical representation of. This way the levels do not need to be hard coded a all and anyone can potentially make new challenges. This format was chosen for the file \ref{tab:game-object-representation}.
+\paragraph {Level generation} At this point the world was still a flat plane,
+so work began on the manager whose responsibility included loading an actual
+level. The level is made up of empty tiles walls and interactive objects. To
+simplify creation of new levels a simple text file format was chosen, which the
+manager interprets and make a graphical representation of. This way the
+levels do not need to be hard coded at all and anyone can potentially create
+new levels. The format seen in table \ref{tab:game-object-representation}
+was chosen for the file.
 
 \begin{table}
 \begin{tabular}{|c|c|}
@@ -32,8 +52,8 @@ o & One-time button\\
 p & One-time pass\\
 \hline
 \end{tabular}
-\label{game-object-representation}
 \caption{Game object representation}
+\label{tab:game-object-representation}
 \end{table}
 
 \begin{table}
@@ -56,19 +76,20 @@ Solution:
  .
  WN NN EE ES SS WW T
 \end{verbatim}
-\label{example-level-file}
-\caption{Example level file}
+\caption{Example level file.}
+\label{tab:example-level-file}
 \end{table}
 
-In the level format \ref{tab:example-level-file}, the first line is simply a magic word (the game didn't have
-a title at this point). After that is the level layout and the mapping between
-the interactive game obejcts. The decription gives a hint about hot to solve
-the level. The solution is a series of commands that enables the computer to
-play through the level on its own. The solution was not a planned feature at
-this point in the development, but it is a part of the final file format.
+In the level format as seen in table \ref{tab:example-level-file}, the first line
+is simply a magic word (the game did not have a title at this point). After that
+is the level layout and the mapping between the interactive game obejcts.
+The decription gives a hint about how to solve the level. The solution is a
+series of commands that enables the computer to play through the level on
+its own. The solution was not a planned feature at this point in the
+development, but it is a part of the final file format.
 
 \paragraph{Unity problems}
-While it is farily simple to restrict unity to a top-down 2D view, it
+While it is fairly simple to restrict unity to a top-down 2D view, it
 is not so trivial to restrict it to a turnbased format. The update
 fuction was used to move the player and the ``past selves", but they need
 to move at the exact same time and exactly one tile.
@@ -81,50 +102,56 @@ because the active player is not the only one, who needs to finish
 moving. If the player moves before all his past selves and crates have
 been moved, the game becomes desynchronized and the game rules can be
 broken. This can partly be solved by making sure that all clones have
-finished, by having all of them notify the turn controller. This make
-the turncontoller and the player script tightly coupled however.
+finished, by having all of them notify the turn controller. However this makes
+the turncontoller and the player script tightly coupled.
 
 \subsection{Pygame implementation}
 After the file format was established, the need arose to check whether
 a level file was correct. This required a lot of logic including
-implementation of all the game rules. But if the rules were already there
-it was fairly simple to remake what had already been made in unity.
+implementation of all the game rules. But if the rules are already there
+it is fairly simple to remake what have already been made in unity.
 
-Pygame and PGU was used as a basis for the GUI, the actual icons were
-also burrowed from this framework, though the majority is self made as
+Pygame and PGU is used as a basis for the GUI, the actual icons are
+also burrowed from this framework, though the majority is created by us as
 described in the LICENSES.IMAGES file.
 
-Pygame had the advantage that it was much easier to restrict to a
-turnbased format, because of an less hardcoded update function. The
-animations where later improved to run in real time while the inputs could 
-be accepted and processed as fast as the user could type. The game state
-would update after each input, while the animation evatually caught up.
+Pygame has the advantage that it was much easier to restrict to a
+turnbased format, because of a less hardcoded update function. The
+animations have since been improved to run in real time while the inputs can
+be accepted and processed as fast as the user can type. The game state
+will update after each input, while the animation eventually catches up.
 
-We used the model-view-controller structure to seperate the three
+We have used the model-view-controller structure to seperate the three
 components. This meant that we had more control over when the view
-updated, so it could run independent of the controller. The controller
+updated, so it can run independent of the controller. The controller
 handles all the inputs and updates the model. The view is quite passive
 and only updates when the models sends an event, usualy as a result
  of some request from the controller. Unity does not seperate view
- and controller, which caused problems for us.
+ and controller, which have caused problems for us.
 
 \paragraph{Adding solutions}
-to the levels was one of our desired features. With the logic in place,
-the game could be extended to play itself, given a sequence of directions.
-While this might not sound very useful for a single-player game, it enabled
-us to check a solution by having the computer repeat it. This also meant,
-that a user could get the correct solution ingame, if they gave up.
+to the levels is one of our desired features. With the logic in place,
+the game has been extended to play itself, given a sequence of directions.
+While this might not sound very useful for a single-player game, it enables
+us to check a solution by having the computer repeat it. This also means,
+that a user can get the correct solution in-game, if they give up.
 
 \figurepng{Editor}{The in-game editor}
-\paragraph{The editor} is one of the major components of the game.
-Because the level is just a text file that the program interprets, new
-levels can easily be introduced or changed. The editor provides an
-environment for people who does not know the code to make their own
-levels.The editor can be seen in figure \ref{fig:Editor}.
+\paragraph{The editor}
+is one of the major components of the game. Because the level is just
+a text file that the program interprets, new levels can easily be
+introduced or changed. The editor provides an environment for people
+who does not know the code to make their own levels.The editor can
+be seen in figure \ref{fig:Editor}.
 
 One of the big problems when making levels, is translating the abstract
 symbols from the textfile to the actual visual representation of the level.
 The editor solves this problem, by adding a layer the user can understand.
+For comparison, the text representation of a level is seen in table
+\ref{tab:example-level-file}, while graphical representation of the same
+is displayed in figure \ref{fig:LevelExample}. 
+
+\figurepng{LevelExample}{Level Example}
 
 The editor works by loading all fields the game includes into the
 buttom bar, where one can be selected and placed. If the placed field
@@ -152,7 +179,7 @@ by a number is put in front of the number the editor resizes relative to the
 current size.
 
 \paragraph{Providing help} to the users has driven a lot of the development.
-The first playtests \ref{sec:playtests} showed that the game was to difficult,
+The first playtests, see section \ref{sec:playtests}, showed that the game was to difficult,
 or at least hard to understand. Therefore a hint button was added to give
 hint for how to solve the level, but that didn't really explain the game
 rules or the controls. Remaking all levels improved this, though only to a
