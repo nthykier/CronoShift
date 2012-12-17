@@ -709,7 +709,6 @@ class Application(gui.Desktop):
         self.game_window.tileset = theme
 
 if __name__ == "__main__":
-    def_campaign = os.path.join(ROOT_DIR, "levels", "campaign.lsf")
     app = Application()
     parser = argparse.ArgumentParser(description="Play ChronoShift levels")
     parser.add_argument('--play-solution', action="store_true", dest="play_solution",
@@ -719,7 +718,7 @@ if __name__ == "__main__":
     parser.add_argument('--editor', action="store_true", default=False,
                         help="Start up in editor mode")
 
-    parser.add_argument('level', action="store", default=def_campaign, nargs="?",
+    parser.add_argument('level', action="store", default=None, nargs="?",
                         help="The level or campaign to play")
     args = parser.parse_args()
 
@@ -728,6 +727,9 @@ if __name__ == "__main__":
         app.mode = "edit"
     else:
         app.mode = "play"
+        # Auto-load campaign.lsf in game-mode
+        if args.level is None:
+            args.level = os.path.join(ROOT_DIR, "levels", "campaign.lsf")
 
     if args.level:
         # Load the level - we have to wait for the init event before
