@@ -281,6 +281,7 @@ class Application(gui.Desktop):
         self.edit_level = None
         self.level = None
         self.auto_play = None
+        self.group = None
         self.skip_till_time_jump = gui.Switch(value=False)
         self.skip_till_time_jump.connect(gui.CHANGE, self.toggle_auto_finish)
         self.game_window = GameWindow(resource_dirs=[ROOT_DIR])
@@ -291,9 +292,6 @@ class Application(gui.Desktop):
         self.edit_ctrl = None
         self.edit_mctrl = EditMouseController(self.game_window)
 
-        self.ctrl_widget.key_ctrl = self.play_ctrl
-        self.ctrl_widget.mouse_ctrl = self.play_mctrl
-        self.ctrl_widget.mouse_ctrl.active = True
         level_dir  = os.path.join(ROOT_DIR, "levels")
         self.open_campaign_d = EnhancedFileDialog(title_txt="Start Campaign",
                                                   button_txt="Start Campaign",
@@ -349,10 +347,11 @@ class Application(gui.Desktop):
         play_ctrls = make_game_ctrls(self, width=640, height=490 - from_top)
         edit_ctrls = make_edit_ctrls(self, width=640, height=490 - from_top)
 
-        self.group = gui.Group(name='ctrl-mode', value="play")
+        self.group = gui.Group(name='ctrl-mode', value=self._mode)
 
-        play_mode_label = gui.Label("Play-mode")
-        play_mode = gui.Tool(self.group, play_mode_label, "play")
+        print "Mode: %s" % self._mode
+
+        play_mode = gui.Tool(self.group, gui.Label("Play-mode"), "play")
         edit_mode = gui.Tool(self.group, gui.Label("Edit-mode"), "edit")
 
         c.add(play_mode, spacer, from_top)
@@ -363,7 +362,18 @@ class Application(gui.Desktop):
 
         from_top += play_mode.rect.h + spacer
 
-        w = gui.ScrollArea(play_ctrls)
+        # edit-mode has no key ctrl, so always init this to play_ctrl
+        self.ctrl_widget.key_ctrl = self.play_ctrl
+
+        if app.mode == "play":
+            w = gui.ScrollArea(play_ctrls)
+            self.ctrl_widget.mouse_ctrl = self.play_mctrl
+            self.ctrl_widget.mouse_ctrl.active = True
+        else:
+            w = gui.ScrollArea(edit_ctrls)
+            self.ctrl_widget.mouse_ctrl = self.edit_mctrl
+            self.ctrl_widget.mouse_ctrl.active = True
+
 
         def switch_mode():
             self._mode = self.group.value
@@ -396,7 +406,10 @@ class Application(gui.Desktop):
 
     @mode.setter
     def mode(self, val):
-        self.group.value = val
+        if self.group:
+            self.group.value = val
+        else:
+            self._mode = val
 
     def reset_clone(self, *args):
         if self.auto_play:
@@ -689,11 +702,19 @@ if __name__ == "__main__":
                         default=False, help="Auto-play the solution (level-only)")
     parser.add_argument('--muted', action="store_true", default=False,
                         help="Disable sounds")
+    parser.add_argument('--editor', action="store_true", default=False,
+                        help="Start up in editor mode")
+
     parser.add_argument('level', action="store", default=def_campaign, nargs="?",
                         help="The level or campaign to play")
     args = parser.parse_args()
 
     app.muted = args.muted
+    if args.editor:
+        app.mode = "edit"
+    else:
+        app.mode = "play"
+
     if args.level:
         # Load the level - we have to wait for the init event before
         if args.level.endswith(".lsf"):
