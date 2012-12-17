@@ -208,6 +208,7 @@ class EditMouseController(MouseController):
         super(EditMouseController, self)._restore_hilights()
         if self.active_pos:
             self._src_hilight = self.game_window.make_hilight(self.active_pos, color="green")
+            self._hilight_related(self.active_pos)
 
     def _remove_all_related_hilights(self):
         super(EditMouseController, self)._remove_all_related_hilights()
