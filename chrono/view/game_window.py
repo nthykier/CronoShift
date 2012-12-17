@@ -404,14 +404,14 @@ class GameWindow(gui.Widget):
 
         self.shadows.update()
 
-        # Don't add shadows to dirty rectangles, as they already fit inside
-        # sprite rectangles.
-        self.shadows.draw(s)
-
-
         # Draw the "animated" background (gates).  These may be dirty even
         # if no actor approcated it (eg. via buttons)
         dirty = self.animated_background.draw(s)
+
+        # Don't add shadows to dirty rectangles, as they already fit inside
+        # sprite rectangles.  But draw them after the animated background
+        # (or the background would hide them)
+        self.shadows.draw(s)
 
         # Draw hilights on top of backgrounds...
         dirty.extend(self.hilights.draw(s))
