@@ -57,6 +57,7 @@ from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController
 from chrono.ctrl.diag import (MessageDialog, SelectFileDialog, NewLevelDialog,
                               simple_file_filter)
+from chrono.ctrl.pgu_diag import EnhancedFileDialog
 from chrono.view.game_window import GameWindow
 from chrono.view.tutorial import Tutorial
 
@@ -293,10 +294,15 @@ class Application(gui.Desktop):
         self.ctrl_widget.key_ctrl = self.play_ctrl
         self.ctrl_widget.mouse_ctrl = self.play_mctrl
         self.ctrl_widget.mouse_ctrl.active = True
-        self.open_campaign_d = SelectFileDialog("Campaign file", "Start Campaign",
-                                                "Start Campaign", path_filter=LSF_FILTER)
-        self.open_lvl_d = SelectFileDialog("Open", "Play", "Open level",
-                                           path_filter=LVL_FILTER)
+        level_dir  = os.path.join(ROOT_DIR, "levels")
+        self.open_campaign_d = EnhancedFileDialog(title_txt="Start Campaign",
+                                                  button_txt="Start Campaign",
+                                                  path=level_dir,
+                                                  path_filter=LSF_FILTER)
+        self.open_lvl_d = EnhancedFileDialog(title_txt="Play Level",
+                                             button_txt="Play",
+                                             path=level_dir,
+                                             path_filter=LVL_FILTER)
         self.new_lvl_d = NewLevelDialog()
         self.open_campaign_d.connect(gui.CHANGE, self.load_campaign_action)
         self.open_lvl_d.connect(gui.CHANGE, self.action_open_lvl)
@@ -405,7 +411,7 @@ class Application(gui.Desktop):
             self.level.perform_move('reset-level')
 
     def action_open_lvl(self):
-        self.load_level(self.open_lvl_d.value['fname'].value)
+        self.load_level(self.open_lvl_d.value)
 
     def next_level(self):
         if self.campaign_lvl_no != -1:
@@ -449,7 +455,7 @@ class Application(gui.Desktop):
                 self.auto_play = itertools.repeat("skip-turn")
 
     def load_campaign_action(self):
-        return self.load_campaign(self.open_campaign_d.value['fname'].value)
+        return self.load_campaign(self.open_campaign_d.value)
 
     def load_campaign(self, fname):
         self.auto_play = None
@@ -580,6 +586,9 @@ class Application(gui.Desktop):
         if not self.edit_level:
             return
         d = self.edit_level.name
+        # Keep SelectFileDialog here because that dialog makes it
+        # easier to reuse the file name (which is a way of making
+        # the lack of "save" vs "save as" less painful).
         sld = SelectFileDialog("Save", "Save", "Save level", default_file=d,
                                path_filter=LVL_FILTER)
         sld.connect(gui.CHANGE, self.write_level, sld)
