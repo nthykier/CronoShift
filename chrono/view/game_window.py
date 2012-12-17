@@ -231,7 +231,8 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
             if self._time_sprite is None:
                 self._time_sprite = TimeSprite(field.position,
-                                               self._sprite_cache["clock"])
+                                               self._sprite_cache["clock"],
+                                               c_depth =1)
             else:
                 self._time_sprite.pos = field.position
         if field.symbol == 'G':
