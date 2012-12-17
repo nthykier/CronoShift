@@ -1,8 +1,8 @@
 2D SuperFun!
 +++++++++++++
-+++    +++G++
-+++-c_  o o++
-+++++-++_++++
++++    + pG++
++++-c_  opo++
++++++-++p++++
 +++++     +++
 +++++ +++++++
 +++S  o++++++
@@ -14,7 +14,6 @@
 button (1, 9) -> gate (3, 9)
 button (6, 6) -> gate (3, 2)
 button (8, 2) -> gate (5, 3)
-button (8, 2) -> gate (8, 3)
 button (8, 7) -> gate (8, 8)
 button (10, 2) -> gate (5, 2)
 button (10, 2) -> gate (5, 3)
@@ -28,4 +27,4 @@ Solution:
  .
  EE EW SS SE EE HE EE HH HH HH HH HW WH WW WW WE NN NW WT
  .
- EE NN EE EN NE EN SW WW WN WS SS SS WW T
+ EE NN EE EN NE EN WW SW WN WS SS SS WW T
