@@ -4,9 +4,7 @@ ChronoShift
 ChronoShift is simple turn-based puzzle game, taking ideas from
 [chronotron] [1] and [Sokoban] [2].
 
-This is a school project and thus we cannot accept ideas or
-contributions before we have turned in our project "mid" December
-2012.  After that, I will happily accept ideas and patches.
+Patches and bug fixes welcome.  :)
 
 [1]: http://www.kongregate.com/games/Scarybug/chronotron "chronotron"
 [2]: http://en.wikipedia.org/wiki/Sokoban "Sokoban"
@@ -124,6 +122,9 @@ The scoring rules are:
  * 1 point per skipped turn while the current clone is outside the time machine.
    - 0 points per skipped turn while the current clone is inside the time machine.
  * 1 point for every clone crated (after the first).
+
+The actual scoring displayed to the player is sent through a formula
+to make it drop from 100 towards 0.
 
 
 Instructions (Installing/Setup)
