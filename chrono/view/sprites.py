@@ -144,6 +144,31 @@ class Sprite(pygame.sprite.Sprite):
 
         self.animation.next()
 
+class TimeSprite(Sprite):
+    """Display the clock"""
+
+    def __init__(self, *args, **kwords):
+        super(TimeSprite,self).__init__(*args, **kwords)
+        self.animation = None
+
+    def time_jump_animation(self):
+        for frame in range(len(self.frames[0])):
+            self.image = self.frames[0][frame]
+            yield None
+            yield None
+
+    def update(self, *args):
+        """Run the current animation."""
+
+        if self.animation:
+            try:
+                self.animation.next()
+            except StopIteration:
+                self.animation = None
+        else:
+            self.kill()
+
+
 class MoveableSprite(Sprite):
     """ Display and animate the moveable objects."""
     def __init__(self, pos, frames, c_pos=None, c_depth=None):
