@@ -90,8 +90,6 @@ class Shadow(pygame.sprite.Sprite):
 class Sprite(pygame.sprite.Sprite):
     """Sprite for animated items and base class for Player."""
 
-    is_player = False
-
     def __init__(self, pos, frames, c_pos=None, c_depth=None):
         super(Sprite, self).__init__()
         self.frames = frames
@@ -146,13 +144,37 @@ class Sprite(pygame.sprite.Sprite):
 
         self.animation.next()
 
+class TimeSprite(Sprite):
+    """Display the clock"""
+
+    def __init__(self, *args, **kwords):
+        super(TimeSprite,self).__init__(*args, **kwords)
+        self.animation = None
+
+    def time_jump_animation(self):
+        for frame in range(len(self.frames[0])):
+            self.image = self.frames[0][frame]
+            yield None
+            yield None
+
+    def update(self, *args):
+        """Run the current animation."""
+
+        if self.animation:
+            try:
+                self.animation.next()
+            except StopIteration:
+                self.animation = None
+        else:
+            self.kill()
+
+
 class MoveableSprite(Sprite):
     """ Display and animate the moveable objects."""
     def __init__(self, pos, frames, c_pos=None, c_depth=None):
         Sprite.__init__(self, pos, frames, c_pos=c_pos, c_depth=c_depth)
         self.direction = 0
         self.animation = None
-        self.image = self.frames[0][0]
 
     def do_nothing_animation(self):
         """Fake animation for timing purposes"""
@@ -194,8 +216,6 @@ class MoveableSprite(Sprite):
 
 class PlayerSprite(MoveableSprite):
     """ Display and animate the player character."""
-
-    is_player = True
 
     def __init__(self, player, frames):
         MoveableSprite.__init__(self, player.position, frames)

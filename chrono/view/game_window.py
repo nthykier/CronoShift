@@ -50,7 +50,7 @@ from chrono.view.sprites import (
         make_background, SortedUpdates, Sprite, PlayerSprite,
         Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
         GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos,
-        update_background
+        update_background, TimeSprite
     )
 from chrono.view.tile_cache import TileCache
 
@@ -81,6 +81,7 @@ class GameWindow(gui.Widget):
         self._sprite_cache = TileCache(32, 32, resource_dirs=resource_dirs)
         self.map_cache = TileCache(MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
                                    resource_dirs=resource_dirs)
+        self._time_sprite = None
         self._clones = {}
         self._gates = {}
         self._crates = {}
@@ -100,6 +101,7 @@ class GameWindow(gui.Widget):
             'field-activated': self._field_state_change,
             'field-deactivated': self._field_state_change,
             'time-paradox': self._time_paradox,
+            'time-jump': self._time_jump,
             'game-complete': self._game_complete,
             'end-of-turn': self._end_of_turn,
             'goal-obtained': lambda *x: self.goal.kill(),
@@ -226,8 +228,12 @@ class GameWindow(gui.Widget):
         if field.symbol == 'p':
             ani_bg = Sprite(field.position, self.map_cache['onetimepassage'])
         if field.symbol == 'S':
-            # Highlight the start location
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
+            if self._time_sprite is None:
+                self._time_sprite = TimeSprite(field.position,
+                                               self._sprite_cache["clock"])
+            else:
+                self._time_sprite.pos = field.position
         if field.symbol == 'G':
             ani_bg = Sprite(field.position, self.map_cache['coingoal'])
             self.goal = ani_bg
@@ -319,6 +325,10 @@ class GameWindow(gui.Widget):
 
         self.repaint()
 
+    def _time_jump(self, *args):
+        self._time_sprite.animation = self._time_sprite.time_jump_animation()
+        self.sprites.add(self._time_sprite)
+
     def process_game_events(self):
         if not self._done or self._gevent_queue.empty():
             # if the game event queue is empty just skip the code below.
@@ -381,6 +391,8 @@ class GameWindow(gui.Widget):
         has_animation = lambda x: self._clones[x][0].animation is not None
         active_animation = any(itertools.ifilter(has_animation,
                                                  self._clones))
+        if self._time_sprite and self._time_sprite.animation is not None:
+            active_animation = True
         if not self._done and not active_animation:
             self._done = True
             self.active_animation = False
