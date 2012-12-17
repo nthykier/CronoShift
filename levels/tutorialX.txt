@@ -1,12 +1,13 @@
 2D SuperFun!
-+++++
-+pSp+
-+p+p+
-+pGp+
-+++++
+++++++
++S  o+
++p+-++
++G po+
+++++++
 
-nothing
+button (4, 1) -> gate (3, 2)
+button (4, 3) -> gate (3, 2)
 
-Description: Like a true Indiana Jones.
+Description: Watch out for traps.
 Solution:
- WS SE EN NW T
+ EE EW SS WW NN T

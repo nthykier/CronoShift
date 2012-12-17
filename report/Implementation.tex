@@ -122,6 +122,10 @@ levels can easily be introduced or changed. The editor provides an
 environment for people who does not know the code to make their own
 levels.The editor can be seen in figure \ref{fig:Editor}.
 
+One of the big problems when making levels, is translating the abstract
+symbols from the textfile to the actual visual representation of the level.
+The editor solves this problem, by adding a layer the user can understand.
+
 The editor works by loading all fields the game includes into the
 buttom bar, where one can be selected and placed. If the placed field
 is the time-machine or the goal the program automatically removes any
@@ -138,6 +142,14 @@ without overriding them, and left click another field to map it to.
 The last part, the solution, is added by simply playing the level to the end
 and saving it to the level in the editor with F2. The final result can be saved
 in the editor. There is currently no way to add a hint from the editor.
+
+\paragraph{The resize funtion} in the editor serves multiple puposes. First
+of all it functions as a map generator with configurable sizes. A checkbox
+ensures that the map can also be resized without deleting contents of it.
+Since getting the correct size in the end requires a lot of counting and leads
+to mistakes, the map can also be dynamically resized. If a + or - followed
+by a number is put in front of the number the editor resizes relative to the
+current size.
 
 \paragraph{Providing help} to the users has driven a lot of the development.
 The first playtests \ref{sec:playtests} showed that the game was to difficult,
