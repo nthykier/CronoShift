@@ -10,6 +10,12 @@
 \usepackage{verbatim}
 \usepackage{hyperref}
 \usepackage[font=small,labelfont=bf]{caption}
+\usepackage{titlesec}
+
+\newcommand{\sectionauthor}[1]{
+    \begin{flushleft}\tiny\textit{By #1}\end{flushleft}
+}
+
 
 % Kudos to Rasmus Melgaard (s040873) for the basic template.
 \newcommand{\buildtitle}
@@ -112,6 +118,7 @@ s072425
 \input{analysis}
 \input{discussion}
 \input{future}
+\input{conclusion}
 \input{references}
 
 \input{bibliography}

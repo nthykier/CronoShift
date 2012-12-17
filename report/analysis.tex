@@ -1,4 +1,4 @@
-\section{Game analysis}
+\section{Game analysis} \sectionauthor{T. B. Nielsen}
 This section is devoted to an in-depth quality-in-use assessment of
 Jikiban, where the basic theory and concepts will be lifted from
 several articles taking a scientific approach to game design theory.
@@ -20,7 +20,7 @@ Jikiban as an interactive entertainment system.
 \subsubsection{Playability theory}
 Beyond a broad definition of playability an important dichotomy in
 perspective is put forth by R. Hunicke
-et. Al. \cite{hunicke01-04}. Namely that the designer has the
+et al. \cite{hunicke01-04}. Namely that the designer has the
 diametrically opposite view of the game compared to that of the
 player, this dichotomy is illustrated in figure \ref{fig:MDA}.
 
@@ -34,7 +34,7 @@ player, this dichotomy is illustrated in figure \ref{fig:MDA}.
 \end{itemize}
 
 \figurepng{MDA}{Figure 1: The perspective dichotomy of games.  Source
-is Hunicke et. Al. \cite{hunicke01-04}}
+is Hunicke et al. \cite{hunicke01-04}}
 
 
 Thus the impact on the aesthetics and the dynamics of any implemented
@@ -62,7 +62,7 @@ interaction with said game, see figure
 
 The next sections will explore the different concepts put forth in
 figure \ref{fig:MDA} in the context of Jikiban. Starting from the design
-perspective different methods for evaluating Playability will be
+perspective, the different methods for evaluating Playability will be
 investigated. Then moving onto a player driven view, which will shed
 light on the Player Experience. Lastly the way feedback was used to
 shape the game through playtesting is explained.
@@ -139,7 +139,7 @@ actions by the player. Many game designers thus tend to frontload
 their games with tutorials in order to avoid overwhelming the player.
 Wherein they introduce almost every aspect of the game and often do
 this through text. Counter intuitively this often leads to the player
-often entirely skipping the tutorial for the very reason it was there.
+entirely skipping the tutorial for the very reason it was there.
 
 When designing Jikiban this issue naturally had to be addressed and
 since it is a puzzlegame at its core, one obvious example to follow is
@@ -181,7 +181,7 @@ and the mechanics of the world are just as important to telling the
 story. Narrative, not writing is what we should be talking about.
 \end{quotation}
 
-Thus this topic will be referred to as narrative from here on.
+Thus this topic will be referred to as narrative from here on.\\
 
 In this topic the approach of the old 8-bit era has been taken. The
 narrative is presented through the graphics, the sound and the actions
@@ -189,14 +189,14 @@ taken. The fact that the game is entirely text-less widens the player
 base to include young children. As Jikiban is a puzzlegame at heart,
 the narrative is not an essential part of the experience.
 
-A few things are reinforced though; the light graphics of a little
+A few things are reinforced though; the light aesthetics of a young
 girl wandering around a hedge maze with campfires blocking the way
 looking for gold coins, instills a light tone to the game that anyone
 can enjoy.  Where most games tend to kill off the main player
 character as an emphasis on failure, Jikiban aims for a less gruesome
-appeal. In Jikiban death is replaced by time paradoxes, any ‘death’ of
+appeal. In Jikiban death is replaced by paradoxes, any ‘death’ of
 the player character simply can not have happened. In addition to
-this the turn-based system lends the game a different kind of danger
+this, the turn-based system lends the game a different kind of danger
 in that everything can be deduced, but thinking many turns ahead may
 prove difficult.
 
@@ -215,7 +215,7 @@ You close your eyes and think: What do I find fun? It’s as simple as that.
 This is a common approach in the industry and is a fitting reminder
 that the industry is still young, Hagen called this method
 autobiographical design \cite{hagen10}. Others however, have paved the
-way for an empirical scientific approach. Hunicke et. Al.  proposes a
+way for an empirical scientific approach. Hunicke et al.  proposes a
 framework in which to describe the Player experience of any
 game\cite{hunicke01-04}. These include:
 
@@ -260,7 +260,7 @@ to be monotone. This is in opposition with many puzzle games which
 increase the pace of the music in order to amplify the urgency.
 
 
-\section{Player feedback}
+\section{Player feedback} \sectionauthor{A. Bang and T. B. Nielsen}
 \label{player-feedback}
 As mentioned previously feedback in this project is gathered solely
 through observations during playtesting and subsequent dialog with the
@@ -281,7 +281,7 @@ Since all test subjects have been adult gamer friends of the
 developers, a playtesting method to reduce biases is essential. 
 The playtesting method used during this project is a combination of the method 
 proposed by Sánchez el. Al. \cite{sanchez09} and the method proposed 
-by Portnow et. Al. \cite{portnow}. This approach will not be discussed in detail, 
+by Portnow et al. \cite{portnow}. This approach will not be discussed in detail,
 but provides different preventative measures to minimize the inevitable biases: 
 
 \begin{itemize}
@@ -316,14 +316,14 @@ but provides different preventative measures to minimize the inevitable biases:
   through questions.
 \item Use questionnaires and software hooks to gather metrics, like
   goal efficiency, about the game. A host of these metrics are
-  proposed here \cite{sanchez09}.
+  proposed Sánchez et Al. \cite{sanchez09}.
 \begin{itemize}
 \item These methods were beyond the scope of this project.
 \end{itemize}
 
 \end{itemize}
 
-\subsubsection{Playtests}
+\subsubsection*{Playtests}
 \label{sec:playtests}
 
 Three iterations of playtests were carried out, with interleaved
@@ -341,7 +341,7 @@ noteworthy
 \end{itemize}
 
 The players had trouble understanding the concepts of the game such as
-how the wait function works in the context of multiple player
+how the ``stand still'' function works in the context of multiple player
 copies. Only the active character waits.  However, if the concept of the
 past-selves is not well understood, this is not trivial. It becomes
 odd that the other past-selves move regardless of what the active
@@ -360,7 +360,7 @@ The player often had problems identifying the active player. There
 were nothing to mark which player was actually being moved and the
 other past-selves were hidden when standing on the same spot. The
 result was that the player's timing was ruined forcing him to restart,
-due to a mistake.
+due to a mistake.  This was deemed ``intentional''.
 
 The enormous amount of counting required to get through a level often
 deterred the players from completing it at all. Often they would find
@@ -383,4 +383,5 @@ To accommodate these problems, the hint was hidden behind a button.
 Some of the levels were rewritten to incorporate one time buttons and make
 a more smooth level progression using these. This enabled the gates
 and one-time buttons to be introduced before the ability to go back in
-time.
+time.  The movativation issue was fixed by adding a score system, a
+campaign mode and a sound effect to signify victory.
