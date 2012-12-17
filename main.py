@@ -488,31 +488,47 @@ class Application(gui.Desktop):
     def load_level(self, fname):
         self.auto_play = None
         edit_level = EditableLevel()
+        level = Level()
         try:
             edit_level.load_level(fname)
         except IOError as e:
             self._show_error(str(e), "Cannot load map")
             return
 
+        try:
+            level.init_from_level(edit_level)
+        except (IOError, ValueError) as e:
+            if self.mode != "edit":
+                self._show_error(str(e), "Cannot play map!")
+                return
+            level = None
+
         self._game_state = "stopped"
         self.edit_level = edit_level
-        self.level = Level()
-        self.level.add_event_listener(self.game_event)
-        self.play_ctrl.level = self.level
-        self.play_ctrl.edit_level = edit_level
-        self.play_mctrl.level = self.level
         self.edit_mctrl.level = edit_level
-        sc = functools.partial(self.score.update_score, self.level)
-        self.level.init_from_level(self.edit_level)
-        lvl = self.edit_level
+
+        self.play_ctrl.edit_level = edit_level
+
+        if level:
+            self.level = level
+            self.level.add_event_listener(self.game_event)
+            self.play_ctrl.level = level
+            self.play_mctrl.level = level
+            sc = functools.partial(self.score.update_score, self.level)
+
+        lvl = edit_level
         grid = True
         if self.mode == "play":
-            lvl = self.level
+            lvl = level
             grid = False
+
         self.game_window.use_level(lvl, grid=grid)
-        self.level.add_event_listener(sc)
-        self._game_state = "running"
-        self.level.start()
+        if level:
+            level.add_event_listener(sc)
+            # must be done after game_window.use_level
+            level.start()
+            self._game_state = "running"
+
 
     def _show_error(self, body_msg, title_msg):
         MessageDialog(body_msg, title_msg).open()
