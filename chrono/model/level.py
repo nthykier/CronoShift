@@ -910,6 +910,18 @@ class EditableLevel(BaseLevel):
             del self._crates[position]
             self._emit_event(EditorEvent("remove-crate", source=oldcrate))
 
+        old_field = self.get_field(position)
+        if old_field.is_activation_source:
+            targets = list(old_field.iter_activation_targets())
+            for target in targets:
+                old_field.remove_activation_target(target)
+                self._emit_event(EditorEvent("field-disconnected", source=old_field, target=target))
+        if old_field.is_activation_target:
+            sources = list(old_field.iter_activation_sources())
+            for source in sources:
+                source.remove_activation_target(old_field)
+                self._emit_event(EditorEvent("field-disconnected", source=source, target=old_field))
+
         f = fields[field]()
         f._set_position(position)
         # FIXME handle source and targets
