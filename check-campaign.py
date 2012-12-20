@@ -28,8 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import argparse
+import sys
 
 from chrono.model.campaign import JikibanCampaign
+from chrono.model.level import Level
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check ChronoShift campaigns")
@@ -40,3 +42,11 @@ if __name__ == "__main__":
     for campaign in args.campaigns:
         jc = JikibanCampaign()
         jc.load_campaign(campaign)
+        for lvlfile in jc:
+            lvl = Level()
+            lvl.load_level(lvlfile)
+            try:
+                lvl.check_lvl(require_solution=1)
+            except TimeParadoxError, e:
+                print " ".join(e.args)
+                sys.exit(1)
