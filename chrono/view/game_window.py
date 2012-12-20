@@ -44,7 +44,7 @@ import Queue
 from pgu import gui
 
 from chrono.model.direction import Direction
-from chrono.model.field import Position
+from chrono.model.position import Position
 
 from chrono.view.sprites import (
         make_background, SortedUpdates, Sprite, PlayerSprite,

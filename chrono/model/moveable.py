@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from chrono.model.direction import Direction
-from chrono.model.field import Position
+from chrono.model.position import Position
 
 class Moveable(object):
 

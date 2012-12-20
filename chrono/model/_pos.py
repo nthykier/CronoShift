@@ -40,7 +40,7 @@ import collections
 
 _P = collections.namedtuple('Position', ['x', 'y'])
 
-class Pos(_P):
+class _Pos(_P):
 
     def __str__(self):
         # This looks better...

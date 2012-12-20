@@ -38,7 +38,7 @@ import pygame
 import operator
 import functools
 
-from chrono.model.field import Position
+from chrono.model.position import Position
 from chrono.model.direction import Direction
 
 from chrono.view.tile_cache import TileCache

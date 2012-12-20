@@ -25,7 +25,7 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from chrono.model.position import Pos
+from chrono.model._pos import _Pos
 
 class Direction(object):
 
@@ -36,11 +36,11 @@ class Direction(object):
     NO_ACT = 4
 
     # (0, 0) is NW, (Width, Height) is SE
-    NORTH_DIFF  = Pos(0, -1)
-    EAST_DIFF   = Pos(1, 0)
-    SOUTH_DIFF  = Pos(0, 1)
-    WEST_DIFF   = Pos(-1, 0)
-    NO_ACT_DIFF = Pos(0, 0)
+    NORTH_DIFF  = _Pos(0, -1)
+    EAST_DIFF   = _Pos(1, 0)
+    SOUTH_DIFF  = _Pos(0, 1)
+    WEST_DIFF   = _Pos(-1, 0)
+    NO_ACT_DIFF = _Pos(0, 0)
 
     _DIR_DIFF = (
         NORTH_DIFF,

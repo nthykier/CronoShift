@@ -28,13 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import operator
 
-from chrono.model.position import Pos
+from chrono.model.position import Position
 from chrono.model.direction import Direction
-
-class Position(Pos):
-
-    def dir_pos(self, direction):
-        return self + Direction.dir_update(direction)
 
 class Field(object):
     def __init__(self, symbol, position=None):

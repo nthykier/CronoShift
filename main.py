@@ -51,7 +51,7 @@ if 1:
 from pgu import gui
 
 from chrono.model.campaign import JikibanCampaign
-from chrono.model.field import Position
+from chrono.model.position import Position
 from chrono.model.level import EditableLevel, Level, solution2actions
 from chrono.ctrl.controller import PlayKeyController
 from chrono.ctrl.mouse_ctrl import EditMouseController, MouseController

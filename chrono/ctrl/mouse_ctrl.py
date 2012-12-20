@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import pygame
 import pygame.locals as pg
 
-from chrono.model.field import Position
+from chrono.model.position import Position
 from chrono.view.sprites import gpos2lpos, MAP_TILE_WIDTH, MAP_TILE_HEIGHT
 
 class MouseController(object):
