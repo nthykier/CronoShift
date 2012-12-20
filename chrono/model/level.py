@@ -654,10 +654,11 @@ class Level(BaseLevel):
         first = lambda x: next(iter(x), None)
         solution = self._metadata.get("solution", None)
         for field in self.iter_fields():
-            if field.is_activation_source and \
-                    first(field.iter_activation_targets()) is None:
-                print "W: lvl %s: activator (%s) at %s has no targets" \
-                      % (self.name, field.symbol, str(field.position))
+            if field.is_activation_source:
+                if (field.symbol != 'p' and
+                        first(field.iter_activation_targets()) is None):
+                    print "W: lvl %s: activator (%s) at %s has no targets" \
+                        % (self.name, field.symbol, str(field.position))
             if field.is_activation_target and \
                     first(field.iter_activation_sources()) is None:
                 print "W: lvl %s: activable (%s) at %s has no sources" \
