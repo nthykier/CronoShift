@@ -314,6 +314,13 @@ class GameWindow(gui.Widget):
 
     def _new_clone(self, clone):
         sprite = PlayerSprite(clone, self._sprite_cache['player'])
+        # Ensure the sprite is created at the start location.
+        # - The player may have enqueued a lot of actions, so the model puts
+        #   the clone at its current position.  However, the animation just
+        #   reached the time jump, so the player should see the clone at
+        #   the start location.  As the animation catches up, the clone will
+        #   eventually reach its intented location.
+        sprite.pos = self.level.start_location.position
         shadow = Shadow(sprite, self._shadow_cache["shadow"][0][0])
         self._clones[clone] = (sprite, shadow)
         self.sprites.add(sprite)
