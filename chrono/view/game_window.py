@@ -89,7 +89,6 @@ class GameWindow(gui.Widget):
         self._clones = {}
         self._gates = {}
         self._crates = {}
-        self._done = True
         self.active_animation = False
         self._gevent_seq = []
         self._gevent_queue = Queue.Queue()
@@ -122,8 +121,7 @@ class GameWindow(gui.Widget):
 
     @property
     def pending_animation(self):
-        return (self.active_animation or not self._done
-                or not self._gevent_queue.empty())
+        return self.active_animation or not self._gevent_queue.empty()
 
     @property
     def tileset(self):
@@ -347,7 +345,7 @@ class GameWindow(gui.Widget):
         self.sprites.add(self._time_sprite)
 
     def process_game_events(self):
-        if not self._done or self._gevent_queue.empty():
+        if self.active_animation or self._gevent_queue.empty():
             # if the game event queue is empty just skip the code below.
             return
         try:
@@ -357,7 +355,7 @@ class GameWindow(gui.Widget):
                 if e.event_type not in self._event_handler:
                     continue
                 self._event_handler[e.event_type](e)
-            self._done = False
+            self.active_animation = True
         except Queue.Empty:
             pass # expected
 
@@ -410,8 +408,7 @@ class GameWindow(gui.Widget):
                                                  self._clones))
         if self._time_sprite and self._time_sprite.animation is not None:
             active_animation = True
-        if not self._done and not active_animation:
-            self._done = True
+        if not active_animation:
             self.active_animation = False
 
         self.shadows.update()
