@@ -59,6 +59,7 @@ from chrono.ctrl.diag import (MessageDialog, SelectFileDialog, NewLevelDialog,
                               simple_file_filter)
 from chrono.ctrl.pgu_diag import EnhancedFileDialog
 from chrono.view.game_window import GameWindow
+from chrono.view.tile_icon import TileIcon
 from chrono.view.tutorial import Tutorial
 
 LVL_FILTER = simple_file_filter(lambda x: x.endswith(".txt"))
@@ -103,19 +104,6 @@ class ScoreTracker(gui.Label):
             result = start_score
 
         self.score = (result, t[0] + 1, t[1] + 1, lvl.number_of_clones)
-
-class TileIcon(gui.Widget):
-
-    def __init__(self, image, **kwords):
-        self.surface = image
-        kwords.setdefault("x", 1)
-        kwords.setdefault("y", 1)
-        kwords.setdefault("width", image.get_rect().w + 2)
-        kwords.setdefault("height", image.get_rect().h + 2)
-        super(TileIcon, self).__init__(**kwords)
-
-    def paint(self, s):
-        s.blit(self.surface,  (0, 0))
 
 def make_edit_ctrls(app, width, height):
     c = gui.Container(width=width, height=height)
