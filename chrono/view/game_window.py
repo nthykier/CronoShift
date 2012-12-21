@@ -302,15 +302,20 @@ class GameWindow(gui.Widget):
 
     def _field_state_change(self, event):
         src_pos = event.source.position
+        # determine the new state from the event name.  While it may be tempting
+        # to use the state of the source, the problem is that we may be processing
+        # an "old" event from our queue.  Thus the source may have already changed
+        # state again.  So to make sure the animation looks correct, use the state
+        # at the time of the event and not the source's current state.
+        nstate = 0
+        if event.event_type == "field-activated":
+            nstate = 1
         if src_pos in self._gates:
-            nstate = GATE_CLOSED
-            if event.source.can_enter:
-                nstate = GATE_OPEN
             self._gates[src_pos].state = nstate
         if event.source.symbol == "b" or event.source.symbol == "o" or event.source.symbol == "p":
             b = self.animated_background_sprites[src_pos]
             if b:
-                b.state = int(event.source.activated)
+                b.state = nstate
 
     def _new_clone(self, clone):
         sprite = PlayerSprite(clone, self._sprite_cache['player'])
