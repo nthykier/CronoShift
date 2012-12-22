@@ -866,7 +866,7 @@ class EditableLevel(BaseLevel):
         target = self.get_field(target_pos)
         if not source.is_activation_source:
             return
-        if not target.is_activation_target:
+        if not source.accepts_target(target):
             return
         if source.has_activation_target(target):
             source.remove_activation_target(target)
@@ -925,7 +925,7 @@ class EditableLevel(BaseLevel):
 
         f = fields[field]()
         f._set_position(position)
-        # FIXME handle source and targets
+
         self._lvl[position.x][position.y] = f
         self._emit_event(EditorEvent("replace-tile", source=f))
         if field == 'crate':

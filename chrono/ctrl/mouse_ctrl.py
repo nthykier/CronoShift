@@ -244,17 +244,14 @@ class EditMouseController(MouseController):
             return True
         target = self.level.get_field(lpos)
 
-        if not (target.is_activation_source or target.is_activation_target):
-            return True
-
-        if ((source.is_activation_source and target.is_activation_source) or
-                (source.is_activation_target and target.is_activation_target)):
-            # same kind (i.e both targets or both sources) - ignore
-            return True
-
-        if source.is_activation_target and target.is_activation_source:
-            # swap
+        if not source.accepts_target(target):
+            # Source does not accept target; check if swapping them would work...
+            if not (target.is_activation_source and target.accepts_target(source)):
+                # Nope, stop here
+                return True
+            # Yes, swap
             source, target = target, source
+
         self.level.perform_change("toggle-connection", source.position, target.position)
         return True
 

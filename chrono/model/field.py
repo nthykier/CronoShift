@@ -74,11 +74,27 @@ class Field(object):
     def y(self):
         return self._pos.y
 
+    def accepts_target(self, target):
+        """Query if this field accepts another one as a target
+
+        If a field accepts another one as target, it implies that a
+        call to add_activation_target will generally be successful.
+
+        Returns True if this field accepts the target as a field target.
+        Returns False otherwise.  Fields that do not accepts targets in
+        general will return False for all other fields.
+        """
+        if not self.is_activation_source:
+            return False
+        if not target.is_activation_target:
+            return False
+        return True
+
     def add_activation_target(self, target):
         if not self.is_activation_source:
             raise NotImplementedError("%s is not an activation source" % self.symbol)
-        if not target.is_activation_target:
-            raise ValueError("%s is not an activation target" % self.symbol)
+        if not self.accepts_target(target):
+            raise ValueError("%s does not accept %s as target" % (self.symbol, target.symbol))
 
         self._targets.add(target)
         target._add_source(self)
@@ -86,8 +102,9 @@ class Field(object):
     def remove_activation_target(self, target):
         if not self.is_activation_source:
             raise NotImplementedError("%s is not an activation source" % self.symbol)
-        if not target.is_activation_target:
-            raise ValueError("%s is not an activation target" % self.symbol)
+        # skip the accepts_target here; we permit removal of
+        # "unaccepted" targets.  It shouldn't happen, but if it does
+        # the resulting state is probably better than the initial one.
 
         self._targets.remove(target)
         target._remove_source(self)
