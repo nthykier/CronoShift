@@ -46,13 +46,14 @@ from pgu import gui
 from chrono.model.direction import Direction
 from chrono.model.position import Position
 
+from chrono.view.background import make_background, update_background
 from chrono.view.sprites import (
-        make_background, SortedUpdates, Sprite, PlayerSprite,
-        Shadow, MAP_TILE_WIDTH, MAP_TILE_HEIGHT,
-        GATE_CLOSED, GATE_OPEN, MoveableSprite, gpos2lpos,
-        update_background, TimeSprite
+        SortedUpdates, Sprite, PlayerSprite, Shadow, MoveableSprite,
+        TimeSprite
     )
+
 from chrono.view.tile_cache import TileCache
+from chrono.view.translation import gpos2lpos, MAP_TILE_WIDTH, MAP_TILE_HEIGHT
 
 def _kill_sprite(container, key):
     if key in container:
@@ -222,7 +223,7 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, self.map_cache['campfiregate'])
             self._gates[field.position] = ani_bg
             if field.symbol == '-':
-                ani_bg.state = GATE_CLOSED
+                ani_bg.state = 1
         if field.symbol == 'b':
             ani_bg = Sprite(field.position, self.map_cache['stonebutton'])
         if field.symbol == 'o':

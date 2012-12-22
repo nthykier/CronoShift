@@ -30,7 +30,7 @@ import pygame
 import pygame.locals as pg
 
 from chrono.model.position import Position
-from chrono.view.sprites import gpos2lpos, MAP_TILE_WIDTH, MAP_TILE_HEIGHT
+from chrono.view.translation import gpos2lpos, MAP_TILE_WIDTH, MAP_TILE_HEIGHT
 
 class MouseController(object):
     def __init__(self, game_window, level=None):
