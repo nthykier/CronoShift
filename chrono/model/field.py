@@ -273,22 +273,22 @@ class StartLocation(Field):
 class GoalLocation(Field):
     pass
 
+_SYMBOL2FIELD = {
+    '+': Wall,
+    '-': Gate,
+    '_': Gate,
+    ' ': Field,
+    'c': Field, # crates are always on top of a "field"
+    'b': Button,
+#    'B': <reserved>
+    'o': OneTimeButton,
+    'p': OneTimePassage,
+    'S': StartLocation,
+    'G': GoalLocation,
+}
+
 def parse_field(symbol):
-    if symbol == "+":
-        return Wall(symbol)
-    if symbol == "-" or symbol == "_":
-        return Gate(symbol)
-    if symbol == " " or symbol == "c":
-        # crates are always ontop of a "field"
-        return Field(symbol)
-    if symbol == "b" or symbol == "B":
-        return Button(symbol)
-    if symbol == "o":
-        return OneTimeButton(symbol)
-    if symbol == "p":
-        return OneTimePassage(symbol)
-    if symbol == "S":
-        return StartLocation(symbol)
-    if symbol == "G":
-        return GoalLocation(symbol)
+    constructor = _SYMBOL2FIELD.get(symbol, None)
+    if constructor:
+        return constructor(symbol)
     raise IOError("Unknown symbol %s" % symbol)
