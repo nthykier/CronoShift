@@ -1,0 +1,11 @@
+2D SuperFun!
++++++
++ p +
++S G+
++++++
+
+nothing
+
+Solution:
+ EN SW T
+ NE ES WW T
