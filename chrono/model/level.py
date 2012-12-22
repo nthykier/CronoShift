@@ -186,9 +186,16 @@ class BaseLevel(object):
         return None
 
     def can_enter(self, frompos, destpos):
+        """Determine if destpos can be entered
+
+        Returns True if it is possible to enter destpos from frompos.
+        The two positions are assumed to be adjacent.  Returns False
+        otherwise.
+        """
         return self.get_field(destpos).can_enter
 
     def iter_fields(self):
+        """iterate over all fields in the level"""
         for row in self._lvl:
             for field in row:
                 yield field
@@ -204,6 +211,10 @@ class BaseLevel(object):
         self._handlers.remove(handler)
 
     def init_from_level(self, other):
+        """Initialize level as copy of another level
+
+        Useful for creating a playable instance from an editable instance.
+        """
         self._name = other.name
         self._width = other.width
         self._height = other.height
@@ -219,7 +230,18 @@ class BaseLevel(object):
                 for mt in imap(other2self, of.iter_activation_targets()):
                     mf.add_activation_target(mt)
 
-    def load_level(self, fname, infd=None, verbose=1):
+    def load_level(self, fname, infd=None):
+        """Init level from description stored in a file
+
+        Inits the level from a file or file descriptor.  If infd is
+        not None, it is assumed to be a readable file descriptor.  In
+        this case fname is used as the name of the descriptor (in case
+        of errors).  Otherwise, fname is assumed to be the path to the
+        file, which will be opened and read.
+
+        Raises IOError in case of errors.
+        """
+
         self._name = fname
         if infd is not None:
             lineiter = enumerate(_line_reader(infd), 1)
@@ -314,6 +336,18 @@ class BaseLevel(object):
             self._metadata[field] = value
 
     def print_lvl(self, fname, fd=None):
+        """Writes level to file
+
+        Stores the level description to a file.  If fd is not None, it
+        is assumed to be a writeable file descriptor.  Otherwise,
+        fname is assumed to be the name of the file to write to (existing
+        file will be truncated).
+
+        Cannot be used to store the state of a playable level (which
+        will produce incorrect maps if not in its initial state).
+
+        Raises IOErrors in case of issues.
+        """
         if fd is None:
             with open(fname, "w") as outfd:
                 return self.print_lvl(fname, outfd)
@@ -351,6 +385,7 @@ class BaseLevel(object):
                     fd.write("%s: %s\n" % (tcase, self._metadata[key]))
 
 class Level(BaseLevel):
+    """Playable level"""
 
     def __init__(self):
         super(Level, self).__init__()
@@ -649,6 +684,14 @@ class Level(BaseLevel):
                 self._emit_event(GameEvent("jump-moveable", source=c))
 
     def check_lvl(self, verbose=False, require_solution=False):
+        """Check a level for issues
+
+        Writes issues to sys.stdout.  If require_solution is true, a
+        GameError will be raised if the level does not have a
+        solution.  Otherwise, a GameError will be raised if there is
+        a solution but it does not solve the level or triggers a
+        time paradox (or non-determinism).
+        """
         if verbose:
             print "Checking %s ..." % self.name
         first = lambda x: next(iter(x), None)
@@ -774,6 +817,7 @@ class Level(BaseLevel):
             raise TimeParadoxError
 
 class EditableLevel(BaseLevel):
+    """A level that can be edited (but not played)"""
 
     @property
     def name(self):
