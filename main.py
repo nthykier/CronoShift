@@ -305,6 +305,9 @@ class Application(gui.Desktop):
         from_left = spacer
 
         pygame.mixer.init()
+
+        pygame.key.set_repeat(1, 1000)
+
         self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
         self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
         self._audio["background"] = pygame.mixer.Sound("sound/POL-sand-and-water-short_repeat.wav")
