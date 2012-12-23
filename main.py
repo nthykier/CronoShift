@@ -306,7 +306,7 @@ class Application(gui.Desktop):
 
         pygame.mixer.init()
 
-        pygame.key.set_repeat(1, 1000)
+        pygame.key.set_repeat(1, 670)
 
         self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
         self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
