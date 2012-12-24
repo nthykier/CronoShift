@@ -306,7 +306,7 @@ class Application(gui.Desktop):
 
         pygame.mixer.init()
 
-        pygame.key.set_repeat(1, 670)
+        pygame.key.set_repeat() # Disable repeats
 
         self._audio["time-paradox"]  = pygame.mixer.Sound("sound/123921__silencer1337__machinefail.wav")
         self._audio["game-complete"] = pygame.mixer.Sound("sound/90138__pierrecartoons1979__win1.wav")
@@ -370,7 +370,7 @@ class Application(gui.Desktop):
             if self.mode == "play":
                 w.widget = play_ctrls
                 self.ctrl_widget.mouse_ctrl = self.play_mctrl
-                self.ctrl_widget.ctrl = self.play_ctrl
+                self.ctrl_widget.key_ctrl = self.play_ctrl
                 if self.level:
                     self.game_window.use_level(self.level, grid=False)
             else:
@@ -681,6 +681,8 @@ class Application(gui.Desktop):
                 self.play_sound("time-paradox")
                 self.auto_play = None
                 self._show_error(ge.reason, "Time paradox or non-determinism")
+            elif self.mode == "play" and self._game_state == "running":
+                self.ctrl_widget.key_ctrl.tick_event()
 
             # The fcounter is to give a slight delay to auto-playing
             # (else every move happens as fast as possible...)

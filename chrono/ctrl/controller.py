@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 from textwrap import dedent
 
+import pygame
 import pygame.locals as pg
 from pgu import gui
 
@@ -80,6 +81,9 @@ class KeyController(object):
     def controls(self, cmap):
         self._controls = cmap.copy()
 
+    def tick_event(self):
+        pass
+
 
 class PlayKeyController(KeyController):
 
@@ -90,6 +94,7 @@ class PlayKeyController(KeyController):
         self.edit_level = None
         self.view = view
         self.confirm_eot_on_start = True
+        self._key_pressed = None
         self._action2handler = {
             'move-up': self.perform_move,
             'move-down': self.perform_move,
@@ -102,13 +107,30 @@ class PlayKeyController(KeyController):
         }
 
     def event(self, e):
+        if e.type == pg.KEYUP and self._key_pressed == e.key:
+            self._key_pressed = None
         if e.type != pg.KEYDOWN or not self.level:
             return False
+        self._key_pressed = None
         action = self._controls.get(e.key, None)
         l = self.level
         if not action:
             return False
+        if action.startswith("move-"):
+            self._key_pressed = e.key
+
         return self._action2handler[action](action)
+
+    def tick_event(self):
+        if self._key_pressed is not None:
+            if not pygame.key.get_pressed()[self._key_pressed]:
+                self._key_pressed = None
+                return False
+            action = self._controls.get(self._key_pressed, None)
+            if action is None:
+                self._key_pressed = None
+            else:
+                return self._action2handler[action](action)
 
     def perform_move(self, action):
         if not self.level:
