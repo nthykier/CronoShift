@@ -270,9 +270,11 @@ class OneTimePassage(Field):
 class Pallet(Button):
 
     def toggle_activation(self, level):
-        if not level is None and level.get_crate_at(self.position) is not None:
-            #doesn't work crates haven't been moved at this point
-            return super(Pallet, self).toggle_activation(level)
+        if not level is None:
+            if len(level.get_crates_with_target(self.position)) != 0:
+                return super(Pallet, self).toggle_activation(level)
+        else:
+            return super(Pallet, self).toggle_activation()
         activated = False
         return False
 

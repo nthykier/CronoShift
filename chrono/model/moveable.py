@@ -35,6 +35,7 @@ class Moveable(object):
         self._is_player = is_player
         self._is_box = is_crate
         self.position = position
+        self._target = None
 
     def move_direction(self, direction):
         self._position = self._position.dir_pos(direction)
@@ -46,6 +47,14 @@ class Moveable(object):
     @property
     def is_clone(self):
         return self._is_player
+        
+    @property
+    def target(self):
+        return self._target
+    
+    @target.setter
+    def target(self,value):
+        self._target = value
 
 class PlayerClone(Moveable):
 
