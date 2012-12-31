@@ -36,7 +36,7 @@ from chrono.model.direction import Direction
 from chrono.model.moveable import PlayerClone, Crate
 from chrono.model.field import (parse_field, Position, Wall, Field, Gate, Button,
                                 StartLocation, GoalLocation, OneTimeButton,
-                                OneTimePassage)
+                                OneTimePassage,Pallet)
 
 ACTITVATION_REGEX = re.compile(
   r'^button\s+\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*->\s*(\S+)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$'
@@ -426,6 +426,14 @@ class Level(BaseLevel):
             return None
         return self._player
 
+    def get_clones_with_target(self, position):
+        clones_with_target = frozenset(c.target == position for c in self._clones)
+        return clones_with_target
+    
+    def get_crates_with_target(self, position):
+        crates_with_target = frozenset(self.get_crate_at(c).target == position for c in self._crates)
+        return crates_with_target
+    
     def load_level(self, *args, **kwords):
         super(Level, self).load_level(*args, **kwords)
         self._crates_orig = self._crates.copy()
@@ -532,6 +540,7 @@ class Level(BaseLevel):
             if action.startswith("move-"):
                 d = Direction.act2dir(action)
                 pos = clone.position
+                clone.target = clone.position
                 target = pos.dir_pos(d)
                 crate = self.get_crate_at(target)
                 ct = None
@@ -539,6 +548,7 @@ class Level(BaseLevel):
                 succ = True
                 if crate:
                     ct = target.dir_pos(d)
+                    crate.target = target
                     if (not self.get_field(ct).can_enter or self.get_crate_at(ct)
                             or ct in clone_positions):
                         # Crate cannot be moved, push fails.
@@ -548,9 +558,11 @@ class Level(BaseLevel):
                     # Do the action if possible
                     if crate:
                         entered.add(ct)
+                        crate.target = ct
                         unchanged.add(target)
                     else:
                         entered.add(target)
+                    clone.target = target
                     left.add(pos)
                 else:
                     succ = False
@@ -750,7 +762,7 @@ class Level(BaseLevel):
 
     def _changed_targets(self, sources, reset=False):
         changed_targets = set()
-        change_func = lambda x: x.toggle_activation()
+        change_func = lambda x: x.toggle_activation(self)
         if reset:
             change_func = lambda x: x.reset_to_init_state()
 
@@ -898,7 +910,7 @@ class EditableLevel(BaseLevel):
             # only gates have multiple starting states
             return
         if field.activated != new_state:
-            field.toggle_activation()
+            field.toggle_activation(None)
             if new_state:
                 et = "field-activated"
             else:
@@ -928,6 +940,7 @@ class EditableLevel(BaseLevel):
         'button': functools.partial(Button, 'b'),
         'onetimebutton': functools.partial(OneTimeButton, 'o'),
         'onetimepassage': functools.partial(OneTimePassage, 'p'),
+        'pallet': functools.partial(Pallet, 'P'),
         'start': functools.partial(StartLocation, 'S'),
         'goal': functools.partial(GoalLocation, 'G'),
         }

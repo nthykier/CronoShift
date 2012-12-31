@@ -137,7 +137,7 @@ class Field(object):
     def is_wall(self):
         return False
 
-    def toggle_activation(self):
+    def toggle_activation(self, level=None):
         """Toggles the activation of this field
 
         returns True if the state of the field changes (some don't
@@ -149,7 +149,7 @@ class Field(object):
         self._activated = not self._activated
         if self.is_activation_source:
             for t in self._targets:
-                t.toggle_activation()
+                t.toggle_activation(level)
         return True
 
     def reset_to_init_state(self):
@@ -164,7 +164,7 @@ class Field(object):
         """
 
         if self._activated != self._init_state:
-            self.toggle_activation()
+            self.toggle_activation(None)
             return True
         return False
 
@@ -202,7 +202,7 @@ class Gate(Field):
         if self.symbol == "-":
             self._init_state = self._activated = True
 
-    def toggle_activation(self):
+    def toggle_activation(self, level=None):
         self._activated = not self._activated
         if self._activated:
             self._symbol = '-'
@@ -222,10 +222,10 @@ class Button(Field):
 
 class OneTimeButton(Button):
 
-    def toggle_activation(self):
+    def toggle_activation(self, level=None):
         if self.activated:
             return False
-        return super(OneTimeButton, self).toggle_activation()
+        return super(OneTimeButton, self).toggle_activation(level)
 
     def reset_to_init_state(self):
         if self.activated:
@@ -243,7 +243,7 @@ class OneTimePassage(Field):
         super(OneTimePassage, self).__init__(*args, **kwords)
         self._is_source = True
 
-    def toggle_activation(self):
+    def toggle_activation(self, level=None):
         self.stepped_on = True
         return False
 
@@ -267,6 +267,15 @@ class OneTimePassage(Field):
     def can_enter(self):
         return not self.activated
 
+class Pallet(Button):
+
+    def toggle_activation(self, level):
+        if not level is None and level.get_crate_at(self.position) is not None:
+            #doesn't work crates haven't been moved at this point
+            return super(Pallet, self).toggle_activation(level)
+        activated = False
+        return False
+
 class StartLocation(Field):
     pass
 
@@ -283,6 +292,7 @@ _SYMBOL2FIELD = {
 #    'B': <reserved>
     'o': OneTimeButton,
     'p': OneTimePassage,
+    'P': Pallet,
     'S': StartLocation,
     'G': GoalLocation,
 }

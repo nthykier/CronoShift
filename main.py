@@ -137,7 +137,7 @@ def make_edit_ctrls(app, width, height):
     fields = [("none", None, 0, 0), ("field", "tileset", 0, 3),
               ("wall", "tileset", 0, 0), ("gate", "campfiregate", 0, 0),
               ("button", "stonebutton", 0, 0), ("onetimebutton", "onetimebutton", 0, 0),
-              ("onetimepassage", "onetimepassage", 0, 0),
+              ("onetimepassage", "onetimepassage", 0, 0),("pallet","pallet",0,0),
               ("crate",  None, 0, 0), ("start", "timemachine", 0, 0),
               ("goal", "coingoal", 0, 0)]
 

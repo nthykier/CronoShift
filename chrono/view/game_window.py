@@ -230,6 +230,8 @@ class GameWindow(gui.Widget):
             ani_bg = Sprite(field.position, self.map_cache['onetimebutton'])
         if field.symbol == 'p':
             ani_bg = Sprite(field.position, self.map_cache['onetimepassage'])
+        if field.symbol == 'P':
+            ani_bg = Sprite(field.position, self.map_cache['pallet'])
         if field.symbol == 'S':
             ani_bg = Sprite(field.position, self.map_cache['timemachine'])
             if self._time_sprite is None:
